@@ -1,21 +1,46 @@
-pub mod add_instruction_13;
-pub mod and_instruction_6;
-pub mod copy_instruction_0;
-pub mod dynamic_from_copy_instruction_10;
-pub mod dynamic_to_copy_instruction_11;
-pub mod equal_instruction_7;
-pub mod input_instruction_15;
-pub mod invert_instruction_1;
-pub mod jump_if_instruction_12;
-pub mod jump_if_not_instruction_2;
-pub mod jump_instruction_3;
-pub mod jump_variable_instruction_4;
-pub mod not_equal_instruction_14;
-pub mod or_instruction_8;
-pub mod print_chars_instruction_9;
-pub mod print_instruction_5;
+pub mod stack_create_0;
+pub mod stack_up_1;
 
+pub type InstructionCode = u16;
 pub const INSTRUCTION_CODE_LENGTH: usize = 2;
+
+#[macro_export]
+macro_rules! default_instruction_impl {
+    ($name: ident, $caps_name: ident, $code: expr $(, ($arg:ident, $t:ty) )*) => {
+        pub const $caps_name: crate::processing::instructions::InstructionCode = $code;
+
+        impl $name {
+            pub fn new_alloc(memory_manager: &mut crate::memory_manager::MemoryManager, $($arg: $t),*) -> Self {
+                #[allow(unused_mut)]
+                let mut instruction_memory = Vec::with_capacity(Self::get_size());
+                $(instruction_memory.extend($arg.to_le_bytes());
+                )*
+
+                assert_eq!(instruction_memory.len() - crate::processing::instructions::INSTRUCTION_CODE_LENGTH, Self::get_size());
+
+                let address = memory_manager.append(&instruction_memory);
+
+                Self { address }
+            }
+
+            pub fn get_size() -> usize {
+                0 $(+ size_of::<$t>())*
+            }
+
+            #[allow(unused_variables)]
+            pub fn get_debug(pointer: &mut usize, memory: &[u8]) -> String {
+                *pointer += Self::get_size();
+                stringify!($name).to_string()
+            }
+        }
+
+        impl crate::processing::instructions::Instruction for $name {
+            fn get_address(&self) -> usize {
+                self.address
+            }
+        }
+    };
+}
 
 pub trait Instruction {
     /// Returns the address of the instruction in program memory
