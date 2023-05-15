@@ -1,6 +1,6 @@
 use crate::default_instruction_impl;
-use crate::memory_manager::{MemoryManager, RuntimeMemoryManager};
-use crate::util::get_usize;
+
+
 
 pub struct StackUpInstruction {
     address: usize
