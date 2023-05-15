@@ -5,6 +5,7 @@ mod keywords;
 mod literals;
 mod operators;
 mod punctuation;
+mod types;
 
 pub use assigners::Assigner;
 use assigners::AssignerSymbolHandler;
@@ -16,8 +17,8 @@ pub use literals::STRING_DELIMITERS;
 pub use operators::Operator;
 use operators::OperatorSymbolHandler;
 
-pub use super::types::TypeSymbol;
-use super::types::TypeSymbolHandler;
+pub use types::TypeSymbol;
+use types::TypeSymbolHandler;
 
 pub use blocks::Block;
 use blocks::BlockSymbolHandler;
