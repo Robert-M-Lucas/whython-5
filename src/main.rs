@@ -16,7 +16,6 @@ use processing::processor::process_symbols;
 use std::env;
 use std::ffi::OsStr;
 use std::fs;
-use std::mem::size_of;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
@@ -51,7 +50,7 @@ fn wrapped_main(exit: &AtomicBool) {
         "main.why".to_string()
     };
 
-    let mut memory;
+    let memory;
 
     let extension = match Path::new(&input_file).extension().and_then(OsStr::to_str) {
         None => {
