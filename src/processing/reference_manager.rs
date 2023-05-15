@@ -1,4 +1,15 @@
-use crate::processing::types::Type;
+
+pub enum ReferenceType {
+    Variable,
+    Function,
+    Class
+}
+
+pub struct NamedReference {
+    pub name: String,
+    pub reference: ReferenceType
+}
+
 
 #[derive(Default)]
 pub struct ReferenceStack {
@@ -13,32 +24,31 @@ impl ReferenceStack {
     }
 
     /// Registers a variable
-    pub fn register_variable(&mut self, variable: Type, name: String) -> Result<(), String> {
+    pub fn register_reference(&mut self, reference: NamedReference) -> Result<(), String> {
         return self
             .stack
             .last_mut()
             .unwrap()
-            .register_variable(variable, name);
+            .register_reference(reference);
     }
 
     /// Registers a variable at a layer `offset` above the current one
-    pub fn register_variable_with_offset(
+    pub fn register_reference_with_offset(
         &mut self,
-        variable: Type,
-        name: String,
+        reference: NamedReference,
         offset: usize,
     ) -> Result<(), String> {
         let len = self.stack.len();
-        self.stack[(len - 1) - offset].register_variable(variable, name)
+        self.stack[(len - 1) - offset].register_reference(reference)
     }
 
     /// Searches for a variable going up the reference stack
-    pub fn get_variable(&self, name: &str) -> Result<&Type, String> {
+    pub fn get_reference(&self, name: &str) -> Result<&NamedReference, String> {
         //? Go up the stack and search for a variable
         let mut i = self.stack.len() - 1;
         let mut reference_manager = &self.stack[i];
         loop {
-            let r = reference_manager.get_variable(name);
+            let r = reference_manager.get_reference(name);
             if let Some(i) = r {
                 return Ok(i);
             }
@@ -49,8 +59,9 @@ impl ReferenceStack {
             reference_manager = &self.stack[i];
         }
 
-        Err(format!("Variable '{}' not found", name))
+        Err(format!("Reference '{}' not found", name))
     }
+
 
     /// Adds a reference handler (adds a variable scope)
     pub fn add_handler(&mut self) {
@@ -62,40 +73,31 @@ impl ReferenceStack {
         self.stack.pop();
     }
 
-    /*    pub fn start_handler_remove(&mut self) { self.stack_removed = Some(self.stack.pop().unwrap()); }
-
-    pub fn cancel_handler_remove(&mut self) {
-        self.stack.push(self.stack_removed.unwrap());
-        self.stack_removed = None;
-    }
-
-    pub fn complete_handler_removal(&mut self) { self.stack_removed = None; }*/
 }
 
 #[derive(Default)]
 pub struct ReferenceManager {
-    variables: Vec<Type>, // Type, Array Index
+    references: Vec<NamedReference>, // Type, Array Index
 }
 
 impl ReferenceManager {
     pub fn new() -> Self {
         ReferenceManager {
-            variables: Vec::new(),
+            references: Vec::new(),
         }
     }
 
     /// Registers a variable
-    pub fn register_variable(&mut self, mut variable: Type, name: String) -> Result<(), String> {
-        if self.get_variable(name.as_str()).is_some() {
-            return Err(format!("Variable with name '{}' already exists", name));
+    pub fn register_reference(&mut self, reference: NamedReference) -> Result<(), String> {
+        if self.get_reference(reference.name.as_str()).is_some() {
+            return Err(format!("Reference with name '{}' already exists", reference.name));
         }
-        variable.set_name(name);
-        self.variables.push(variable);
+        self.references.push(reference);
         Ok(())
     }
 
     /// Returns the `Some(variable)` if it exists. If not, returns `None`
-    pub fn get_variable(&self, name: &str) -> Option<&Type> {
-        self.variables.iter().find(|&v| *v.get_name() == *name)
+    pub fn get_reference(&self, name: &str) -> Option<&NamedReference> {
+        self.references.iter().find(|&v| *v.name.as_str() == *name)
     }
 }
