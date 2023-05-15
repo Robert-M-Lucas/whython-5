@@ -1,17 +1,13 @@
-pub mod function_block;
-pub mod if_block;
-pub mod while_block;
-
-use crate::processing::processor::MemoryManagers;
-use crate::processing::reference_manager::ReferenceStack;
+use crate::memory_manager::MemoryManager;
+use crate::processing::reference_manager::{NamedReference, ReferenceStack};
 use crate::processing::symbols::Symbol;
-use crate::processing::types::Type;
+
 
 pub trait BlockHandler {
     /// Enter block
     fn on_entry(
         &mut self,
-        memory_managers: &mut MemoryManagers,
+        memory_managers: &mut MemoryManager,
         block_coordinator: &mut ReferenceStack,
         symbol_line: &[Symbol],
     ) -> Result<(), String>;
@@ -21,7 +17,7 @@ pub trait BlockHandler {
     /// Returns `Ok(true)` if block exit is successful
     fn on_exit(
         &mut self,
-        memory_managers: &mut MemoryManagers,
+        memory_managers: &mut MemoryManager,
         reference_stack: &mut ReferenceStack,
         _symbol_line: &[Symbol],
     ) -> Result<bool, String> {
@@ -32,17 +28,17 @@ pub trait BlockHandler {
     /// Force exit
     fn on_forced_exit(
         &mut self,
-        memory_managers: &mut MemoryManagers,
+        memory_managers: &mut MemoryManager,
         block_coordinator: &mut ReferenceStack,
     ) -> Result<(), String>;
 
     /// Break from block e.g. while
-    fn on_break(&mut self, _memory_managers: &mut MemoryManagers) -> Result<bool, String> {
+    fn on_break(&mut self, _memory_managers: &mut MemoryManager) -> Result<bool, String> {
         Ok(false)
     }
 
     /// Continue block e.g. while
-    fn on_continue(&mut self, _memory_managers: &mut MemoryManagers) -> Result<bool, String> {
+    fn on_continue(&mut self, _memory_managers: &mut MemoryManager) -> Result<bool, String> {
         Ok(false)
     }
 }
@@ -68,7 +64,7 @@ impl BlockCoordinator {
     pub fn add_block_handler(
         &mut self,
         mut handler: Box<dyn BlockHandler>,
-        memory_managers: &mut MemoryManagers,
+        memory_managers: &mut MemoryManager,
         symbol_line: &[Symbol],
     ) -> Result<(), String> {
         self.reference_stack.add_handler();
@@ -80,7 +76,7 @@ impl BlockCoordinator {
     /// Break from block e.g. while
     pub fn break_block_handler(
         &mut self,
-        memory_managers: &mut MemoryManagers,
+        memory_managers: &mut MemoryManager,
     ) -> Result<(), String> {
         let mut success = false;
         for h in self.stack.iter_mut().rev() {
@@ -99,7 +95,7 @@ impl BlockCoordinator {
     /// Continue block e.g. while
     pub fn continue_block_handler(
         &mut self,
-        memory_managers: &mut MemoryManagers,
+        memory_managers: &mut MemoryManager,
     ) -> Result<(), String> {
         let mut success = false;
         for h in self.stack.iter_mut().rev() {
@@ -120,7 +116,7 @@ impl BlockCoordinator {
     /// Returns `Ok(true)` if block exit is successful
     pub fn exit_block_handler(
         &mut self,
-        memory_managers: &mut MemoryManagers,
+        memory_managers: &mut MemoryManager,
         symbol_line: &[Symbol],
     ) -> Result<bool, String> {
         if self.stack.is_empty() {
@@ -146,7 +142,7 @@ impl BlockCoordinator {
     /// Force exit
     pub fn force_exit_block_handler(
         &mut self,
-        memory_managers: &mut MemoryManagers,
+        memory_managers: &mut MemoryManager,
     ) -> Result<(), String> {
         if self.stack.is_empty() {
             panic!("Called on_exit when not BlockHandler exists on stack!")
@@ -175,13 +171,13 @@ impl BlockCoordinator {
     }
 
     /// Registers a variable
-    pub fn register_variable(&mut self, variable: Type, name: String) -> Result<(), String> {
-        self.reference_stack.register_variable(variable, name)
+    pub fn register_reference(&mut self, reference: NamedReference) -> Result<(), String> {
+        self.reference_stack.register_reference(reference)
     }
 
     /// Searches for a variable going up the reference stack
-    pub fn get_variable(&self, name: &str) -> Result<&Type, String> {
-        self.reference_stack.get_variable(name)
+    pub fn get_variable(&self, name: &str) -> Result<&NamedReference, String> {
+        self.reference_stack.get_reference(name)
     }
 
     /// Adds a reference handler (adds a variable scope)
