@@ -86,14 +86,14 @@ impl Address {
             },
             Address::StackIndexed(location, offset) => {
                 let mut v = vec![STACK_INDEXED_CODE];
-                v.append(&mut location.get_box().get_bytes());
-                v.append(&mut offset.get_box().get_bytes());
+                v.append(&mut location.get_box_ref().get_bytes());
+                v.append(&mut offset.get_box_ref().get_bytes());
                 v
             },
             Address::HeapIndexed(location, offset) => {
                 let mut v = vec![HEAP_INDEXED_CODE];
-                v.append(&mut location.get_box().get_bytes());
-                v.append(&mut offset.get_box().get_bytes());
+                v.append(&mut location.get_box_ref().get_bytes());
+                v.append(&mut offset.get_box_ref().get_bytes());
                 v
             },
         }
@@ -135,20 +135,20 @@ impl Address {
                 address
             },
             STACK_INDEXED_CODE => {
-                let mut location_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
-                let location = get_usize(&mut location_address.0, memory.get_memory(&location_address.1, location_address.0));
+                let location_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
+                let location = get_usize(&mut location_address.0.clone(), memory.get_memory(&location_address.1, location_address.0));
 
-                let mut offset_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
-                let offset = get_usize(&mut offset_address.0, memory.get_memory(&offset_address.1, offset_address.0));
+                let offset_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
+                let offset = get_usize(&mut offset_address.0.clone(), memory.get_memory(&offset_address.1, offset_address.0));
 
                 (location + (offset * expected_len), MemoryLocation::Stack)
             },
             HEAP_INDEXED_CODE => {
-                let mut location_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
-                let location = get_usize(&mut location_address.0, memory.get_memory(&location_address.1, location_address.0));
+                let location_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
+                let location = get_usize(&mut location_address.0.clone(), memory.get_memory(&location_address.1, location_address.0));
 
-                let mut offset_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
-                let offset = get_usize(&mut offset_address.0, memory.get_memory(&offset_address.1, offset_address.0));
+                let offset_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
+                let offset = get_usize(&mut offset_address.0.clone(), memory.get_memory(&offset_address.1, offset_address.0));
 
                 (location + (offset * expected_len), MemoryLocation::Heap)
             },
