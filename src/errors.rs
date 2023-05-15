@@ -1,5 +1,5 @@
-use crate::processing::symbols::Operator;
-use crate::processing::types::{Type, TypeSymbol};
+use crate::processing::symbols::{Operator, TypeSymbol};
+use crate::processing::types::Type;
 
 /// Takes zero-indexed line
 pub fn create_line_error<T>(error: String, line: usize) -> Result<T, String> {
@@ -17,14 +17,14 @@ pub fn create_line_error<T>(error: String, line: usize) -> Result<T, String> {
 pub fn create_op_not_impl_error<T>(
     operator: &Operator,
     lhs: TypeSymbol,
-    rhs: Option<&Type>,
+    rhs: Option<&dyn Type>,
 ) -> Result<T, String> {
     match rhs {
         Some(rhs) => Err(format!(
             "'{}' operator not implemented for '{}' and '{}'",
             operator,
             lhs,
-            rhs.get_type()
+            rhs.get_type_symbol()
         )),
         None => Err(format!(
             "'{}' operator not implemented for '{}'",
