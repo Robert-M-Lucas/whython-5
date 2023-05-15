@@ -1,8 +1,8 @@
-use std::collections::LinkedList;
+
 use crate::col_println;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
-use crate::memory_manager::{MemoryManager, RuntimeMemoryManager};
+use crate::memory_manager::{RuntimeMemoryManager};
 use crate::processing::instructions::stack_create_0::{STACK_CREATE_INSTRUCTION_CODE, StackCreateInstruction};
 
 /// Executes the compiled program
