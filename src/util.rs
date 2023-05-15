@@ -1,18 +1,25 @@
 use std::io::{stdin, stdout, Read, Write};
 use std::mem::size_of;
 
+#[cfg(target_pointer_width = "64")]
+pub const USIZE_BYTES: usize = 8;
+#[cfg(target_pointer_width = "32")]
+pub const USIZE_BYTES: usize = 4;
+
 /// Gets a `u8` from `memory` at the pointer
-pub fn get_u8(pointer: &usize, memory: &[u8]) -> u8 {
-    u8::from_le_bytes((&memory[*pointer..(*pointer + 1)]).try_into().unwrap())
-}
+// pub fn get_u8(pointer: &usize, memory: &[u8]) -> u8 {
+//     u8::from_le_bytes((&memory[*pointer..(*pointer + 1)]).try_into().unwrap())
+// }
 
 /// Gets a `usize` from `memory` at the pointer
-pub fn get_usize(pointer: &usize, memory: &[u8]) -> usize {
-    usize::from_le_bytes(
-        (&memory[*pointer..(*pointer + size_of::<usize>())])
-            .try_into()
-            .unwrap(),
-    )
+pub fn get_usize(pointer: &mut usize, memory: &[u8]) -> usize {
+    let u = usize::from_le_bytes(
+        (&memory[*pointer..(*pointer + USIZE_BYTES)]).try_into().unwrap()
+    );
+
+    *pointer += USIZE_BYTES;
+
+    u
 }
 
 // /// Evaluates to the `Ok` value or returns `Err(e)`
@@ -33,7 +40,7 @@ pub fn get_usize(pointer: &usize, memory: &[u8]) -> usize {
 ///
 /// # Example
 /// ```
-/// use whython_4::col_println;
+/// use whython_5::col_println;
 ///
 /// col_println!((red, bold), "Sample Text: [{}, {}]", "Text one", "text two");
 /// ```
@@ -61,7 +68,7 @@ macro_rules! col_println {
 ///
 /// # Example
 /// ```
-/// use whython_4::col_print;
+/// use whython_5::col_print;
 ///
 /// col_print!((red, bold), "Sample Text: [{}, {}]", "Text one", "text two");
 /// ```
