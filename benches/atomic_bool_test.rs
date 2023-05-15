@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::sync::atomic::{AtomicBool, Ordering};
-extern crate whython_4;
+extern crate whython_5;
 
 static CTRLC: AtomicBool = AtomicBool::new(false);
 
@@ -10,7 +10,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     })
     .expect("Error setting Ctrl-C handler");
 
-    let mut memory = match whython_4::processing::processor::MemoryManagers::load_from_compiled(
+    let mut memory = match whython_5::processing::processor::MemoryManagers::load_from_compiled(
         "Compiled - 64.cwhy".to_string(),
     ) {
         Err(e) => {
@@ -20,7 +20,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         Ok(value) => value,
     };
     c.bench_function("atomic", |b| {
-        b.iter(|| whython_4::execution::execute(&mut memory, &CTRLC))
+        b.iter(|| whython_5::execution::execute(&mut memory, &CTRLC))
     });
 }
 

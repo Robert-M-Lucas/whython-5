@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use ignore_result::Ignore;
     use std::path::PathBuf;
     use std::sync::atomic::AtomicBool;
+    use ignore_result::Ignore;
     use walkdir::WalkDir;
-    use whython_4::execution::execute;
-    use whython_4::memory_manager::MemoryManager;
-    use whython_4::processing::processor::MemoryManagers;
-    use whython_4::translator::translate;
+    use whython_5::execution::execute;
+    use whython_5::memory_manager::MemoryManager;
+    use whython_5::processing::processor::MemoryManagers;
+    use whython_5::translator::translate;
 
     #[test]
     fn test_instruction_implementation() {
