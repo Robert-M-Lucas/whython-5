@@ -8,10 +8,9 @@ mod translator;
 pub mod util;
 
 use crate::execution::execute;
-use crate::processing::processor::MemoryManagers;
 #[allow(unused_imports)]
 use crate::translator::translate;
-use crate::util::info;
+use crate::util::{info, USIZE_BYTES};
 use processing::preprocessor::convert_to_symbols;
 use processing::processor::process_symbols;
 use std::env;
@@ -21,6 +20,7 @@ use std::mem::size_of;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use crate::memory_manager::{MemoryManager, RuntimeMemoryManager};
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 
@@ -39,8 +39,8 @@ fn wrapped_main(exit: &AtomicBool) {
     info(
         format!(
             "Platform pointer (usize) length: {} [{}-bit]",
-            size_of::<usize>(),
-            usize::BITS
+            USIZE_BYTES,
+            USIZE_BYTES * 8
         )
         .as_str(),
     );
@@ -118,11 +118,11 @@ fn wrapped_main(exit: &AtomicBool) {
             start.elapsed()
         );
 
-        memory.save_to_compiled("Compiled".to_string());
+        memory.save_to_file("Compiled".to_string());
     }
     //? Load compiled file
     else if extension == "cwhy" {
-        memory = match MemoryManagers::load_from_compiled(input_file) {
+        memory = match MemoryManager::load_from_file(input_file) {
             Err(e) => {
                 col_println!((red, bold), "Loading precompiled file failed - {}", e);
                 return;
@@ -139,7 +139,7 @@ fn wrapped_main(exit: &AtomicBool) {
     //? memory.variable_memory.dump_bytes("VariableMemory".to_string());
     //? memory.program_memory.dump_bytes("ProgramMemory".to_string());
 
-    if let Err(e) = execute(&mut memory, exit) {
+    if let Err(e) = execute(&mut RuntimeMemoryManager::from_program_memory(memory), exit) {
         col_println!((red, bold), "Execution failed:\n\t{}", e)
     }
 
