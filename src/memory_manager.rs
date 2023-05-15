@@ -2,8 +2,8 @@ use std::collections::LinkedList;
 use num_format::{Locale, ToFormattedString};
 use std::fs;
 use std::io::Write;
-use std::ops::Index;
-use std::slice::SliceIndex;
+
+use crate::util::USIZE_BYTES;
 
 #[derive(Default)]
 pub struct MemoryManager {
@@ -83,6 +83,48 @@ impl MemoryManager {
             println!("Failed to write to file - {}", r.unwrap_err())
         }
     }
+
+    pub fn save_to_file(&self, name: String) {
+        let name = name + format!(" - {}.cwhy", USIZE_BYTES).as_str();
+
+        println!(
+            "Saving compiled data '{}' [{} bytes]",
+            &name,
+            self.memory.len().to_formatted_string(&Locale::en)
+        );
+
+        let file = fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(name);
+
+        if file.is_err() {
+            println!("Failed to open file - {}", file.unwrap_err());
+            return;
+        }
+
+        let mut file = file.unwrap();
+        let r = file.write_all(&self.memory);
+        if r.is_err() {
+            println!("Failed to write to file - {}", r.unwrap_err())
+        }
+    }
+
+    pub fn load_from_file(path: String) -> Result<Self, String> {
+        println!("Loading precompiled data from file '{}'", &path);
+
+        let data = match fs::read(path) {
+            Err(e) => return Err(e.to_string()),
+            Ok(value) => value,
+        };
+
+        Ok(
+            Self{
+                memory: data
+            }
+        )
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -98,6 +140,13 @@ pub struct StackMemory {
 }
 
 impl StackMemory {
+    pub fn new() -> Self {
+        Self {
+            memory: LinkedList::new(),
+            current_stack: 0
+        }
+    }
+
     pub fn create_stack(&mut self, size: usize, return_addr: usize) {
         self.memory.push_back((vec![0; size], return_addr));
     }
@@ -176,6 +225,14 @@ pub struct RuntimeMemoryManager {
 }
 
 impl RuntimeMemoryManager {
+    pub fn from_program_memory(program_memory: MemoryManager) -> Self {
+        Self {
+            program_memory: program_memory.memory,
+            stack_memory: StackMemory::new(),
+            heap_memory: Vec::new()
+        }
+    }
+
     pub fn program_memory(&self) -> &[u8] {
         &self.program_memory
     }
