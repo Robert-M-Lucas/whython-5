@@ -1,10 +1,13 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool};
 extern crate whython_5;
 
-static CTRLC: AtomicBool = AtomicBool::new(false);
+static _CTRLC: AtomicBool = AtomicBool::new(false);
 
-fn criterion_benchmark(c: &mut Criterion) {
+fn criterion_benchmark(_c: &mut Criterion) {
+    todo!();
+
+    /*
     ctrlc::set_handler(|| {
         CTRLC.store(true, Ordering::Relaxed);
     })
@@ -22,6 +25,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("atomic", |b| {
         b.iter(|| whython_5::execution::execute(&mut memory, &CTRLC))
     });
+    */
 }
 
 criterion_group!(benches, criterion_benchmark);
