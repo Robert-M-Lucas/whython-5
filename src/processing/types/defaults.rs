@@ -18,8 +18,10 @@ macro_rules! default_type_wrapper_struct_and_impl {
 #[macro_export]
 macro_rules! default_type_struct {
     ($type_name: ident) => {
+        #[allow(dead_code)]
         pub struct $type_name {
-            operators: Vec<Box<dyn crate::processing::types::Operation<$type_name>>>
+            operators: Vec<Box<dyn crate::processing::types::Operation<$type_name>>>,
+            address: Option<usize>
         }
     };
 }
@@ -33,7 +35,8 @@ macro_rules! default_type_initialiser {
                     operators: vec![
                         $(Box::new($operator{})
                     )*
-                    ]
+                    ],
+                    address: None
                 }
             }
         }
