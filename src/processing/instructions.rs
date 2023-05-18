@@ -28,8 +28,8 @@ macro_rules! default_instruction_impl {
             }
 
             #[allow(unused_variables)]
-            pub fn get_debug(pointer: &mut usize, memory: &[u8]) -> String {
-                *pointer += Self::get_size();
+            pub fn get_debug(memory: &[u8]) -> String {
+                // *pointer += Self::get_size();
                 stringify!($name).to_string()
             }
         }
