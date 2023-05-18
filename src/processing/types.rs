@@ -1,7 +1,11 @@
 use crate::processing::symbols::{Operator, TypeSymbol};
 
-mod boolean;
-pub use boolean::BoolType;
+use self::boolean::BoolWrapper;
+
+mod defaults;
+pub use defaults::*;
+
+pub mod boolean;
 
 pub trait UninstantiatedType {
     fn instantiate(&self) -> Box<dyn Type>;
@@ -11,7 +15,11 @@ pub trait UninstantiatedType {
 
 pub trait Type {
     fn get_type_symbol(&self) -> TypeSymbol;
+    
+    fn operate(&self, rhs: Box<dyn Type>) -> Result<(), String>;
 }
+
+
 
 pub trait Operation<LHS> {
     fn get_symbol(&self) -> Operator;
@@ -21,3 +29,16 @@ pub trait Operation<LHS> {
     fn operate(&self, lhs: &LHS, rhs: Box<dyn Type>) -> Result<(), String>;
 }
 
+pub struct TypeFactory {
+    uninstantiated_types: Vec<Box<dyn UninstantiatedType>>
+}
+
+impl TypeFactory {
+    pub fn new() -> Self {
+        Self { 
+            uninstantiated_types: vec![
+                Box::new(BoolWrapper{})
+            ]
+        }
+    }
+}
