@@ -1,6 +1,6 @@
 use std::fmt::Formatter;
 use std::fmt::Debug;
-use crate::memory::{MemoryLocation, MemoryManager, RuntimeMemoryManager};
+use crate::memory::{MemoryLocation, RuntimeMemoryManager};
 use crate::util::{get_usize, USIZE_BYTES};
 
 pub struct CloneableBox<T> where T: Clone + Debug {

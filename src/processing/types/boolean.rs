@@ -1,4 +1,4 @@
-use crate::{processing::symbols::{TypeSymbol, Operator}, default_instruction_impl, default_type_wrapper_struct_and_impl, default_type_struct, default_type_initialiser, default_get_type_symbol_impl, default_type_operate_impl};
+use crate::{processing::symbols::{TypeSymbol, Operator}, default_type_wrapper_struct_and_impl, default_type_struct, default_type_initialiser, default_get_type_symbol_impl, default_type_operate_impl};
 
 use super::{Operation, Type};
 
@@ -27,7 +27,7 @@ impl Operation<BoolType> for BoolAnd {
         }
     }
 
-    fn operate(&self, lhs: &BoolType, rhs: Box<dyn Type>) -> Result<(), String> {
+    fn operate(&self, _lhs: &BoolType, _rhs: Box<dyn Type>) -> Result<(), String> {
         todo!()
     }
 }

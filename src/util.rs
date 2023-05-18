@@ -1,5 +1,4 @@
 use std::io::{stdin, stdout, Read, Write};
-use std::mem::size_of;
 
 #[cfg(target_pointer_width = "64")]
 pub const USIZE_BYTES: usize = 8;

@@ -30,13 +30,13 @@ pub trait Operation<LHS> {
 }
 
 pub struct TypeFactory {
-    uninstantiated_types: Vec<Box<dyn UninstantiatedType>>
+    _uninstantiated_types: Vec<Box<dyn UninstantiatedType>>
 }
 
 impl TypeFactory {
     pub fn new() -> Self {
         Self { 
-            uninstantiated_types: vec![
+            _uninstantiated_types: vec![
                 Box::new(BoolWrapper{})
             ]
         }

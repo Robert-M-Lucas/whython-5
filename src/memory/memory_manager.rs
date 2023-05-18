@@ -1,4 +1,3 @@
-use std::collections::LinkedList;
 use num_format::{Locale, ToFormattedString};
 use std::fs;
 use std::io::Write;
