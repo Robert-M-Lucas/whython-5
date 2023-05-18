@@ -10,7 +10,7 @@ macro_rules! default_instruction_impl {
         pub const $caps_name: crate::processing::instructions::InstructionCode = $code;
 
         impl $name {
-            pub fn new_alloc(memory_manager: &mut crate::memory_manager::MemoryManager, $($arg: $t),*) -> Self {
+            pub fn new_alloc(memory_manager: &mut crate::memory::MemoryManager, $($arg: $t),*) -> Self {
                 #[allow(unused_mut)]
                 let mut instruction_memory = Vec::with_capacity(Self::get_size());
                 $(instruction_memory.extend($arg.to_le_bytes());

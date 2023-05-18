@@ -1,4 +1,4 @@
-use crate::memory_manager::MemoryManager;
+use crate::memory::MemoryManager;
 use crate::processing::reference_manager::{NamedReference, ReferenceStack};
 use crate::processing::symbols::Symbol;
 

@@ -1,4 +1,4 @@
-use crate::memory_manager::MemoryManager;
+use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
 use crate::processing::processor::{ProcessingResult};
 use crate::processing::symbols::Symbol;

@@ -2,7 +2,7 @@
 
 mod errors;
 mod execution;
-mod memory_manager;
+mod memory;
 mod processing;
 mod translator;
 pub mod util;
@@ -19,7 +19,7 @@ use std::fs;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
-use crate::memory_manager::{MemoryManager, RuntimeMemoryManager};
+use crate::memory::{MemoryManager, RuntimeMemoryManager};
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 
