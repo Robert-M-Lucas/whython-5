@@ -1,4 +1,8 @@
-macro_rules! _translate {
+use crate::processing::instructions::stack_create_0::StackCreateInstruction;
+use crate::processing::instructions::stack_create_0::STACK_CREATE_INSTRUCTION_CODE;
+use crate::processing::instructions::stack_up_1::{STACK_UP_INSTRUCTION_CODE, StackUpInstruction};
+
+macro_rules! translate {
     ($instruction: ident, $data: expr, $i: expr) => {
         (
             $instruction::get_debug(&$data[$i..$i + $instruction::get_size()]),
@@ -9,26 +13,28 @@ macro_rules! _translate {
 
 
 /// Prints the instructions and their data in the given memory
-pub fn translate(data: &[u8], _translate_one: bool) {
+pub fn translate(data: &[u8], translate_one: bool) {
     println!("<------------------------------>");
-    #[allow(unused_mut)]
     let mut i: usize = 0;
     while i < data.len() {
         print!("[{:0>5}] | ", i);
 
         let code = &data[i..i + 2];
-        // i += 2;
-        let (_output, _size): (String, usize) = match u16::from_le_bytes(code.try_into().unwrap()) {
+        i += 2;
+
+        let (output, size): (String, usize) = match u16::from_le_bytes(code.try_into().unwrap()) {
+            STACK_CREATE_INSTRUCTION_CODE => translate!(StackCreateInstruction, data, i),
+            STACK_UP_INSTRUCTION_CODE => translate!(StackUpInstruction, data, i),
             code => panic!("Debug not implemented for code {}", code),
         };
 
-        // println!("{}", output);
+        println!("{}", output);
 
-        // if _translate_one {
-        //     break;
-        // }
+        if translate_one {
+            break;
+        }
 
-        // i += size;
+        i += size;
     }
     println!("<------------------------------>");
 }
