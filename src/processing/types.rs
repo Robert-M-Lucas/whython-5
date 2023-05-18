@@ -4,6 +4,7 @@ use self::boolean::BoolWrapper;
 
 mod defaults;
 pub use defaults::*;
+use crate::memory::MemoryManager;
 
 pub mod boolean;
 
@@ -15,6 +16,8 @@ pub trait UninstantiatedType {
 
 pub trait Type {
     fn get_type_symbol(&self) -> TypeSymbol;
+
+    fn allocate(&self)
     
     fn operate(&self, rhs: Box<dyn Type>) -> Result<(), String>;
 }
@@ -30,15 +33,23 @@ pub trait Operation<LHS> {
 }
 
 pub struct TypeFactory {
-    _uninstantiated_types: Vec<Box<dyn UninstantiatedType>>
+    uninstantiated_types: Vec<Box<dyn UninstantiatedType>>
 }
 
 impl TypeFactory {
     pub fn new() -> Self {
-        Self { 
-            _uninstantiated_types: vec![
+        Self {
+            uninstantiated_types: vec![
                 Box::new(BoolWrapper{})
             ]
         }
+    }
+
+    pub fn allocate(&self, new_type: TypeSymbol) -> Result<Box<dyn Type>, String> {
+        let Some(wrapper) = self.uninstantiated_types.iter()
+            .find(|t| t.get_type_symbol() == new_type)
+        else { return Err(format!("Type {:?} cannot be instantiated", new_type)); };
+
+        return Ok(wrapper.instantiate());
     }
 }
