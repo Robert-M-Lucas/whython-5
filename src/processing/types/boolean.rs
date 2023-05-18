@@ -1,48 +1,16 @@
-use crate::processing::symbols::{TypeSymbol, Operator};
+use crate::{processing::symbols::{TypeSymbol, Operator}, default_instruction_impl, default_type_wrapper_struct_and_impl, default_type_struct, default_type_initialiser, default_get_type_symbol_impl, default_type_operate_impl};
 
-use super::{UninstantiatedType, Operation, Type};
+use super::{Operation, Type};
 
-pub struct BoolWrapper {}
-
-impl UninstantiatedType for BoolWrapper {
-    fn instantiate(&self) -> Box<dyn Type> {
-        Box::new(BoolType::new())
-    }
-
-    fn get_type_symbol(&self) -> TypeSymbol {
-        TypeSymbol::Boolean
-    }
-}
-
-pub struct BoolType {
-    operators: Vec<Box<dyn Operation<BoolType>>>
-}
-
-impl BoolType {
-    pub fn new() -> Self {
-        Self {
-            operators: vec![
-                Box::new(BoolAnd{})
-            ]
-        }
-    }
-
-    pub fn operate(&self, rhs: Box<dyn Type>) -> Result<(), String> {
-        for operator in self.operators.iter() {
-            if operator.get_result_type(Some(rhs.get_type_symbol())).is_some() {
-                return operator.operate(self, rhs);
-            }
-        }
-
-        Err("Operations not found!".to_string())
-    }
-}
+default_type_wrapper_struct_and_impl!(BoolWrapper, BoolType);
+default_type_struct!(BoolType);
+default_type_initialiser!(BoolType, BoolAnd);
 
 impl Type for BoolType {
-    fn get_type_symbol(&self) -> TypeSymbol {
-        TypeSymbol::Boolean
-    }
+    default_get_type_symbol_impl!(BoolType, TypeSymbol::Boolean);
+    default_type_operate_impl!(BoolType);
 }
+
 
 pub struct BoolAnd {}
 
@@ -52,8 +20,8 @@ impl Operation<BoolType> for BoolAnd {
     }
 
     fn get_result_type(&self, rhs: Option<TypeSymbol>) -> Option<TypeSymbol> {
-        let Some(rhs) = rhs else { return None; };
-        match rhs {
+        // let rhs = rhs?;
+        match rhs? {
             TypeSymbol::Boolean => Some(TypeSymbol::Boolean),
             _ => None
         }
