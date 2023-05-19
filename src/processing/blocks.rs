@@ -43,9 +43,32 @@ pub trait BlockHandler {
     }
 }
 
-#[derive(Default)]
+
+pub struct StackSizes {
+    sizes: Vec<usize>
+}
+
+impl StackSizes {
+    pub fn new() -> Self {
+        Self { sizes: Vec::new() }
+    }
+
+    pub fn add_stack(&mut self) {
+        self.sizes.push(0);
+    }
+
+    pub fn remove_stack(&mut self) {
+        self.sizes.pop();
+    }
+
+    pub fn get_size(&self) -> usize {
+        *self.sizes.last().expect("Tried to get stack size when no stack exists")
+    }
+}
+
 pub struct BlockCoordinator {
     stack: Vec<Box<dyn BlockHandler>>,
+    stack_sizes: StackSizes,
     reference_stack: ReferenceStack,
 }
 
@@ -53,6 +76,7 @@ impl BlockCoordinator {
     pub fn new() -> Self {
         Self {
             stack: Vec::new(),
+            stack_sizes: StackSizes::new(),
             reference_stack: ReferenceStack::new(),
         }
     }
@@ -70,6 +94,7 @@ impl BlockCoordinator {
         self.reference_stack.add_handler();
         let r = handler.on_entry(memory_managers, self.get_reference_stack_mut(), symbol_line);
         self.stack.push(handler);
+        self.stack_sizes.add_stack();
         r
     }
 
@@ -129,10 +154,12 @@ impl BlockCoordinator {
 
         if let Ok(r) = result {
             return if !r {
+                // Cancel stack removing
                 self.stack.push(handler);
                 Ok(false)
             } else {
                 self.reference_stack.remove_handler();
+                self.stack_sizes.remove_stack();
                 Ok(true)
             };
         }
@@ -149,6 +176,7 @@ impl BlockCoordinator {
         }
 
         let mut handler = self.stack.pop().unwrap();
+        self.stack_sizes.remove_stack();
 
         let result = handler.on_forced_exit(memory_managers, self.get_reference_stack_mut());
 
