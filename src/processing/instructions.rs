@@ -1,5 +1,7 @@
 pub mod stack_create_0;
 pub mod stack_up_1;
+pub mod heap_alloc_2;
+pub mod copy_3;
 
 pub type InstructionCode = u16;
 pub const INSTRUCTION_CODE_LENGTH: usize = 2;
@@ -24,12 +26,12 @@ macro_rules! default_instruction_impl {
             }
 
             pub fn get_size() -> usize {
-                0 $(+ size_of::<$t>())*
+                0 $(+ std::mem::size_of::<$t>())*
             }
 
             #[allow(unused_variables)]
-            pub fn get_debug(memory: &[u8]) -> String {
-                // *pointer += Self::get_size();
+            pub fn get_debug(memory: &[u8], pointer: &mut usize) -> String {
+                *pointer += Self::get_size();
                 stringify!($name).to_string()
             }
         }
