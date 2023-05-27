@@ -1,4 +1,3 @@
-use std::mem::size_of;
 use crate::default_instruction_impl;
 use crate::memory::RuntimeMemoryManager;
 use crate::util::get_usize;
