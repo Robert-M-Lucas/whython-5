@@ -71,15 +71,14 @@ impl MemoryManager {
             .create(true)
             .open(name);
 
-        if file.is_err() {
-            println!("Failed to open file - {}", file.unwrap_err());
-            return;
-        }
+        let Ok(mut file) = file
+            else {
+                println!("Failed to open file - {}", file.unwrap_err());
+                return;
+            };
 
-        let mut file = file.unwrap();
-        let r = file.write_all(&self.memory);
-        if r.is_err() {
-            println!("Failed to write to file - {}", r.unwrap_err())
+        if let Err(e) = file.write_all(&self.memory) {
+            println!("Failed to write to file - {}", e)
         }
     }
 
@@ -98,15 +97,14 @@ impl MemoryManager {
             .create(true)
             .open(name);
 
-        if file.is_err() {
-            println!("Failed to open file - {}", file.unwrap_err());
-            return;
-        }
+        let Ok(mut file) = file
+            else {
+                println!("Failed to open file - {}", file.unwrap_err());
+                return;
+            };
 
-        let mut file = file.unwrap();
-        let r = file.write_all(&self.memory);
-        if r.is_err() {
-            println!("Failed to write to file - {}", r.unwrap_err())
+        if let Err(e) = file.write_all(&self.memory) {
+            println!("Failed to write to file - {}", e)
         }
     }
 
