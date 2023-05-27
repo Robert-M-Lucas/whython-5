@@ -6,6 +6,7 @@ mod memory;
 mod processing;
 mod translator;
 pub mod util;
+mod address;
 
 use crate::execution::execute;
 #[allow(unused_imports)]
