@@ -101,7 +101,7 @@ pub fn info(info: &str) {
 #[allow(clippy::unused_io_amount)]
 pub fn pause() {
     let mut stdout = stdout();
-    stdout.write(b"Press enter to exit...").unwrap();
-    stdout.flush().unwrap();
-    stdin().read(&mut [0]).unwrap();
+    stdout.write(b"Press enter to exit...").expect("Stdout write failed");
+    stdout.flush().expect("Stdout flush failed");
+    stdin().read(&mut [0]).expect("Stdin read failed");
 }
