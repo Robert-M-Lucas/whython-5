@@ -1,10 +1,12 @@
-use crate::processing::symbols::{Operator, TypeSymbol};
+use crate::processing::symbols::{Literal, Operator, TypeSymbol};
 
 use self::boolean::BoolWrapper;
 
 mod defaults;
 pub use defaults::*;
+use crate::address::Address;
 use crate::memory::MemoryManager;
+use crate::processing::blocks::{BlockCoordinator, StackSizes};
 
 pub mod boolean;
 
@@ -17,7 +19,13 @@ pub trait UninstantiatedType {
 pub trait Type {
     fn get_type_symbol(&self) -> TypeSymbol;
 
-    fn allocate(&self)
+    fn allocate_variable(&mut self, _stack: &mut StackSizes, _program_memory: &mut MemoryManager, _to_assign: Option<&Literal>) -> Result<(), String> {
+        Err(format!("{:?} cannot be allocated as a variable", self.get_type_symbol()))
+    }
+
+    fn get_constant(&self, _literal: &Literal) -> Result<Address, String> {
+        Err(format!("{:?} cannot be created as a constant", self.get_type_symbol()))
+    }
     
     fn operate(&self, rhs: Box<dyn Type>) -> Result<(), String>;
 }
@@ -45,7 +53,7 @@ impl TypeFactory {
         }
     }
 
-    pub fn allocate(&self, new_type: TypeSymbol) -> Result<Box<dyn Type>, String> {
+    pub fn get_unallocated_type(&self, new_type: TypeSymbol) -> Result<Box<dyn Type>, String> {
         let Some(wrapper) = self.uninstantiated_types.iter()
             .find(|t| t.get_type_symbol() == new_type)
         else { return Err(format!("Type {:?} cannot be instantiated", new_type)); };
