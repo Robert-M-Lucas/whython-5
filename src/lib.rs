@@ -4,3 +4,4 @@ pub mod memory;
 pub mod processing;
 pub mod translator;
 pub mod util;
+pub mod address;
