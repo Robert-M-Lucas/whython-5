@@ -1,4 +1,4 @@
-use crate::processing::symbols::{Operator, TypeSymbol};
+use crate::processing::symbols::{Literal, Operator, TypeSymbol};
 use crate::processing::types::Type;
 
 /// Takes zero-indexed line
@@ -31,4 +31,15 @@ pub fn create_op_not_impl_error<T>(
             operator, lhs
         )),
     }
+}
+
+/// Creates an error explaining that the literal isn't implemented for the assignment of that type
+///
+/// # Error
+/// `'literal' cannot be used to create 'type'`
+pub fn create_literal_not_impl_error<T>(
+    literal: &Literal,
+    type_symbol: TypeSymbol,
+) -> Result<T, String> {
+    Err(format!("{} cannot be used to initialise {}", literal, type_symbol))
 }
