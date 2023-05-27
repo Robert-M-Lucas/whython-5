@@ -4,10 +4,7 @@ use crate::processing::instructions::stack_up_1::{STACK_UP_INSTRUCTION_CODE, Sta
 
 macro_rules! translate {
     ($instruction: ident, $data: expr, $i: expr) => {
-        (
-            $instruction::get_debug(&$data[$i..$i + $instruction::get_size()]),
-            $instruction::get_size(),
-        )
+        $instruction::get_debug(&$data[$i..$i + $instruction::get_size()], &mut $i)
     };
 }
 
@@ -22,7 +19,7 @@ pub fn translate(data: &[u8], translate_one: bool) {
         let code = &data[i..i + 2];
         i += 2;
 
-        let (output, size): (String, usize) = match u16::from_le_bytes(code.try_into().unwrap()) {
+        let output = match u16::from_le_bytes(code.try_into().unwrap()) {
             STACK_CREATE_INSTRUCTION_CODE => translate!(StackCreateInstruction, data, i),
             STACK_UP_INSTRUCTION_CODE => translate!(StackUpInstruction, data, i),
             code => panic!("Debug not implemented for code {}", code),
@@ -33,8 +30,6 @@ pub fn translate(data: &[u8], translate_one: bool) {
         if translate_one {
             break;
         }
-
-        i += size;
     }
     println!("<------------------------------>");
 }
