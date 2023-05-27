@@ -42,10 +42,9 @@ pub enum Address {
     Immediate(Vec<u8>),
     StackDirect(usize),
     StackIndirect(usize),
-    HeapDirect(usize),
-    HeapIndirect(usize),
-    StackIndexed(CloneableBox<Address>, CloneableBox<Address>), // Location, Offset
-    HeapIndexed(CloneableBox<Address>, CloneableBox<Address>) // Location, Offset
+    HeapDirect((usize, usize)),
+    HeapIndirect((usize, usize)),
+    Indexed(CloneableBox<Address>, CloneableBox<Address>), // Location, Offset
 }
 
 const IMMEDIATE_CODE: u8 = 0;
@@ -53,10 +52,31 @@ const STACK_DIRECT_CODE: u8 = 1;
 const STACK_INDIRECT_CODE: u8 = 2;
 const HEAP_DIRECT_CODE: u8 = 3;
 const HEAP_INDIRECT_CODE: u8 = 4;
-const STACK_INDEXED_CODE: u8 = 5;
-const HEAP_INDEXED_CODE: u8 = 6;
+const INDEXED_CODE: u8 = 5;
 
 impl Address {
+    pub fn is_immediate(&self) -> bool {
+        match self {
+            Address::Immediate(_) => true,
+            _ => false
+        }
+    }
+
+    pub fn get_address_size(memory: &[u8], address: usize, expected_len: usize) -> usize {
+        match memory[address] {
+            IMMEDIATE_CODE => 1 + expected_len,
+            STACK_DIRECT_CODE | STACK_INDIRECT_CODE => 1 + USIZE_BYTES,
+            HEAP_DIRECT_CODE | HEAP_INDIRECT_CODE => 1 + (USIZE_BYTES * 2),
+            INDEXED_CODE => {
+                let mut p = address + 1;
+                p += Self::get_address_size(memory, p, USIZE_BYTES);
+                p += Self::get_address_size(memory, p, USIZE_BYTES);
+                p - address
+            },
+            _ => panic!("Invalid address code!")
+        }
+    }
+
     pub fn get_bytes(&self) -> Vec<u8> {
         match self {
             Address::Immediate(data) => {
@@ -76,22 +96,18 @@ impl Address {
             },
             Address::HeapDirect(address) => {
                 let mut v = vec![HEAP_DIRECT_CODE];
-                v.append(&mut Vec::from(address.to_le_bytes()));
+                v.append(&mut Vec::from(address.0.to_le_bytes()));
+                v.append(&mut Vec::from(address.1.to_le_bytes()));
                 v
             },
             Address::HeapIndirect(address) => {
                 let mut v = vec![HEAP_INDIRECT_CODE];
-                v.append(&mut Vec::from(address.to_le_bytes()));
+                v.append(&mut Vec::from(address.0.to_le_bytes()));
+                v.append(&mut Vec::from(address.1.to_le_bytes()));
                 v
             },
-            Address::StackIndexed(location, offset) => {
-                let mut v = vec![STACK_INDEXED_CODE];
-                v.append(&mut location.get_box_ref().get_bytes());
-                v.append(&mut offset.get_box_ref().get_bytes());
-                v
-            },
-            Address::HeapIndexed(location, offset) => {
-                let mut v = vec![HEAP_INDEXED_CODE];
+            Address::Indexed(location, offset) => {
+                let mut v = vec![INDEXED_CODE];
                 v.append(&mut location.get_box_ref().get_bytes());
                 v.append(&mut offset.get_box_ref().get_bytes());
                 v
@@ -134,25 +150,16 @@ impl Address {
 
                 address
             },
-            STACK_INDEXED_CODE => {
+            INDEXED_CODE => {
                 let location_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
                 let location = get_usize(&mut location_address.0.clone(), memory.get_memory(&location_address.1, location_address.0));
 
                 let offset_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
                 let offset = get_usize(&mut offset_address.0.clone(), memory.get_memory(&offset_address.1, offset_address.0));
 
-                (location + (offset * expected_len), MemoryLocation::Stack)
+                (location + (offset * expected_len), location_address.1)
             },
-            HEAP_INDEXED_CODE => {
-                let location_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
-                let location = get_usize(&mut location_address.0.clone(), memory.get_memory(&location_address.1, location_address.0));
-
-                let offset_address = Self::evaluate_address(pointer, &USIZE_BYTES, memory, address_location);
-                let offset = get_usize(&mut offset_address.0.clone(), memory.get_memory(&offset_address.1, offset_address.0));
-
-                (location + (offset * expected_len), MemoryLocation::Heap)
-            },
-            _ => panic!("INVALID ADDRESS CODE")
+            _ => panic!("Invalid address code!")
         }
     }
 }
