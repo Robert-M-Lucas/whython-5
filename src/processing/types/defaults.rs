@@ -21,7 +21,7 @@ macro_rules! default_type_struct {
         #[allow(dead_code)]
         pub struct $type_name {
             operators: Vec<Box<dyn crate::processing::types::Operation<$type_name>>>,
-            address: Option<usize>
+            address: Option<crate::address::Address>
         }
     };
 }
