@@ -1,5 +1,5 @@
 use crate::default_instruction_impl;
-use crate::memory::RuntimeMemoryManager;
+use crate::memory::{MemoryManager, RuntimeMemoryManager};
 use crate::util::get_usize;
 
 pub struct StackCreateInstruction {
@@ -14,5 +14,9 @@ default_instruction_impl!(StackCreateInstruction,
 impl StackCreateInstruction {
     pub fn get_stack_size_and_return_addr(pointer: &mut usize, memory: &RuntimeMemoryManager) -> (usize, usize) {
         (get_usize(pointer, memory.program_memory()), get_usize(pointer, memory.program_memory()))
+    }
+
+    pub fn change_stack_size(&mut self, memory: &mut MemoryManager, new_size: usize) {
+        memory.overwrite(self.address + 1, &new_size.to_le_bytes());
     }
 }
