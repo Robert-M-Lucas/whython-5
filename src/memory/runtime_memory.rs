@@ -53,6 +53,12 @@ impl StackMemory {
     }
 }
 
+impl Default for StackMemory {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct RuntimeMemoryManager {
     program_memory: Vec<u8>,
     stack_memory: StackMemory,
