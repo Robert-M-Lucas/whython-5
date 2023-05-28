@@ -14,11 +14,11 @@ impl<T: Clone + Debug> CloneableBox<T> {
 }
 
 impl<T: Clone + Debug> CloneableBox<T> {
-    pub fn get_box_ref(&self) -> &Box<T> {
-        &self.inner_box
+    pub fn get_ref(&self) -> &T {
+        self.inner_box.as_ref()
     }
 
-    pub fn get_box(self) -> Box<T> {
+    pub fn get(self) -> Box<T> {
         self.inner_box
     }
 }
@@ -56,10 +56,7 @@ const INDEXED_CODE: u8 = 5;
 
 impl Address {
     pub fn is_immediate(&self) -> bool {
-        match self {
-            Address::Immediate(_) => true,
-            _ => false
-        }
+        matches!(self, Address::Immediate(_))
     }
 
     pub fn get_address_size(memory: &[u8], address: usize, expected_len: usize) -> usize {
@@ -108,8 +105,8 @@ impl Address {
             },
             Address::Indexed(location, offset) => {
                 let mut v = vec![INDEXED_CODE];
-                v.append(&mut location.get_box_ref().get_bytes());
-                v.append(&mut offset.get_box_ref().get_bytes());
+                v.append(&mut location.get_ref().get_bytes());
+                v.append(&mut offset.get_ref().get_bytes());
                 v
             },
         }
