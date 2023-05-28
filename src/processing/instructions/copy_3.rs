@@ -1,17 +1,17 @@
 use crate::address::Address;
-use crate::processing::instructions::{Instruction, InstructionCode};
+use crate::processing::instructions::{Instruction, InstructionCodeType};
 use crate::util::get_usize;
 
 pub struct CopyInstruction {
     address: usize
 }
 
-pub const COPY_INSTRUCTION_CODE: InstructionCode = 3;
+pub const COPY_INSTRUCTION_CODE: InstructionCodeType = 3;
 
 impl CopyInstruction {
     pub fn new_alloc(memory_manager: &mut crate::memory::MemoryManager, address_from: &Address, address_to: &Address, size: usize) -> Self {
         if address_to.is_immediate() {
-            panic!("Attempted to create CopyInstruction that overwrites Immediate memory!");
+            panic!("Attempted to create CopyInstruction that overwrites Immediate (program) memory!");
         }
 
         let size_bytes = size.to_le_bytes();
