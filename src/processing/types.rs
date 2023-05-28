@@ -6,7 +6,7 @@ mod defaults;
 pub use defaults::*;
 use crate::address::Address;
 use crate::memory::MemoryManager;
-use crate::processing::blocks::{BlockCoordinator, StackSizes};
+use crate::processing::blocks::{StackSizes};
 
 pub mod boolean;
 
@@ -59,5 +59,11 @@ impl TypeFactory {
         else { return Err(format!("Type {:?} cannot be instantiated", new_type)); };
 
         return Ok(wrapper.instantiate());
+    }
+}
+
+impl Default for TypeFactory {
+    fn default() -> Self {
+        Self::new()
     }
 }
