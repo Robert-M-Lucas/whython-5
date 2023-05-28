@@ -83,7 +83,7 @@ impl MemoryManager {
     }
 
     pub fn save_to_file(&self, name: String) {
-        let name = name + format!(" - {}.cwhy", USIZE_BYTES).as_str();
+        let name = name + format!(" - {}.cwhy", USIZE_BYTES * 8).as_str();
 
         println!(
             "Saving compiled data '{}' [{} bytes]",
