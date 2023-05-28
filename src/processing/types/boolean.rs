@@ -2,7 +2,7 @@ use crate::{processing::symbols::{TypeSymbol, Operator}, default_type_wrapper_st
 use crate::address::Address;
 use crate::errors::create_literal_not_impl_error;
 use crate::memory::MemoryManager;
-use crate::processing::blocks::{BlockCoordinator, StackSizes};
+use crate::processing::blocks::{StackSizes};
 use crate::processing::instructions::copy_3::CopyInstruction;
 use crate::processing::symbols::Literal;
 use crate::util::warn;
