@@ -1,4 +1,7 @@
+pub mod base_block;
+
 use crate::memory::MemoryManager;
+use crate::processing::blocks::base_block::BaseBlock;
 use crate::processing::reference_manager::{NamedReference, ReferenceStack};
 use crate::processing::symbols::Symbol;
 
@@ -7,8 +10,8 @@ pub trait BlockHandler {
     /// Enter block
     fn on_entry(
         &mut self,
-        memory_managers: &mut MemoryManager,
-        block_coordinator: &mut ReferenceStack,
+        memory_manager: &mut MemoryManager,
+        reference_stack: &mut ReferenceStack,
         symbol_line: &[Symbol],
     ) -> Result<(), String>;
 
@@ -17,19 +20,21 @@ pub trait BlockHandler {
     /// Returns `Ok(true)` if block exit is successful
     fn on_exit(
         &mut self,
-        memory_managers: &mut MemoryManager,
+        memory_manager: &mut MemoryManager,
         reference_stack: &mut ReferenceStack,
         _symbol_line: &[Symbol],
+        current_stack_size: usize,
     ) -> Result<bool, String> {
-        self.on_forced_exit(memory_managers, reference_stack)?;
+        self.on_forced_exit(memory_manager, reference_stack, current_stack_size)?;
         Ok(true)
     }
 
     /// Force exit
     fn on_forced_exit(
         &mut self,
-        memory_managers: &mut MemoryManager,
+        memory_manager: &mut MemoryManager,
         block_coordinator: &mut ReferenceStack,
+        current_stack_size: usize,
     ) -> Result<(), String>;
 
     /// Break from block e.g. while
@@ -71,6 +76,13 @@ impl StackSizes {
     }
 }
 
+impl Default for StackSizes {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+
 pub struct BlockCoordinator {
     stack: Vec<Box<dyn BlockHandler>>,
     stack_sizes: StackSizes,
@@ -78,12 +90,17 @@ pub struct BlockCoordinator {
 }
 
 impl BlockCoordinator {
-    pub fn new() -> Self {
-        Self {
+    pub fn new(memory_manager: &mut MemoryManager) -> Self {
+        let mut new = Self {
             stack: Vec::new(),
             stack_sizes: StackSizes::new(),
             reference_stack: ReferenceStack::new(),
-        }
+        };
+
+        // Initialise base block
+        new.add_block_handler(BaseBlock::new_block(), memory_manager, &[]).expect("Base block creation failed");
+
+        new
     }
 
     pub fn get_stack_sizes(&mut self) -> &mut StackSizes {
@@ -156,7 +173,9 @@ impl BlockCoordinator {
 
         let mut handler = self.stack.pop().expect("Called on_exit when not BlockHandler exists on stack!");
 
-        let result = handler.on_exit(memory_managers, self.get_reference_stack_mut(), symbol_line);
+        let stack_size = self.stack_sizes.get_size();
+
+        let result = handler.on_exit(memory_managers, self.get_reference_stack_mut(), symbol_line, stack_size);
 
         if let Ok(r) = result {
             return if !r {
@@ -178,9 +197,12 @@ impl BlockCoordinator {
         memory_managers: &mut MemoryManager,
     ) -> Result<(), String> {
         let mut handler = self.stack.pop().expect("Called on_exit when no BlockHandler exists on stack!");
-        self.stack_sizes.remove_stack();
 
-        let result = handler.on_forced_exit(memory_managers, self.get_reference_stack_mut());
+        let stack_size = self.stack_sizes.get_size();
+
+        let result = handler.on_forced_exit(memory_managers, self.get_reference_stack_mut(), stack_size);
+
+        self.stack_sizes.remove_stack();
 
         result
     }
