@@ -19,7 +19,7 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
             return Ok(());
         }
 
-        return if let Some(symbol) = get_all_symbol(buffer) {
+        if let Some(symbol) = get_all_symbol(buffer) {
             symbol_line.push(symbol);
             buffer.clear();
             Ok(())
