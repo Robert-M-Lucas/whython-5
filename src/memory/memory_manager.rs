@@ -116,10 +116,6 @@ impl MemoryManager {
             Ok(value) => value,
         };
 
-        Ok(
-            Self{
-                memory: data
-            }
-        )
+        Ok(Self { memory: data })
     }
 }

@@ -79,8 +79,7 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
                     return create_line_error(e, line_index);
                 }
             } else {
-                let result =
-                    block_coordinator.exit_block_handler(&mut memory, &symbol_line);
+                let result = block_coordinator.exit_block_handler(&mut memory, &symbol_line);
                 if let Err(e) = result {
                     return create_line_error(e, line_count);
                 }

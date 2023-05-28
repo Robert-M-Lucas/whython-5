@@ -1,6 +1,6 @@
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
-use crate::processing::processor::{ProcessingResult};
+use crate::processing::processor::ProcessingResult;
 use crate::processing::symbols::Symbol;
 
 pub trait LineHandler {

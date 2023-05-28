@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::sync::atomic::{AtomicBool};
+use std::sync::atomic::AtomicBool;
 extern crate whython_5;
 
 static _CTRLC: AtomicBool = AtomicBool::new(false);

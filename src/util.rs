@@ -13,7 +13,9 @@ pub const USIZE_BYTES: usize = 4;
 /// Gets a `usize` from `memory` at the pointer
 pub fn get_usize(pointer: &mut usize, memory: &[u8]) -> usize {
     let u = usize::from_le_bytes(
-        (&memory[*pointer..(*pointer + USIZE_BYTES)]).try_into().unwrap()
+        (&memory[*pointer..(*pointer + USIZE_BYTES)])
+            .try_into()
+            .unwrap(),
     );
 
     *pointer += USIZE_BYTES;
@@ -101,7 +103,9 @@ pub fn info(info: &str) {
 #[allow(clippy::unused_io_amount)]
 pub fn pause() {
     let mut stdout = stdout();
-    stdout.write(b"Press enter to exit...").expect("Stdout write failed");
+    stdout
+        .write(b"Press enter to exit...")
+        .expect("Stdout write failed");
     stdout.flush().expect("Stdout flush failed");
     stdin().read(&mut [0]).expect("Stdin read failed");
 }

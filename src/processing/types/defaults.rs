@@ -21,7 +21,7 @@ macro_rules! default_type_struct {
         #[allow(dead_code)]
         pub struct $type_name {
             operators: Vec<Box<dyn $crate::processing::types::Operation<$type_name>>>,
-            address: Option<$crate::address::Address>
+            address: Option<$crate::address::Address>,
         }
     };
 }
@@ -63,11 +63,14 @@ macro_rules! default_type_operate_impl {
     ($type_name: ident) => {
         fn operate(&self, rhs: Box<dyn $crate::processing::types::Type>) -> Result<(), String> {
             for operator in self.operators.iter() {
-                if operator.get_result_type(Some(rhs.get_type_symbol())).is_some() {
+                if operator
+                    .get_result_type(Some(rhs.get_type_symbol()))
+                    .is_some()
+                {
                     return operator.operate(self, rhs);
                 }
             }
-    
+
             Err("Operations not found!".to_string())
         }
     };

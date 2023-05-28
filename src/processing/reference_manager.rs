@@ -1,15 +1,13 @@
-
 pub enum ReferenceType {
     Variable,
     Function,
-    Class
+    Class,
 }
 
 pub struct NamedReference {
     pub name: String,
-    pub reference: ReferenceType
+    pub reference: ReferenceType,
 }
-
 
 #[derive(Default)]
 pub struct ReferenceStack {
@@ -25,11 +23,7 @@ impl ReferenceStack {
 
     /// Registers a variable
     pub fn register_reference(&mut self, reference: NamedReference) -> Result<(), String> {
-        return self
-            .stack
-            .last_mut()
-            .unwrap()
-            .register_reference(reference);
+        return self.stack.last_mut().unwrap().register_reference(reference);
     }
 
     /// Registers a variable at a layer `offset` above the current one
@@ -62,7 +56,6 @@ impl ReferenceStack {
         Err(format!("Reference '{}' not found", name))
     }
 
-
     /// Adds a reference handler (adds a variable scope)
     pub fn add_handler(&mut self) {
         self.stack.push(ReferenceManager::new());
@@ -72,7 +65,6 @@ impl ReferenceStack {
     pub fn remove_handler(&mut self) {
         self.stack.pop();
     }
-
 }
 
 #[derive(Default)]
@@ -90,7 +82,10 @@ impl ReferenceManager {
     /// Registers a variable
     pub fn register_reference(&mut self, reference: NamedReference) -> Result<(), String> {
         if self.get_reference(reference.name.as_str()).is_some() {
-            return Err(format!("Reference with name '{}' already exists", reference.name));
+            return Err(format!(
+                "Reference with name '{}' already exists",
+                reference.name
+            ));
         }
         self.references.push(reference);
         Ok(())

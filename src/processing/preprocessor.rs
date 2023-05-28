@@ -152,7 +152,9 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
             if symbol_line.len() - indexing_start < 1 {
                 return Err("Indexer must contain a symbol".to_string());
             }
-            let symbol = symbol_line.pop().expect("Tried to pop from symbol line when empty");
+            let symbol = symbol_line
+                .pop()
+                .expect("Tried to pop from symbol line when empty");
             symbol_line.push(Symbol::Indexer(Box::new(symbol)));
             in_indexer = false;
             continue;
@@ -186,8 +188,7 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
     if !buffer.is_empty() {
         if let Some(symbol) = get_all_symbol(&buffer) {
             symbol_line.push(symbol);
-        }
-        else {
+        } else {
             return Err(format!("Symbol '{}' not found", buffer));
         }
     }

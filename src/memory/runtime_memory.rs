@@ -1,5 +1,5 @@
-use std::collections::LinkedList;
 use super::MemoryManager;
+use std::collections::LinkedList;
 
 #[derive(Clone, Debug)]
 pub enum MemoryLocation {
@@ -17,17 +17,20 @@ impl StackMemory {
     pub fn new() -> Self {
         Self {
             memory: LinkedList::new(),
-            current_stack: 0
+            current_stack: 0,
         }
     }
 
     pub fn create_stack(&mut self, size: usize, return_addr: usize) {
         self.memory.push_back((vec![0; size], return_addr));
     }
-    
+
     pub fn index(&self, mut position: usize) -> u8 {
         for m in self.memory.iter().skip(self.current_stack) {
-            if position >= m.0.len() { position -= m.0.len(); continue; }
+            if position >= m.0.len() {
+                position -= m.0.len();
+                continue;
+            }
             return m.0[position];
         }
 
@@ -36,7 +39,11 @@ impl StackMemory {
 
     pub fn index_slice(&self, mut start: usize, mut end: usize) -> &[u8] {
         for m in self.memory.iter().skip(self.current_stack) {
-            if start >= m.0.len() { start -= m.0.len(); end -= m.0.len(); continue; }
+            if start >= m.0.len() {
+                start -= m.0.len();
+                end -= m.0.len();
+                continue;
+            }
             return &m.0[start..end];
         }
 
@@ -45,7 +52,10 @@ impl StackMemory {
 
     pub fn get_stack(&self, mut position: usize) -> &[u8] {
         for m in self.memory.iter().skip(self.current_stack) {
-            if position >= m.0.len() { position -= m.0.len(); continue; }
+            if position >= m.0.len() {
+                position -= m.0.len();
+                continue;
+            }
             return &m.0;
         }
 
@@ -62,7 +72,7 @@ impl Default for StackMemory {
 pub struct RuntimeMemoryManager {
     program_memory: Vec<u8>,
     stack_memory: StackMemory,
-    heap_memory: Vec<u8>
+    heap_memory: Vec<u8>,
 }
 
 impl RuntimeMemoryManager {
@@ -70,7 +80,7 @@ impl RuntimeMemoryManager {
         Self {
             program_memory: program_memory.memory,
             stack_memory: StackMemory::new(),
-            heap_memory: Vec::new()
+            heap_memory: Vec::new(),
         }
     }
 
@@ -88,43 +98,25 @@ impl RuntimeMemoryManager {
 
     pub fn get_memory(&self, location: &MemoryLocation, start_position: usize) -> &[u8] {
         match location {
-            MemoryLocation::Program => {
-                &self.program_memory
-            },
-            MemoryLocation::Stack => {
-                self.stack_memory.get_stack(start_position)
-            },
-            MemoryLocation::Heap => {
-                &self.heap_memory
-            }
+            MemoryLocation::Program => &self.program_memory,
+            MemoryLocation::Stack => self.stack_memory.get_stack(start_position),
+            MemoryLocation::Heap => &self.heap_memory,
         }
     }
 
     pub fn get_data(&self, location: &MemoryLocation, address: usize, length: usize) -> &[u8] {
         match location {
-            MemoryLocation::Program => {
-                &self.program_memory[address..address + length]
-            },
-            MemoryLocation::Stack => {
-                self.stack_memory.index_slice(address, address + length)
-            },
-            MemoryLocation::Heap => {
-                &self.heap_memory[address..address + length]
-            }
+            MemoryLocation::Program => &self.program_memory[address..address + length],
+            MemoryLocation::Stack => self.stack_memory.index_slice(address, address + length),
+            MemoryLocation::Heap => &self.heap_memory[address..address + length],
         }
     }
 
     pub fn get_byte(&self, location: &MemoryLocation, address: usize) -> u8 {
         match location {
-            MemoryLocation::Program => {
-                self.program_memory[address]
-            },
-            MemoryLocation::Stack => {
-                self.stack_memory.index(address)
-            },
-            MemoryLocation::Heap => {
-                self.heap_memory[address]
-            }
+            MemoryLocation::Program => self.program_memory[address],
+            MemoryLocation::Stack => self.stack_memory.index(address),
+            MemoryLocation::Heap => self.heap_memory[address],
         }
     }
 }

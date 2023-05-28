@@ -1,9 +1,10 @@
-
 use crate::col_println;
+use crate::memory::RuntimeMemoryManager;
+use crate::processing::instructions::stack_create_0::{
+    StackCreateInstruction, STACK_CREATE_INSTRUCTION_CODE,
+};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
-use crate::memory::{RuntimeMemoryManager};
-use crate::processing::instructions::stack_create_0::{STACK_CREATE_INSTRUCTION_CODE, StackCreateInstruction};
 
 /// Executes the compiled program
 pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(), String> {
@@ -19,9 +20,10 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
 
         match u16::from_le_bytes(code.try_into().unwrap()) {
             STACK_CREATE_INSTRUCTION_CODE => {
-                let (size, return_addr) = StackCreateInstruction::get_stack_size_and_return_addr(&mut pointer, memory);
+                let (size, return_addr) =
+                    StackCreateInstruction::get_stack_size_and_return_addr(&mut pointer, memory);
                 memory.stack_memory().create_stack(size, return_addr);
-            },
+            }
             code => return Err(format!("Unknown code! [{}]", code)),
         };
 

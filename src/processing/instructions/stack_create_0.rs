@@ -3,17 +3,26 @@ use crate::memory::{MemoryManager, RuntimeMemoryManager};
 use crate::util::get_usize;
 
 pub struct StackCreateInstruction {
-    address: usize
+    address: usize,
 }
 
-default_instruction_impl!(StackCreateInstruction,
-    STACK_CREATE_INSTRUCTION_CODE, 0,
-    (size, usize), (return_address, usize));
-
+default_instruction_impl!(
+    StackCreateInstruction,
+    STACK_CREATE_INSTRUCTION_CODE,
+    0,
+    (size, usize),
+    (return_address, usize)
+);
 
 impl StackCreateInstruction {
-    pub fn get_stack_size_and_return_addr(pointer: &mut usize, memory: &RuntimeMemoryManager) -> (usize, usize) {
-        (get_usize(pointer, memory.program_memory()), get_usize(pointer, memory.program_memory()))
+    pub fn get_stack_size_and_return_addr(
+        pointer: &mut usize,
+        memory: &RuntimeMemoryManager,
+    ) -> (usize, usize) {
+        (
+            get_usize(pointer, memory.program_memory()),
+            get_usize(pointer, memory.program_memory()),
+        )
     }
 
     pub fn change_stack_size(&mut self, memory: &mut MemoryManager, new_size: usize) {

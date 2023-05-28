@@ -1,6 +1,6 @@
-use crate::processing::symbols::TypeSymbol;
 use super::Symbol;
 use super::SymbolHandler;
+use crate::processing::symbols::TypeSymbol;
 
 #[derive(PartialEq, Clone, strum_macros::Display)]
 pub enum Literal {

@@ -41,5 +41,8 @@ pub fn create_literal_not_impl_error<T>(
     literal: &Literal,
     type_symbol: TypeSymbol,
 ) -> Result<T, String> {
-    Err(format!("{} cannot be used to initialise {}", literal, type_symbol))
+    Err(format!(
+        "{} cannot be used to initialise {}",
+        literal, type_symbol
+    ))
 }

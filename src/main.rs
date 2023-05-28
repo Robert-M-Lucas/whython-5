@@ -1,14 +1,15 @@
 #![allow(dead_code)]
 
+mod address;
 mod errors;
 mod execution;
 mod memory;
 mod processing;
 mod translator;
 pub mod util;
-mod address;
 
 use crate::execution::execute;
+use crate::memory::{MemoryManager, RuntimeMemoryManager};
 #[allow(unused_imports)]
 use crate::translator::translate;
 use crate::util::{info, USIZE_BYTES};
@@ -20,7 +21,6 @@ use std::fs;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
-use crate::memory::{MemoryManager, RuntimeMemoryManager};
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 
