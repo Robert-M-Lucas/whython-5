@@ -1,5 +1,5 @@
 use crate::address::Address;
-use crate::processing::instructions::{Instruction, InstructionCodeType};
+use crate::processing::instructions::{Instruction, INSTRUCTION_CODE_LENGTH, InstructionCodeType};
 use crate::util::get_usize;
 
 pub struct CopyInstruction {
@@ -17,8 +17,8 @@ impl CopyInstruction {
         let size_bytes = size.to_le_bytes();
         let mut from_bytes = address_from.get_bytes();
         let mut to_bytes = address_to.get_bytes();
-        let mut instruction_memory = Vec::with_capacity(from_bytes.len() + to_bytes.len() + size_bytes.len());
-
+        let mut instruction_memory = Vec::with_capacity(INSTRUCTION_CODE_LENGTH + from_bytes.len() + to_bytes.len() + size_bytes.len());
+        instruction_memory.extend(COPY_INSTRUCTION_CODE.to_le_bytes());
         instruction_memory.extend(size_bytes.iter());
         instruction_memory.append(&mut from_bytes);
         instruction_memory.append(&mut to_bytes);
