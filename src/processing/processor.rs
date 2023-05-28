@@ -49,7 +49,7 @@ macro_rules! _process_line {
 pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManager, String> {
     let mut memory = MemoryManager::new();
 
-    let mut block_coordinator = BlockCoordinator::new();
+    let mut block_coordinator = BlockCoordinator::new(&mut memory);
 
     let line_count = symbols.len();
 
