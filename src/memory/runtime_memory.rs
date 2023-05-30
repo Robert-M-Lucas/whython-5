@@ -1,5 +1,5 @@
+use std::collections::linked_list::LinkedList;
 use super::MemoryManager;
-use std::collections::LinkedList;
 
 #[derive(Clone, Debug)]
 pub enum MemoryLocation {
@@ -61,6 +61,17 @@ impl StackMemory {
 
         panic!("Index out of stack!");
     }
+    
+    pub fn stack_up(&mut self) {
+        self.current_stack += 1;
+    }
+
+    pub fn stack_down_and_delete(&mut self) {
+        self.memory.pop_back().expect("Tried to stack down when there are no stacks!");
+        self.current_stack -= 1;
+    }
+    
+    pub fn get_current_level(&self) -> usize { self.current_stack }
 }
 
 impl Default for StackMemory {
