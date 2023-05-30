@@ -90,6 +90,7 @@ pub struct BlockCoordinator {
     stack: Vec<Box<dyn BlockHandler>>,
     stack_sizes: StackSizes,
     reference_stack: ReferenceStack,
+    completed: bool
 }
 
 impl BlockCoordinator {
@@ -98,6 +99,7 @@ impl BlockCoordinator {
             stack: Vec::new(),
             stack_sizes: StackSizes::new(),
             reference_stack: ReferenceStack::new(),
+            completed: false
         };
 
         // Initialise base block
@@ -105,6 +107,12 @@ impl BlockCoordinator {
             .expect("Base block creation failed");
 
         new
+    }
+
+    pub fn complete(&mut self, memory_manager: &mut MemoryManager) {
+        if self.stack.len() > 1 { panic!("Attempted to complete BlockCoordinator when a BlockHandler is still active"); }
+        self.force_exit_block_handler(memory_manager).expect("Removing base block failed");
+        self.completed = true;
     }
 
     pub fn get_stack_sizes(&mut self) -> &mut StackSizes {
@@ -224,7 +232,8 @@ impl BlockCoordinator {
 
     /// Returns the current indentation level
     pub fn get_indentation(&self) -> usize {
-        self.stack.len()
+        // ? Subtract one for base block
+        self.stack.len() - 1
     }
 
     /// Returns a reference to the reference stack
@@ -255,5 +264,13 @@ impl BlockCoordinator {
     /// Removes a reference handler (removes a variable scope)
     pub fn remove_reference_handler(&mut self) {
         self.reference_stack.remove_handler()
+    }
+}
+
+impl Drop for BlockCoordinator {
+    fn drop(&mut self) {
+        if !self.completed {
+            panic!("BlockCoordinator dropped without 'complete' being called");
+        }
     }
 }
