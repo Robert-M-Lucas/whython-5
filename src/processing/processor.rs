@@ -1,7 +1,11 @@
 use crate::errors::create_line_error;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
+use crate::processing::lines::base_block::BaseBlockLine;
 use crate::processing::symbols::Symbol;
+use crate::processing::lines::LineHandler;
+
+
 pub enum ProcessingResult {
     Success,
     Unmatched,
@@ -35,7 +39,7 @@ impl ProcessingResult {
     }
 }
 
-macro_rules! _process_line {
+macro_rules! process_line {
     ($line: ident, $symbol_line: expr, $memory_managers: expr, $block_coordinator: expr) => {
         $line::process_line(
             &$symbol_line,
@@ -90,13 +94,13 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
         }
 
         //? Process line
-        let r = ProcessingResult::Failure("".to_string());
-        // let r = process_line!(
-        //     VariableInitialisationWithArgumentLine,
-        //     symbol_line,
-        //     memory_managers,
-        //     block_coordinator
-        // )
+        // let r = ProcessingResult::Failure("".to_string());
+        let r = process_line!(
+            BaseBlockLine,
+            symbol_line,
+            memory,
+            block_coordinator
+        );
         // .or_else(|| {
         //     process_line!(
         //         VariableInitialisationLine,
@@ -124,6 +128,8 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
             return create_line_error(e, line_count);
         }
     }
+
+    block_coordinator.complete(&mut memory);
 
     Ok(memory)
 }
