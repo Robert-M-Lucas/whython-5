@@ -5,6 +5,9 @@ use crate::processing::instructions::stack_create_0::{
 };
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use crate::processing::instructions::stack_down_4::STACK_DOWN_INSTRUCTION_CODE;
+use crate::processing::instructions::stack_up_1::STACK_UP_INSTRUCTION_CODE;
+use crate::util::warn;
 
 /// Executes the compiled program
 pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(), String> {
@@ -18,13 +21,20 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
         let code = &memory.program_memory()[pointer..pointer + 2];
         pointer += 2;
 
+
         match u16::from_le_bytes(code.try_into().unwrap()) {
             STACK_CREATE_INSTRUCTION_CODE => {
                 let (size, return_addr) =
                     StackCreateInstruction::get_stack_size_and_return_addr(&mut pointer, memory);
                 memory.stack_memory().create_stack(size, return_addr);
+            },
+            STACK_UP_INSTRUCTION_CODE => {
+                memory.stack_memory().stack_up()
+            },
+            STACK_DOWN_INSTRUCTION_CODE => {
+                memory.stack_memory().stack_down_and_delete()
             }
-            code => return Err(format!("Unknown code! [{}]", code)),
+            code => return Err(format!("Unknown instruction code! [{}]", code)),
         };
 
         if exit.load(Ordering::Relaxed) {
@@ -37,6 +47,10 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
         "\nExecution completed [{:?}]",
         start_time.elapsed()
     );
+
+    if memory.stack_memory().get_current_level() != 0 {
+        warn("Execution ended with a non-zero stack level")
+    }
 
     Ok(())
 }
