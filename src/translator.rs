@@ -4,6 +4,7 @@ use crate::processing::instructions::heap_alloc_2::{
 };
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_create_0::STACK_CREATE_INSTRUCTION_CODE;
+use crate::processing::instructions::stack_down_4::{STACK_DOWN_INSTRUCTION_CODE, StackDownInstruction};
 use crate::processing::instructions::stack_up_1::{StackUpInstruction, STACK_UP_INSTRUCTION_CODE};
 
 macro_rules! translate {
@@ -27,6 +28,7 @@ pub fn translate(data: &[u8], translate_one: bool) {
             STACK_UP_INSTRUCTION_CODE => translate!(StackUpInstruction, data, i),
             HEAP_ALLOC_INSTRUCTION_CODE => translate!(HeapAllocInstruction, data, i),
             COPY_INSTRUCTION_CODE => translate!(CopyInstruction, data, i),
+            STACK_DOWN_INSTRUCTION_CODE => translate!(StackDownInstruction, data, i),
             code => panic!("Debug not implemented for code {}", code),
         };
 
