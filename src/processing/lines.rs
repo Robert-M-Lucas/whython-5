@@ -1,3 +1,5 @@
+pub mod base_block;
+
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
 use crate::processing::processor::ProcessingResult;
