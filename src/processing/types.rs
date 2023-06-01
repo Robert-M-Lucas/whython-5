@@ -60,12 +60,19 @@ impl TypeFactory {
         }
     }
 
-    pub fn get_unallocated_type(&self, new_type: TypeSymbol) -> Result<Box<dyn Type>, String> {
+    pub fn get_unallocated_type(&self, new_type: &TypeSymbol) -> Result<Box<dyn Type>, String> {
         let Some(wrapper) = self.uninstantiated_types.iter()
-            .find(|t| t.get_type_symbol() == new_type)
+            .find(|t| t.get_type_symbol() == *new_type)
         else { return Err(format!("Type {:?} cannot be instantiated", new_type)); };
 
         return Ok(wrapper.instantiate());
+    }
+
+    pub fn get_default_type_for_literal(literal: &Literal) -> Result<TypeSymbol, String> {
+        match literal {
+            Literal::Bool(_) => Ok(TypeSymbol::Boolean),
+            _ => Err(format!("{} does not have a default type (use as syntax)", literal))
+        }
     }
 }
 
