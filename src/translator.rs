@@ -2,6 +2,7 @@ use crate::processing::instructions::copy_3::{CopyInstruction, COPY_INSTRUCTION_
 use crate::processing::instructions::heap_alloc_2::{
     HeapAllocInstruction, HEAP_ALLOC_INSTRUCTION_CODE,
 };
+use crate::processing::instructions::InstructionCodeType;
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_create_0::STACK_CREATE_INSTRUCTION_CODE;
 use crate::processing::instructions::stack_down_4::{STACK_DOWN_INSTRUCTION_CODE, StackDownInstruction};
@@ -23,7 +24,7 @@ pub fn translate(data: &[u8], translate_one: bool) {
         let code = &data[i..i + 2];
         i += 2;
 
-        let output = match u16::from_le_bytes(code.try_into().unwrap()) {
+        let output = match InstructionCodeType::from_le_bytes(code.try_into().unwrap()) {
             STACK_CREATE_INSTRUCTION_CODE => translate!(StackCreateInstruction, data, i),
             STACK_UP_INSTRUCTION_CODE => translate!(StackUpInstruction, data, i),
             HEAP_ALLOC_INSTRUCTION_CODE => translate!(HeapAllocInstruction, data, i),
