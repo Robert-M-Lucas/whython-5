@@ -4,6 +4,7 @@ use crate::processing::blocks::BlockCoordinator;
 use crate::processing::lines::base_block::BaseBlockLine;
 use crate::processing::symbols::Symbol;
 use crate::processing::lines::LineHandler;
+use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
 
 
 pub enum ProcessingResult {
