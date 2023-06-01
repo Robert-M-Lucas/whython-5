@@ -1,5 +1,7 @@
+use crate::processing::types::Type;
+
 pub enum ReferenceType {
-    Variable,
+    Variable(Box<dyn Type>),
     Function,
     Class,
 }
@@ -7,6 +9,15 @@ pub enum ReferenceType {
 pub struct NamedReference {
     pub name: String,
     pub reference: ReferenceType,
+}
+
+impl NamedReference {
+    pub fn new_variable(name: String, variable: Box<dyn Type>) -> Self {
+        NamedReference {
+            name,
+            reference: ReferenceType::Variable(variable)
+        }
+    }
 }
 
 #[derive(Default)]
