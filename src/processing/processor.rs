@@ -39,6 +39,16 @@ impl ProcessingResult {
     }
 }
 
+#[macro_export]
+macro_rules! q {
+    ($r: expr) => {
+        match $r {
+            Ok(v) => v,
+            Err(e) => return crate::processing::processor::ProcessingResult::Failure(e),
+        }
+    };
+}
+
 macro_rules! process_line {
     ($line: ident, $symbol_line: expr, $memory_managers: expr, $block_coordinator: expr) => {
         $line::process_line(
@@ -100,15 +110,15 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
             symbol_line,
             memory,
             block_coordinator
-        );
-        // .or_else(|| {
-        //     process_line!(
-        //         VariableInitialisationLine,
-        //         symbol_line,
-        //         memory_managers,
-        //         block_coordinator
-        //     )
-        // });
+        )
+        .or_else(|| {
+            process_line!(
+                VariableInitialisationLine,
+                symbol_line,
+                memory,
+                block_coordinator
+            )
+        });
 
         //? Handle unmatched / failed line
         if r.is_failure() {
@@ -133,3 +143,4 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
 
     Ok(memory)
 }
+
