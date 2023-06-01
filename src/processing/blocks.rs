@@ -4,6 +4,7 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::base_block::BaseBlock;
 use crate::processing::reference_manager::{NamedReference, ReferenceStack};
 use crate::processing::symbols::Symbol;
+use crate::util::warn;
 
 pub trait BlockHandler {
     /// Enter block
@@ -267,10 +268,11 @@ impl BlockCoordinator {
     }
 }
 
+#[cfg(debug_assertions)]
 impl Drop for BlockCoordinator {
     fn drop(&mut self) {
         if !self.completed {
-            panic!("BlockCoordinator dropped without 'complete' being called");
+            warn("BlockCoordinator dropped without 'complete' being called");
         }
     }
 }
