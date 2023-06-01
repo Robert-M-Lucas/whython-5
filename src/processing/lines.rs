@@ -1,4 +1,5 @@
 pub mod base_block;
+pub mod variable_initialisation;
 
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
