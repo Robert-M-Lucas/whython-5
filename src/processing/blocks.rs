@@ -73,11 +73,12 @@ impl StackSizes {
     }
 
     pub fn increment_stack_size(&mut self, amount: usize) -> usize {
+        let r = self.get_size();
         *self
             .sizes
             .last_mut()
             .expect("Tried to get stack size when no stack exists") += amount;
-        self.get_size()
+        r
     }
 }
 
