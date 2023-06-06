@@ -134,14 +134,13 @@ fn wrapped_main(exit: &AtomicBool) {
         return;
     }
 
-    // translate(&memory.program_memory.memory);
+    translate(&memory.memory, false);
 
-    //? memory.variable_memory.dump_bytes("VariableMemory".to_string());
-    //? memory.program_memory.dump_bytes("ProgramMemory".to_string());
+    let mut runtime_memory = RuntimeMemoryManager::from_program_memory(memory);
 
-    if let Err(e) = execute(&mut RuntimeMemoryManager::from_program_memory(memory), exit) {
+    if let Err(e) = execute(&mut runtime_memory, exit) {
         col_println!((red, bold), "Execution failed:\n\t{}", e)
     }
 
-    //? memory.variable_memory.dump_bytes("VariableMemory - post".to_string());
+    // runtime_memory.dump_all();
 }
