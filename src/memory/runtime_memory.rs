@@ -61,6 +61,20 @@ impl StackMemory {
 
         panic!("Index out of stack!");
     }
+
+    pub fn get_stack_mut(&mut self, mut position: usize) -> &mut [u8] {
+        for m in self.memory.iter_mut().skip(self.current_stack - 1) {
+            println!("{}", m.0.len());
+            println!("{}", position);
+            if position >= m.0.len() {
+                position -= m.0.len();
+                continue;
+            }
+            return &mut m.0;
+        }
+
+        panic!("Index out of stack!");
+    }
     
     pub fn stack_up(&mut self) {
         self.current_stack += 1;
