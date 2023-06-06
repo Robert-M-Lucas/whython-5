@@ -1,4 +1,7 @@
 use std::collections::linked_list::LinkedList;
+use std::fmt::format;
+use std::fs;
+use std::io::Write;
 use super::MemoryManager;
 
 #[derive(Clone, Debug)]
@@ -6,6 +9,16 @@ pub enum MemoryLocation {
     Program,
     Stack,
     Heap,
+}
+
+fn dump_bytes(file: &str, data: &Vec<u8>) {
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .create(true)
+        .open(file).unwrap();
+
+    file.write_all(data).unwrap();
 }
 
 pub struct StackMemory {
@@ -86,6 +99,13 @@ impl StackMemory {
     }
     
     pub fn get_current_level(&self) -> usize { self.current_stack }
+
+    pub fn dump_bytes(&self, folder_name: &str) {
+        fs::create_dir_all(folder_name).unwrap();
+        for i in self.memory.iter().enumerate() {
+            dump_bytes(format!("{}/{}.bin", folder_name, i.0).as_str(), &(i.1.0));
+        }
+    }
 }
 
 impl Default for StackMemory {
@@ -143,5 +163,12 @@ impl RuntimeMemoryManager {
             MemoryLocation::Stack => self.stack_memory.index(address),
             MemoryLocation::Heap => self.heap_memory[address],
         }
+    }
+
+    pub fn dump_all(&self) {
+        let dir_name = "dump";
+        fs::create_dir_all(dir_name).unwrap();
+        dump_bytes(format!("{}/program.bin", dir_name).as_str(), &self.program_memory);
+        self.stack_memory.dump_bytes(format!("{}/stack", dir_name).as_str());
     }
 }
