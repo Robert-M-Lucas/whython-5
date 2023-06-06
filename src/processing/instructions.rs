@@ -32,7 +32,7 @@ macro_rules! default_instruction_impl {
             }
 
             #[allow(unused_variables)]
-            pub fn get_debug(memory: &[u8], pointer: &mut usize) -> String {
+            pub fn get_debug(program_memory: &[u8], pointer: &mut usize) -> String {
                 *pointer += $crate::processing::instructions::INSTRUCTION_CODE_LENGTH + Self::get_size();
                 stringify!($name).to_string()
             }
