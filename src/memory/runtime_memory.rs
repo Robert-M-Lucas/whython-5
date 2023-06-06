@@ -153,7 +153,22 @@ impl RuntimeMemoryManager {
         match location {
             MemoryLocation::Program => &self.program_memory[address..address + length],
             MemoryLocation::Stack => self.stack_memory.index_slice(address, address + length),
-            MemoryLocation::Heap => &self.heap_memory[address..address + length],
+            MemoryLocation::Heap => panic!("Heap not implemented!"),
+        }
+    }
+
+    pub fn overwrite_data(&mut self, location: &MemoryLocation, address: usize, data: &[u8]) {
+        match location {
+            MemoryLocation::Program => {
+                panic!("Overwriting program memory is forbidden!");
+            },
+            MemoryLocation::Stack => {
+                let stack = self.stack_memory.get_stack_mut(address);
+                for i in 0..data.len() {
+                    stack[i] = data[i];
+                }
+            },
+            MemoryLocation::Heap => panic!("Heap not implemented!"),
         }
     }
 
