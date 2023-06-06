@@ -39,6 +39,14 @@ pub trait Type {
     }
 
     fn operate(&self, rhs: Box<dyn Type>) -> Result<(), String>;
+
+    fn run_method(&self,
+                  method_name: &String,
+                  _stack: &mut StackSizes,
+                  _program_memory: &mut MemoryManager,
+    ) -> Result<(), String> {
+        Err(format!("'{}' not implemented for {}", method_name, self.get_type_symbol()))
+    }
 }
 
 pub trait Operation<LHS> {
