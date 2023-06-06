@@ -1,4 +1,5 @@
 use crate::address::Address;
+use crate::memory::{MemoryLocation, RuntimeMemoryManager};
 use crate::processing::instructions::{Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH};
 use crate::util::get_usize;
 
@@ -38,11 +39,19 @@ impl CopyInstruction {
     }
 
     #[allow(unused_variables)]
-    pub fn get_debug(memory: &[u8], pointer: &mut usize) -> String {
-        let size = get_usize(pointer, memory);
-        *pointer += Address::get_address_size(memory, *pointer, size);
-        *pointer += Address::get_address_size(memory, *pointer, size);
-        stringify!($name).to_string()
+    pub fn get_debug(program_memory: &[u8], pointer: &mut usize) -> String {
+        let size = get_usize(pointer, program_memory);
+        *pointer += Address::get_address_size(program_memory, *pointer, size);
+        *pointer += Address::get_address_size(program_memory, *pointer, size);
+        "CopyInstruction".to_string()
+    }
+
+    pub fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize) {
+        let size = get_usize(pointer, memory.program_memory());
+        let data_location = Address::evaluate_address(pointer, &size, memory, &MemoryLocation::Program);
+        let data_destination = Address::evaluate_address(pointer, &size, memory, &MemoryLocation::Program);
+        let data = Vec::from(memory.get_data(&data_location.1, data_location.0, size));
+        memory.overwrite_data(&data_destination.1, data_destination.0, &data);
     }
 }
 
