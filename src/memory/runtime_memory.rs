@@ -26,7 +26,7 @@ impl StackMemory {
     }
 
     pub fn index(&self, mut position: usize) -> u8 {
-        for m in self.memory.iter().skip(self.current_stack) {
+        for m in self.memory.iter().skip(self.current_stack - 1) {
             if position >= m.0.len() {
                 position -= m.0.len();
                 continue;
@@ -38,7 +38,7 @@ impl StackMemory {
     }
 
     pub fn index_slice(&self, mut start: usize, mut end: usize) -> &[u8] {
-        for m in self.memory.iter().skip(self.current_stack) {
+        for m in self.memory.iter().skip(self.current_stack - 1) {
             if start >= m.0.len() {
                 start -= m.0.len();
                 end -= m.0.len();
@@ -51,7 +51,7 @@ impl StackMemory {
     }
 
     pub fn get_stack(&self, mut position: usize) -> &[u8] {
-        for m in self.memory.iter().skip(self.current_stack) {
+        for m in self.memory.iter().skip(self.current_stack - 1) {
             if position >= m.0.len() {
                 position -= m.0.len();
                 continue;
