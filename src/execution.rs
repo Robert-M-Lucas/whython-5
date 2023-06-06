@@ -5,9 +5,17 @@ use crate::processing::instructions::stack_create_0::{
 };
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use crate::processing::instructions::copy_3::{COPY_INSTRUCTION_CODE, CopyInstruction};
+use crate::processing::instructions::InstructionCodeType;
 use crate::processing::instructions::stack_down_4::STACK_DOWN_INSTRUCTION_CODE;
 use crate::processing::instructions::stack_up_1::STACK_UP_INSTRUCTION_CODE;
 use crate::util::warn;
+
+macro_rules! execute_instruction {
+    ($instruction: ident, $memory: expr, $pointer: expr) => {
+        $instruction::execute($memory, $pointer)
+    };
+}
 
 /// Executes the compiled program
 pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(), String> {
@@ -22,7 +30,8 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
         pointer += 2;
 
 
-        match u16::from_le_bytes(code.try_into().unwrap()) {
+
+        match InstructionCodeType::from_le_bytes(code.try_into().unwrap()) {
             STACK_CREATE_INSTRUCTION_CODE => {
                 let (size, return_addr) =
                     StackCreateInstruction::get_stack_size_and_return_addr(&mut pointer, memory);
@@ -33,7 +42,11 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
             },
             STACK_DOWN_INSTRUCTION_CODE => {
                 memory.stack_memory().stack_down_and_delete()
-            }
+            },
+            COPY_INSTRUCTION_CODE => {
+                execute_instruction!(CopyInstruction, memory, &mut pointer);
+                memory.dump_all();
+            },
             code => return Err(format!("Unknown instruction code! [{}]", code)),
         };
 
