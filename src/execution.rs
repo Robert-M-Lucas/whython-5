@@ -33,17 +33,11 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
         pointer += 2;
 
         match InstructionCodeType::from_le_bytes(code.try_into().unwrap()) {
-            STACK_CREATE_INSTRUCTION_CODE => {
-                let (size, return_addr) =
-                    StackCreateInstruction::get_stack_size_and_return_addr(&mut pointer, memory);
-                memory.stack_memory().create_stack(size, return_addr);
-            }
-            STACK_UP_INSTRUCTION_CODE => memory.stack_memory().stack_up(),
-            STACK_DOWN_INSTRUCTION_CODE => memory.stack_memory().stack_down_and_delete(),
-            COPY_INSTRUCTION_CODE => {
-                execute_instruction!(CopyInstruction, memory, &mut pointer);
-                memory.dump_all();
-            }
+            STACK_CREATE_INSTRUCTION_CODE => execute_instruction!(StackCreateInstruction, memory, &mut pointer),
+            STACK_UP_INSTRUCTION_CODE => execute_instruction!(StackUpInstruction, memory, &mut pointer),
+            STACK_DOWN_INSTRUCTION_CODE => execute_instruction!(StackDownInstruction, memory, &mut pointer),
+            COPY_INSTRUCTION_CODE => execute_instruction!(CopyInstruction, memory, &mut pointer),
+            DUMP_INSTRUCTION_CODE => execute_instruction!(DumpInstruction, memory, &mut pointer),
             code => return Err(format!("Unknown instruction code! [{}]", code)),
         };
 
