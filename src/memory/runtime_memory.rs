@@ -63,19 +63,19 @@ impl StackMemory {
         panic!("Index out of stack!");
     }
 
-    pub fn get_stack(&self, mut position: usize) -> &[u8] {
+    pub fn get_stack(&self, mut position: usize) -> (&[u8], usize) {
         for m in self.memory.iter().skip(self.current_stack - 1) {
             if position >= m.0.len() {
                 position -= m.0.len();
                 continue;
             }
-            return &m.0;
+            return (&m.0, position);
         }
 
         panic!("Index out of stack!");
     }
 
-    pub fn get_stack_mut(&mut self, mut position: usize) -> &mut [u8] {
+    pub fn get_stack_mut(&mut self, mut position: usize) -> (&mut [u8], usize) {
         for m in self.memory.iter_mut().skip(self.current_stack - 1) {
             println!("{}", m.0.len());
             println!("{}", position);
@@ -83,7 +83,7 @@ impl StackMemory {
                 position -= m.0.len();
                 continue;
             }
-            return &mut m.0;
+            return (&mut m.0, position);
         }
 
         panic!("Index out of stack!");
@@ -141,11 +141,14 @@ impl RuntimeMemoryManager {
         &mut self.heap_memory
     }
 
-    pub fn get_memory(&self, location: &MemoryLocation, start_position: usize) -> &[u8] {
+    /// Returns a reference to the memory as `&[u8]` and the transformed address location as a 
+    /// `usize`. See `StackMemory::get_stack` for details about how the address location is
+    /// transformed
+    pub fn get_memory(&self, location: &MemoryLocation, start_position: usize) -> (&[u8], usize) {
         match location {
-            MemoryLocation::Program => &self.program_memory,
+            MemoryLocation::Program => (&self.program_memory, start_position),
             MemoryLocation::Stack => self.stack_memory.get_stack(start_position),
-            MemoryLocation::Heap => &self.heap_memory,
+            MemoryLocation::Heap => (&self.heap_memory, start_position),
         }
     }
 
@@ -163,9 +166,9 @@ impl RuntimeMemoryManager {
                 panic!("Overwriting program memory is forbidden!");
             },
             MemoryLocation::Stack => {
-                let stack = self.stack_memory.get_stack_mut(address);
+                let (stack, stack_address) = self.stack_memory.get_stack_mut(address);
                 for i in 0..data.len() {
-                    stack[i] = data[i];
+                    stack[stack_address + i] = data[i];
                 }
             },
             MemoryLocation::Heap => panic!("Heap not implemented!"),
