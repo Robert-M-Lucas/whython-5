@@ -75,7 +75,10 @@ const HEAP_INDEXED_CODE: u8 = 7;
 
 impl Address {
     pub fn is_immediate(&self) -> bool {
-        matches!(self, Address::Immediate(_))
+        match self {
+            Self::Immediate(_) | Self::ImmediateIndexed(_, _) => true,
+            _ => false
+        }
     }
 
     pub fn get_address_size(memory: &[u8], address: usize, expected_len: usize) -> usize {
