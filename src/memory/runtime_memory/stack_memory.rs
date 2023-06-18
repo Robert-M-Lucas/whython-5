@@ -1,3 +1,7 @@
+use std::collections::LinkedList;
+use std::fs;
+use crate::memory::runtime_memory::dump_bytes;
+
 pub struct StackMemory {
     memory: LinkedList<(Vec<u8>, usize)>,
     current_stack: usize,
@@ -13,31 +17,6 @@ impl StackMemory {
 
     pub fn create_stack(&mut self, size: usize, return_addr: usize) {
         self.memory.push_back((vec![0; size], return_addr));
-    }
-
-    pub fn index(&self, mut position: usize) -> u8 {
-        for m in self.memory.iter().skip(self.current_stack - 1) {
-            if position >= m.0.len() {
-                position -= m.0.len();
-                continue;
-            }
-            return m.0[position];
-        }
-
-        panic!("Index out of stack!");
-    }
-
-    pub fn index_slice(&self, mut start: usize, mut end: usize) -> &[u8] {
-        for m in self.memory.iter().skip(self.current_stack - 1) {
-            if start >= m.0.len() {
-                start -= m.0.len();
-                end -= m.0.len();
-                continue;
-            }
-            return &m.0[start..end];
-        }
-
-        panic!("Index out of stack!");
     }
 
     pub fn get_stack(&self, mut position: usize) -> (&[u8], usize) {
@@ -61,6 +40,24 @@ impl StackMemory {
                 continue;
             }
             return (&mut m.0, position);
+        }
+
+        panic!("Index out of stack!");
+    }
+
+    pub fn index(&self, mut position: usize) -> u8 {
+        let (stack, transformed_position) = self.get_stack(position);
+        stack[transformed_position]
+    }
+
+    pub fn index_slice(&self, mut start: usize, mut end: usize) -> &[u8] {
+        for m in self.memory.iter().skip(self.current_stack - 1) {
+            if start >= m.0.len() {
+                start -= m.0.len();
+                end -= m.0.len();
+                continue;
+            }
+            return &m.0[start..end];
         }
 
         panic!("Index out of stack!");
