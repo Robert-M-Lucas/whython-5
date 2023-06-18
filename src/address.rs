@@ -358,4 +358,16 @@ impl Address {
             _ => panic!("Invalid address code!"),
         }
     }
+
+    pub fn evaluate_address_to_data<'a>(mut pointer: &mut usize,
+                                    address_location: &MemoryLocation,
+                                    expected_len: &usize,
+                                    memory: &'a RuntimeMemoryManager) -> &'a [u8] {
+        let (address, location) = Self::evaluate_address(&mut pointer,
+                                             address_location,
+                                             expected_len,
+                                             memory);
+
+        memory.get_data(&location, address, *expected_len)
+    }
 }
