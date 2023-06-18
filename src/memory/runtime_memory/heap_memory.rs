@@ -27,7 +27,7 @@ impl HeapMemory {
     }
 
     pub fn get_frame(&self, frame: usize) -> &[u8] {
-        for f in self.memory {
+        for f in self.memory.iter() {
             if f.0 == frame {
                 return &f.1;
             }
@@ -37,7 +37,7 @@ impl HeapMemory {
     }
 
     pub fn get_mut_frame(&mut self, frame: usize) -> &mut [u8] {
-        for mut f in self.memory {
+        for f in self.memory.iter_mut() {
             if f.0 == frame {
                 return &mut f.1;
             }
