@@ -112,5 +112,8 @@ impl RuntimeMemoryManager {
         );
         self.stack_memory
             .dump_bytes(format!("{}/stack", dir_name).as_str());
+
+        self.heap_memory
+            .dump_bytes(format!("{}/heap", dir_name).as_str());
     }
 }

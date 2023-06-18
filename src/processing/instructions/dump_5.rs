@@ -2,14 +2,14 @@ use crate::default_instruction_impl;
 use crate::memory::RuntimeMemoryManager;
 use crate::processing::instructions::Execute;
 
-pub struct StackDownInstruction {
+pub struct DumpInstruction {
     address: usize,
 }
 
-default_instruction_impl!(StackDownInstruction, STACK_DOWN_INSTRUCTION_CODE, 4);
+default_instruction_impl!(DumpInstruction, DUMP_INSTRUCTION_CODE, 5);
 
-impl Execute for StackDownInstruction {
+impl Execute for DumpInstruction {
     fn execute(memory: &mut RuntimeMemoryManager, _pointer: &mut usize) {
-        memory.stack_memory().stack_down_and_delete()
+        memory.dump_all();
     }
 }

@@ -4,12 +4,15 @@ use crate::processing::instructions::copy_3::{CopyInstruction, COPY_INSTRUCTION_
 use crate::processing::instructions::stack_create_0::{
     StackCreateInstruction, STACK_CREATE_INSTRUCTION_CODE,
 };
-use crate::processing::instructions::stack_down_4::STACK_DOWN_INSTRUCTION_CODE;
-use crate::processing::instructions::stack_up_1::STACK_UP_INSTRUCTION_CODE;
+use crate::processing::instructions::stack_down_4::{STACK_DOWN_INSTRUCTION_CODE, StackDownInstruction};
+use crate::processing::instructions::stack_up_1::{STACK_UP_INSTRUCTION_CODE, StackUpInstruction};
 use crate::processing::instructions::InstructionCodeType;
 use crate::util::warn;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use crate::processing::instructions::dump_5::{DUMP_INSTRUCTION_CODE, DumpInstruction};
+use crate::processing::instructions::Execute;
+
 
 macro_rules! execute_instruction {
     ($instruction: ident, $memory: expr, $pointer: expr) => {
@@ -43,6 +46,8 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
             }
             code => return Err(format!("Unknown instruction code! [{}]", code)),
         };
+
+
 
         if exit.load(Ordering::Relaxed) {
             return Err("Program terminated by Ctrl+C".to_string());

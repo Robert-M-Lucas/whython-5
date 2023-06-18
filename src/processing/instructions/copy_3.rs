@@ -1,6 +1,6 @@
 use crate::address::Address;
 use crate::memory::{MemoryLocation, RuntimeMemoryManager};
-use crate::processing::instructions::{Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH};
+use crate::processing::instructions::{Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH, Execute};
 use crate::util::get_usize;
 
 pub struct CopyInstruction {
@@ -45,8 +45,10 @@ impl CopyInstruction {
         *pointer += Address::get_address_size(program_memory, *pointer, size);
         "CopyInstruction".to_string()
     }
+}
 
-    pub fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize) {
+impl Execute for CopyInstruction {
+    fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize) {
         let size = get_usize(pointer, memory.program_memory());
         let data_location =
             Address::evaluate_address(pointer, &MemoryLocation::Program, &size, memory);

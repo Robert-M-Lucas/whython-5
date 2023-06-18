@@ -2,6 +2,7 @@ use crate::errors::create_line_error;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
 use crate::processing::lines::base_block::BaseBlockLine;
+use crate::processing::lines::dump::DumpLine;
 use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
 use crate::processing::lines::LineHandler;
 use crate::processing::symbols::Symbol;
@@ -109,6 +110,13 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
             process_line!(BaseBlockLine, symbol_line, memory, block_coordinator).or_else(|| {
                 process_line!(
                     VariableInitialisationLine,
+                    symbol_line,
+                    memory,
+                    block_coordinator
+                )
+            }).or_else(|| {
+                process_line!(
+                    DumpLine,
                     symbol_line,
                     memory,
                     block_coordinator

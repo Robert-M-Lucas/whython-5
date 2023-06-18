@@ -1,4 +1,5 @@
 use crate::processing::instructions::copy_3::{CopyInstruction, COPY_INSTRUCTION_CODE};
+use crate::processing::instructions::dump_5::{DUMP_INSTRUCTION_CODE, DumpInstruction};
 use crate::processing::instructions::heap_alloc_2::{
     HeapAllocInstruction, HEAP_ALLOC_INSTRUCTION_CODE,
 };
@@ -32,6 +33,7 @@ pub fn translate(data: &[u8], translate_one: bool) {
             HEAP_ALLOC_INSTRUCTION_CODE => translate!(HeapAllocInstruction, data, i),
             COPY_INSTRUCTION_CODE => translate!(CopyInstruction, data, i),
             STACK_DOWN_INSTRUCTION_CODE => translate!(StackDownInstruction, data, i),
+            DUMP_INSTRUCTION_CODE => translate!(DumpInstruction, data, i),
             code => panic!("Debug not implemented for code {}", code),
         };
 

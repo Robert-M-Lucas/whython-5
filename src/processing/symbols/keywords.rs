@@ -5,6 +5,7 @@ use super::SymbolHandler;
 pub enum Keyword {
     Break,
     Continue,
+    Dump,
 }
 
 pub struct KeywordSymbolHandler {}
@@ -14,6 +15,7 @@ impl SymbolHandler for KeywordSymbolHandler {
         match string {
             "break" => Some(Symbol::Keyword(Keyword::Break)),
             "continue" => Some(Symbol::Keyword(Keyword::Continue)),
+            "dump" => Some(Symbol::Keyword(Keyword::Dump)),
             _ => None,
         }
     }

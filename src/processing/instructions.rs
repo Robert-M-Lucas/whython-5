@@ -1,8 +1,11 @@
+use crate::memory::RuntimeMemoryManager;
+
 pub mod copy_3;
 pub mod heap_alloc_2;
 pub mod stack_create_0;
 pub mod stack_down_4;
 pub mod stack_up_1;
+pub mod dump_5;
 
 pub type InstructionCodeType = u16;
 pub const INSTRUCTION_CODE_LENGTH: usize = 2;
@@ -49,4 +52,8 @@ macro_rules! default_instruction_impl {
 pub trait Instruction {
     /// Returns the address of the instruction in program memory
     fn get_address(&self) -> usize;
+}
+
+pub trait Execute {
+    fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize);
 }
