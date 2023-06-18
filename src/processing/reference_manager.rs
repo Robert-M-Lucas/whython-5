@@ -15,7 +15,7 @@ impl NamedReference {
     pub fn new_variable(name: String, variable: Box<dyn Type>) -> Self {
         NamedReference {
             name,
-            reference: ReferenceType::Variable(variable)
+            reference: ReferenceType::Variable(variable),
         }
     }
 }

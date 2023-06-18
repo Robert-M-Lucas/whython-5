@@ -40,12 +40,17 @@ pub trait Type {
 
     fn operate(&self, rhs: Box<dyn Type>) -> Result<(), String>;
 
-    fn run_method(&self,
-                  method_name: &String,
-                  _stack: &mut StackSizes,
-                  _program_memory: &mut MemoryManager,
+    fn run_method(
+        &self,
+        method_name: &String,
+        _stack: &mut StackSizes,
+        _program_memory: &mut MemoryManager,
     ) -> Result<(), String> {
-        Err(format!("'{}' not implemented for {}", method_name, self.get_type_symbol()))
+        Err(format!(
+            "'{}' not implemented for {}",
+            method_name,
+            self.get_type_symbol()
+        ))
     }
 }
 
@@ -79,7 +84,10 @@ impl TypeFactory {
     pub fn get_default_type_for_literal(literal: &Literal) -> Result<TypeSymbol, String> {
         match literal {
             Literal::Bool(_) => Ok(TypeSymbol::Boolean),
-            _ => Err(format!("{} does not have a default type (use as syntax)", literal))
+            _ => Err(format!(
+                "{} does not have a default type (use as syntax)",
+                literal
+            )),
         }
     }
 }

@@ -27,6 +27,9 @@ impl StackCreateInstruction {
     }
 
     pub fn change_stack_size(&mut self, memory: &mut MemoryManager, new_size: usize) {
-        memory.overwrite(self.address + INSTRUCTION_CODE_LENGTH, &new_size.to_le_bytes());
+        memory.overwrite(
+            self.address + INSTRUCTION_CODE_LENGTH,
+            &new_size.to_le_bytes(),
+        );
     }
 }

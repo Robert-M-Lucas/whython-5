@@ -2,11 +2,13 @@ use crate::processing::instructions::copy_3::{CopyInstruction, COPY_INSTRUCTION_
 use crate::processing::instructions::heap_alloc_2::{
     HeapAllocInstruction, HEAP_ALLOC_INSTRUCTION_CODE,
 };
-use crate::processing::instructions::InstructionCodeType;
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_create_0::STACK_CREATE_INSTRUCTION_CODE;
-use crate::processing::instructions::stack_down_4::{STACK_DOWN_INSTRUCTION_CODE, StackDownInstruction};
+use crate::processing::instructions::stack_down_4::{
+    StackDownInstruction, STACK_DOWN_INSTRUCTION_CODE,
+};
 use crate::processing::instructions::stack_up_1::{StackUpInstruction, STACK_UP_INSTRUCTION_CODE};
+use crate::processing::instructions::InstructionCodeType;
 
 macro_rules! translate {
     ($instruction: ident, $data: expr, $i: expr) => {

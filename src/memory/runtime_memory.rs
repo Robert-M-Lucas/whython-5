@@ -1,12 +1,12 @@
-mod stack_memory;
 mod heap_memory;
+mod stack_memory;
 
-pub use stack_memory::StackMemory;
 pub use heap_memory::HeapMemory;
+pub use stack_memory::StackMemory;
 
+use super::MemoryManager;
 use std::fs;
 use std::io::Write;
-use super::MemoryManager;
 
 #[derive(Clone, Debug)]
 pub enum MemoryLocation {
@@ -20,7 +20,8 @@ fn dump_bytes(file: &str, data: &Vec<u8>) {
         .write(true)
         .truncate(true)
         .create(true)
-        .open(file).unwrap();
+        .open(file)
+        .unwrap();
 
     file.write_all(data).unwrap();
 }
@@ -67,7 +68,10 @@ impl RuntimeMemoryManager {
         match location {
             MemoryLocation::Program => &self.program_memory[address..address + length],
             MemoryLocation::Stack => self.stack_memory.index_slice(address, address + length),
-            MemoryLocation::Heap(frame) => self.heap_memory.index_slice(*frame, address, address + length),
+            MemoryLocation::Heap(frame) => {
+                self.heap_memory
+                    .index_slice(*frame, address, address + length)
+            }
         }
     }
 
@@ -75,19 +79,19 @@ impl RuntimeMemoryManager {
         match location {
             MemoryLocation::Program => {
                 panic!("Overwriting program memory is forbidden!");
-            },
+            }
             MemoryLocation::Stack => {
                 let (stack, stack_address) = self.stack_memory.get_stack_mut(address);
                 for i in 0..data.len() {
                     stack[stack_address + i] = data[i];
                 }
-            },
+            }
             MemoryLocation::Heap(frame) => {
                 let data = self.heap_memory.get_mut_frame(*frame);
                 for i in 0..data.len() {
                     data[address + i] = data[i];
                 }
-            },
+            }
         }
     }
 
@@ -102,7 +106,11 @@ impl RuntimeMemoryManager {
     pub fn dump_all(&self) {
         let dir_name = "dump";
         fs::create_dir_all(dir_name).unwrap();
-        dump_bytes(format!("{}/program.bin", dir_name).as_str(), &self.program_memory);
-        self.stack_memory.dump_bytes(format!("{}/stack", dir_name).as_str());
+        dump_bytes(
+            format!("{}/program.bin", dir_name).as_str(),
+            &self.program_memory,
+        );
+        self.stack_memory
+            .dump_bytes(format!("{}/stack", dir_name).as_str());
     }
 }

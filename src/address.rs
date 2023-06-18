@@ -57,7 +57,11 @@ pub enum Address {
     StackIndexed(CloneableBox<Address>, CloneableBox<Address>),
     HeapDirect((usize, usize)),
     HeapIndirect((usize, usize)),
-    HeapIndexed(CloneableBox<Address>, CloneableBox<Address>, CloneableBox<Address>),
+    HeapIndexed(
+        CloneableBox<Address>,
+        CloneableBox<Address>,
+        CloneableBox<Address>,
+    ),
 }
 
 const IMMEDIATE_CODE: u8 = 0;
@@ -68,7 +72,6 @@ const STACK_INDEXED_CODE: u8 = 4;
 const HEAP_DIRECT_CODE: u8 = 5;
 const HEAP_INDIRECT_CODE: u8 = 6;
 const HEAP_INDEXED_CODE: u8 = 7;
-
 
 impl Address {
     pub fn is_immediate(&self) -> bool {
@@ -108,7 +111,7 @@ impl Address {
                 let mut v = vec![IMMEDIATE_CODE];
                 v.extend(data.iter());
                 v
-            },
+            }
             Address::ImmediateIndexed(location, offset) => {
                 let mut v = vec![IMMEDIATE_INDEXED_CODE];
                 v.append(&mut location.get_ref().get_bytes());
@@ -124,7 +127,7 @@ impl Address {
                 let mut v = vec![STACK_INDIRECT_CODE];
                 v.append(&mut Vec::from(address.to_le_bytes()));
                 v
-            },
+            }
             Address::StackIndexed(location, offset) => {
                 let mut v = vec![STACK_INDEXED_CODE];
                 v.append(&mut location.get_ref().get_bytes());
@@ -190,7 +193,7 @@ impl Address {
                     get_usize(&mut transformed_pointer, address_memory),
                     MemoryLocation::Stack,
                 )
-            },
+            }
             STACK_INDIRECT_CODE => {
                 // Get pointer
                 let (address_memory, mut transformed_pointer) =
@@ -203,13 +206,12 @@ impl Address {
                 *pointer += USIZE_BYTES;
 
                 // Recursively get address
-                let address =
-                    Self::evaluate_address(
-                        &mut next_address,
-                        &MemoryLocation::Stack,
-                        expected_len,
-                        memory
-                    );
+                let address = Self::evaluate_address(
+                    &mut next_address,
+                    &MemoryLocation::Stack,
+                    expected_len,
+                    memory,
+                );
 
                 address
             }
@@ -230,7 +232,7 @@ impl Address {
                     get_usize(&mut address_pointer, address_memory),
                     MemoryLocation::Heap(get_usize(&mut frame_pointer, frame_memory)),
                 )
-            },
+            }
             HEAP_INDIRECT_CODE => {
                 // Get frame pointer
                 let (frame_memory, mut frame_pointer) =
@@ -250,25 +252,23 @@ impl Address {
                 *pointer += USIZE_BYTES + USIZE_BYTES;
 
                 // Recursively get address
-                let address =
-                    Self::evaluate_address(
-                        &mut next_address,
-                        &MemoryLocation::Heap(next_frame),
-                        expected_len,
-                        memory
-                    );
+                let address = Self::evaluate_address(
+                    &mut next_address,
+                    &MemoryLocation::Heap(next_frame),
+                    expected_len,
+                    memory,
+                );
 
                 address
             }
             IMMEDIATE_INDEXED_CODE | STACK_INDEXED_CODE => {
                 // Get location address using normal evaluate
-                let (location_address, location_memory_location) =
-                    Self::evaluate_address(
-                        pointer,
-                        address_location,
-                        &USIZE_BYTES, // ? Expecting usize (address)
-                        memory
-                    ); // ? pointer incremented here
+                let (location_address, location_memory_location) = Self::evaluate_address(
+                    pointer,
+                    address_location,
+                    &USIZE_BYTES, // ? Expecting usize (address)
+                    memory,
+                ); // ? pointer incremented here
 
                 // Get memory at location address
                 let (address_memory, mut transformed_pointer) =
@@ -277,15 +277,13 @@ impl Address {
                 // Get location
                 let location = get_usize(&mut transformed_pointer, address_memory);
 
-
                 // Get offset address using normal evaluate
-                let (offset_address, offset_memory_location) =
-                    Self::evaluate_address(
-                        pointer,
-                        address_location,
-                        &USIZE_BYTES, // ? Expecting usize (address)
-                        memory
-                    ); // ? pointer incremented here
+                let (offset_address, offset_memory_location) = Self::evaluate_address(
+                    pointer,
+                    address_location,
+                    &USIZE_BYTES, // ? Expecting usize (address)
+                    memory,
+                ); // ? pointer incremented here
 
                 // Get memory at offset address
                 let (address_memory, mut transformed_pointer) =
@@ -294,25 +292,23 @@ impl Address {
                 // Get offset
                 let offset = get_usize(&mut transformed_pointer, address_memory);
 
-
                 (
                     location + (offset * expected_len),
                     match code {
                         IMMEDIATE_INDEXED_CODE => MemoryLocation::Program,
                         STACK_INDEXED_CODE => MemoryLocation::Stack,
-                        _ => panic!()
-                    }
+                        _ => panic!(),
+                    },
                 )
-            },
+            }
             HEAP_INDEXED_CODE => {
                 // Get frame address using normal evaluate
-                let (frame_address, frame_memory_location) =
-                    Self::evaluate_address(
-                        pointer,
-                        address_location,
-                        &USIZE_BYTES, // ? Expecting usize (address)
-                        memory
-                    ); // ? pointer incremented here
+                let (frame_address, frame_memory_location) = Self::evaluate_address(
+                    pointer,
+                    address_location,
+                    &USIZE_BYTES, // ? Expecting usize (address)
+                    memory,
+                ); // ? pointer incremented here
 
                 // Get memory at frame address
                 let (address_memory, mut transformed_pointer) =
@@ -322,13 +318,12 @@ impl Address {
                 let frame = get_usize(&mut transformed_pointer, address_memory);
 
                 // Get location address using normal evaluate
-                let (location_address, location_memory_location) =
-                    Self::evaluate_address(
-                        pointer,
-                        address_location,
-                        &USIZE_BYTES, // ? Expecting usize (address)
-                        memory
-                    ); // ? pointer incremented here
+                let (location_address, location_memory_location) = Self::evaluate_address(
+                    pointer,
+                    address_location,
+                    &USIZE_BYTES, // ? Expecting usize (address)
+                    memory,
+                ); // ? pointer incremented here
 
                 // Get memory at location address
                 let (address_memory, mut transformed_pointer) =
@@ -337,15 +332,13 @@ impl Address {
                 // Get location
                 let location = get_usize(&mut transformed_pointer, address_memory);
 
-
                 // Get offset address using normal evaluate
-                let (offset_address, offset_memory_location) =
-                    Self::evaluate_address(
-                        pointer,
-                        address_location,
-                        &USIZE_BYTES, // ? Expecting usize (address)
-                        memory
-                    ); // ? pointer incremented here
+                let (offset_address, offset_memory_location) = Self::evaluate_address(
+                    pointer,
+                    address_location,
+                    &USIZE_BYTES, // ? Expecting usize (address)
+                    memory,
+                ); // ? pointer incremented here
 
                 // Get memory at offset address
                 let (address_memory, mut transformed_pointer) =
@@ -354,10 +347,9 @@ impl Address {
                 // Get offset
                 let offset = get_usize(&mut transformed_pointer, address_memory);
 
-
                 (
                     location + (offset * expected_len),
-                    MemoryLocation::Heap(frame)
+                    MemoryLocation::Heap(frame),
                 )
             }
             _ => panic!("Invalid address code!"),

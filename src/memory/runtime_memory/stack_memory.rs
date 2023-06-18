@@ -1,6 +1,6 @@
+use crate::memory::runtime_memory::dump_bytes;
 use std::collections::LinkedList;
 use std::fs;
-use crate::memory::runtime_memory::dump_bytes;
 
 pub struct StackMemory {
     memory: LinkedList<(Vec<u8>, usize)>,
@@ -68,16 +68,20 @@ impl StackMemory {
     }
 
     pub fn stack_down_and_delete(&mut self) {
-        self.memory.pop_back().expect("Tried to stack down when there are no stacks!");
+        self.memory
+            .pop_back()
+            .expect("Tried to stack down when there are no stacks!");
         self.current_stack -= 1;
     }
 
-    pub fn get_current_level(&self) -> usize { self.current_stack }
+    pub fn get_current_level(&self) -> usize {
+        self.current_stack
+    }
 
     pub fn dump_bytes(&self, folder_name: &str) {
         fs::create_dir_all(folder_name).unwrap();
         for i in self.memory.iter().enumerate() {
-            dump_bytes(format!("{}/{}.bin", folder_name, i.0).as_str(), &(i.1.0));
+            dump_bytes(format!("{}/{}.bin", folder_name, i.0).as_str(), &(i.1 .0));
         }
     }
 }

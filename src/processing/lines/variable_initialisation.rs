@@ -1,5 +1,5 @@
-use crate::memory::MemoryManager;
 use super::LineHandler;
+use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
 use crate::processing::processor::ProcessingResult;
 use crate::processing::reference_manager::NamedReference;
@@ -48,7 +48,9 @@ impl LineHandler for VariableInitialisationLine {
         let literal = match &line[3] {
             Symbol::Literal(l) => l,
             _ => {
-                return ProcessingResult::Failure("Initialisation is currently only possible from literals".to_string())
+                return ProcessingResult::Failure(
+                    "Initialisation is currently only possible from literals".to_string(),
+                )
             }
         };
 
@@ -67,8 +69,11 @@ impl LineHandler for VariableInitialisationLine {
             return ProcessingResult::Failure(e);
         };*/
 
-        q!(object.allocate_variable(block_coordinator.get_stack_sizes(), memory_manager, Some(literal)));
-
+        q!(object.allocate_variable(
+            block_coordinator.get_stack_sizes(),
+            memory_manager,
+            Some(literal)
+        ));
 
         if let Err(e) = block_coordinator
             .get_reference_stack_mut()

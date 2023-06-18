@@ -1,8 +1,8 @@
 pub mod copy_3;
 pub mod heap_alloc_2;
 pub mod stack_create_0;
-pub mod stack_up_1;
 pub mod stack_down_4;
+pub mod stack_up_1;
 
 pub type InstructionCodeType = u16;
 pub const INSTRUCTION_CODE_LENGTH: usize = 2;

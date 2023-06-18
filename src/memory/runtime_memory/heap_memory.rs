@@ -1,20 +1,19 @@
+use crate::memory::runtime_memory::dump_bytes;
 use std::collections::LinkedList;
 use std::fs;
-use crate::memory::runtime_memory::dump_bytes;
 
 pub struct HeapMemory {
     // TODO: Use more efficient data structure (hash table?)
     // (frame id, data)
     memory: LinkedList<(usize, Vec<u8>)>,
-    next_frame: usize
+    next_frame: usize,
 }
-
 
 impl HeapMemory {
     pub fn new() -> Self {
         Self {
             memory: LinkedList::new(),
-            next_frame: 0
+            next_frame: 0,
         }
     }
 

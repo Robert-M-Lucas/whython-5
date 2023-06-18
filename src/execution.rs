@@ -1,15 +1,15 @@
 use crate::col_println;
 use crate::memory::RuntimeMemoryManager;
+use crate::processing::instructions::copy_3::{CopyInstruction, COPY_INSTRUCTION_CODE};
 use crate::processing::instructions::stack_create_0::{
     StackCreateInstruction, STACK_CREATE_INSTRUCTION_CODE,
 };
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Instant;
-use crate::processing::instructions::copy_3::{COPY_INSTRUCTION_CODE, CopyInstruction};
-use crate::processing::instructions::InstructionCodeType;
 use crate::processing::instructions::stack_down_4::STACK_DOWN_INSTRUCTION_CODE;
 use crate::processing::instructions::stack_up_1::STACK_UP_INSTRUCTION_CODE;
+use crate::processing::instructions::InstructionCodeType;
 use crate::util::warn;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Instant;
 
 macro_rules! execute_instruction {
     ($instruction: ident, $memory: expr, $pointer: expr) => {
@@ -29,24 +29,18 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
         let code = &memory.program_memory()[pointer..pointer + 2];
         pointer += 2;
 
-
-
         match InstructionCodeType::from_le_bytes(code.try_into().unwrap()) {
             STACK_CREATE_INSTRUCTION_CODE => {
                 let (size, return_addr) =
                     StackCreateInstruction::get_stack_size_and_return_addr(&mut pointer, memory);
                 memory.stack_memory().create_stack(size, return_addr);
-            },
-            STACK_UP_INSTRUCTION_CODE => {
-                memory.stack_memory().stack_up()
-            },
-            STACK_DOWN_INSTRUCTION_CODE => {
-                memory.stack_memory().stack_down_and_delete()
-            },
+            }
+            STACK_UP_INSTRUCTION_CODE => memory.stack_memory().stack_up(),
+            STACK_DOWN_INSTRUCTION_CODE => memory.stack_memory().stack_down_and_delete(),
             COPY_INSTRUCTION_CODE => {
                 execute_instruction!(CopyInstruction, memory, &mut pointer);
                 memory.dump_all();
-            },
+            }
             code => return Err(format!("Unknown instruction code! [{}]", code)),
         };
 

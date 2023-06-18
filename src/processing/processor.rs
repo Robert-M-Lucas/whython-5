@@ -2,10 +2,9 @@ use crate::errors::create_line_error;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
 use crate::processing::lines::base_block::BaseBlockLine;
-use crate::processing::symbols::Symbol;
-use crate::processing::lines::LineHandler;
 use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
-
+use crate::processing::lines::LineHandler;
+use crate::processing::symbols::Symbol;
 
 pub enum ProcessingResult {
     Success,
@@ -106,20 +105,15 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
 
         //? Process line
         // let r = ProcessingResult::Failure("".to_string());
-        let r = process_line!(
-            BaseBlockLine,
-            symbol_line,
-            memory,
-            block_coordinator
-        )
-        .or_else(|| {
-            process_line!(
-                VariableInitialisationLine,
-                symbol_line,
-                memory,
-                block_coordinator
-            )
-        });
+        let r =
+            process_line!(BaseBlockLine, symbol_line, memory, block_coordinator).or_else(|| {
+                process_line!(
+                    VariableInitialisationLine,
+                    symbol_line,
+                    memory,
+                    block_coordinator
+                )
+            });
 
         //? Handle unmatched / failed line
         if r.is_failure() {
@@ -144,4 +138,3 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
 
     Ok(memory)
 }
-

@@ -92,7 +92,7 @@ pub struct BlockCoordinator {
     stack: Vec<Box<dyn BlockHandler>>,
     stack_sizes: StackSizes,
     reference_stack: ReferenceStack,
-    completed: bool
+    completed: bool,
 }
 
 impl BlockCoordinator {
@@ -101,7 +101,7 @@ impl BlockCoordinator {
             stack: Vec::new(),
             stack_sizes: StackSizes::new(),
             reference_stack: ReferenceStack::new(),
-            completed: false
+            completed: false,
         };
 
         // Initialise base block
@@ -112,8 +112,11 @@ impl BlockCoordinator {
     }
 
     pub fn complete(&mut self, memory_manager: &mut MemoryManager) {
-        if self.stack.len() > 1 { panic!("Attempted to complete BlockCoordinator when a BlockHandler is still active"); }
-        self.force_exit_block_handler(memory_manager).expect("Removing base block failed");
+        if self.stack.len() > 1 {
+            panic!("Attempted to complete BlockCoordinator when a BlockHandler is still active");
+        }
+        self.force_exit_block_handler(memory_manager)
+            .expect("Removing base block failed");
         self.completed = true;
     }
 
