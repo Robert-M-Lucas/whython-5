@@ -28,7 +28,7 @@ fn dump_bytes(file: &str, data: &Vec<u8>) {
 pub struct RuntimeMemoryManager {
     program_memory: Vec<u8>,
     stack_memory: StackMemory,
-    heap_memory: Vec<u8>,
+    heap_memory: HeapMemory,
 }
 
 impl RuntimeMemoryManager {
@@ -36,7 +36,7 @@ impl RuntimeMemoryManager {
         Self {
             program_memory: program_memory.memory,
             stack_memory: StackMemory::new(),
-            heap_memory: Vec::new(),
+            heap_memory: HeapMemory::new(),
         }
     }
 
@@ -48,7 +48,7 @@ impl RuntimeMemoryManager {
         &mut self.stack_memory
     }
 
-    pub fn heap_memory(&mut self) -> &mut Vec<u8> {
+    pub fn heap_memory(&mut self) -> &mut HeapMemory {
         &mut self.heap_memory
     }
 
@@ -59,7 +59,7 @@ impl RuntimeMemoryManager {
         match location {
             MemoryLocation::Program => (&self.program_memory, start_position),
             MemoryLocation::Stack => self.stack_memory.get_stack(start_position),
-            MemoryLocation::Heap => (&self.heap_memory, start_position),
+            MemoryLocation::Heap(frame) => (self.heap_memory.get_frame(*frame), start_position),
         }
     }
 
@@ -67,7 +67,7 @@ impl RuntimeMemoryManager {
         match location {
             MemoryLocation::Program => &self.program_memory[address..address + length],
             MemoryLocation::Stack => self.stack_memory.index_slice(address, address + length),
-            MemoryLocation::Heap => panic!("Heap not implemented!"),
+            MemoryLocation::Heap(frame) => self.heap_memory.index_slice(*frame, address, address + length),
         }
     }
 
@@ -82,7 +82,12 @@ impl RuntimeMemoryManager {
                     stack[stack_address + i] = data[i];
                 }
             },
-            MemoryLocation::Heap => panic!("Heap not implemented!"),
+            MemoryLocation::Heap(frame) => {
+                let data = self.heap_memory.get_mut_frame(*frame);
+                for i in 0..data.len() {
+                    data[address + i] = data[i];
+                }
+            },
         }
     }
 
@@ -90,7 +95,7 @@ impl RuntimeMemoryManager {
         match location {
             MemoryLocation::Program => self.program_memory[address],
             MemoryLocation::Stack => self.stack_memory.index(address),
-            MemoryLocation::Heap => self.heap_memory[address],
+            MemoryLocation::Heap(frame) => self.heap_memory.index(*frame, address),
         }
     }
 
