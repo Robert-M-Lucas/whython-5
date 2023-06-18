@@ -2,7 +2,7 @@ mod stack_memory;
 mod heap_memory;
 
 pub use stack_memory::StackMemory;
-pub use stack_memory::HeapMemory;
+pub use heap_memory::HeapMemory;
 
 use std::fs;
 use std::io::Write;
