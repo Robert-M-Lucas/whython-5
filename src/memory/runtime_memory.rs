@@ -1,9 +1,9 @@
-pub mod stack_memory;
+mod stack_memory;
+mod heap_memory;
 
 pub use stack_memory::StackMemory;
+pub use stack_memory::HeapMemory;
 
-use std::collections::linked_list::LinkedList;
-use std::fmt::format;
 use std::fs;
 use std::io::Write;
 use super::MemoryManager;
@@ -12,7 +12,7 @@ use super::MemoryManager;
 pub enum MemoryLocation {
     Program,
     Stack,
-    Heap,
+    Heap(usize), // ? frame: usize
 }
 
 fn dump_bytes(file: &str, data: &Vec<u8>) {
@@ -52,7 +52,7 @@ impl RuntimeMemoryManager {
         &mut self.heap_memory
     }
 
-    /// Returns a reference to the memory as `&[u8]` and the transformed address location as a 
+    /// Returns a reference to the memory as `&[u8]` and the transformed address location as a
     /// `usize`. See `StackMemory::get_stack` for details about how the address location is
     /// transformed
     pub fn get_memory(&self, location: &MemoryLocation, start_position: usize) -> (&[u8], usize) {
