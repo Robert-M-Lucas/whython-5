@@ -48,8 +48,8 @@ impl CopyInstruction {
 
     pub fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize) {
         let size = get_usize(pointer, memory.program_memory());
-        let data_location = Address::evaluate_address(pointer, &size, memory, &MemoryLocation::Program);
-        let data_destination = Address::evaluate_address(pointer, &size, memory, &MemoryLocation::Program);
+        let data_location = Address::evaluate_address(pointer, &MemoryLocation::Program, &size, memory);
+        let data_destination = Address::evaluate_address(pointer, &MemoryLocation::Program, &size, memory);
         let data = Vec::from(memory.get_data(&data_location.1, data_location.0, size));
         memory.overwrite_data(&data_destination.1, data_destination.0, &data);
     }
