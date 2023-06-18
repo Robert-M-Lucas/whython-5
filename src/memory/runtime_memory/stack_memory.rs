@@ -45,7 +45,7 @@ impl StackMemory {
         panic!("Index out of stack!");
     }
 
-    pub fn index(&self, mut position: usize) -> u8 {
+    pub fn index(&self, position: usize) -> u8 {
         let (stack, transformed_position) = self.get_stack(position);
         stack[transformed_position]
     }

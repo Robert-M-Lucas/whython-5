@@ -241,7 +241,7 @@ impl Address {
                     memory.get_memory(address_location, *pointer + USIZE_BYTES);
 
                 // ? Get next frame (doesn't increment real pointer)
-                let mut next_frame = get_usize(&mut frame_pointer, frame_memory);
+                let next_frame = get_usize(&mut frame_pointer, frame_memory);
 
                 // ? Get next address (doesn't increment real pointer)
                 let mut next_address = get_usize(&mut address_pointer, address_memory);
