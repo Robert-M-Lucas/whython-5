@@ -23,6 +23,8 @@ default_type_initialiser!(BoolType, (BoolAnd), (BoolNot));
 pub const BOOL_TRUE: u8 = 0xFF;
 pub const BOOL_FALSE: u8 = 0x00;
 
+pub const BOOLEAN_SIZE: usize = 1;
+
 impl Type for BoolType {
     default_get_type_symbol_impl!(BoolType, TypeSymbol::Boolean);
 
@@ -41,7 +43,7 @@ impl Type for BoolType {
                 .as_str(),
             )
         }
-        self.address = Some(Address::StackDirect(stack.increment_stack_size(1)));
+        self.address = Some(Address::StackDirect(stack.increment_stack_size(BOOLEAN_SIZE)));
 
         if let Some(literal) = to_assign {
             let constant = self.get_constant(literal)?;
@@ -88,7 +90,7 @@ impl Type for BoolType {
     default_type_operate_impl!(BoolType);
 
     fn get_address_and_length(&self) -> (&Address, usize) {
-        (self.address.as_ref().unwrap(), 1)
+        (self.address.as_ref().unwrap(), BOOLEAN_SIZE)
     }
 }
 
