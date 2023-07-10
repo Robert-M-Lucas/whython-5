@@ -1,16 +1,16 @@
 use crate::memory::RuntimeMemoryManager;
 
+pub mod binary_and_8;
+pub mod binary_not_7;
 pub mod copy_3;
+pub mod dump_5;
 pub mod heap_alloc_2;
+pub mod jump_if_not_9;
+pub mod jump_instruction_10;
+pub mod print_dump_6;
 pub mod stack_create_0;
 pub mod stack_down_4;
 pub mod stack_up_1;
-pub mod dump_5;
-pub mod print_dump_6;
-pub mod binary_not_7;
-pub mod binary_and_8;
-pub mod jump_if_not_9;
-pub mod jump_instruction_10;
 
 pub type InstructionCodeType = u16;
 pub const INSTRUCTION_CODE_LENGTH: usize = 2;
@@ -21,7 +21,7 @@ macro_rules! default_instruction_impl {
         pub const $caps_name: $crate::processing::instructions::InstructionCodeType = $code;
 
         impl $name {
-            pub fn new_alloc(memory_manager: &mut $crate::memory::MemoryManager, $($arg: $t),*) -> Self {
+            pub fn new_alloc(program_memory: &mut $crate::memory::MemoryManager, $($arg: $t),*) -> Self {
                 #[allow(unused_mut)]
                 let mut instruction_memory = Vec::with_capacity(Self::get_size() + $crate::processing::instructions::INSTRUCTION_CODE_LENGTH);
                 instruction_memory.extend($caps_name.to_le_bytes());
@@ -30,7 +30,7 @@ macro_rules! default_instruction_impl {
 
                 assert_eq!(instruction_memory.len() - $crate::processing::instructions::INSTRUCTION_CODE_LENGTH, Self::get_size());
 
-                let address = memory_manager.append(&instruction_memory);
+                let address = program_memory.append(&instruction_memory);
 
                 Self { address }
             }

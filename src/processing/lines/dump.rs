@@ -10,7 +10,7 @@ pub struct DumpLine {}
 impl LineHandler for DumpLine {
     fn process_line(
         line: &[Symbol],
-        memory_manager: &mut MemoryManager,
+        program_memory: &mut MemoryManager,
         _block_coordinator: &mut BlockCoordinator,
     ) -> ProcessingResult {
         if line.is_empty() {
@@ -23,10 +23,12 @@ impl LineHandler for DumpLine {
         };
 
         if line.len() > 1 {
-            return ProcessingResult::Failure("Dump cannot be followed by anything else".to_string());
+            return ProcessingResult::Failure(
+                "Dump cannot be followed by anything else".to_string(),
+            );
         }
 
-        DumpInstruction::new_alloc(memory_manager);
+        DumpInstruction::new_alloc(program_memory);
 
         return ProcessingResult::Success;
     }

@@ -1,8 +1,8 @@
+use crate::bx;
 use crate::memory::{MemoryLocation, RuntimeMemoryManager};
 use crate::util::{get_usize, USIZE_BYTES};
 use std::fmt::Debug;
 use std::fmt::Formatter;
-use crate::bx;
 
 pub struct CloneableBox<T>
 where
@@ -78,7 +78,7 @@ impl Address {
     pub fn is_immediate(&self) -> bool {
         match self {
             Self::Immediate(_) | Self::ImmediateIndexed(_, _) => true,
-            _ => false
+            _ => false,
         }
     }
 
@@ -360,14 +360,14 @@ impl Address {
         }
     }
 
-    pub fn evaluate_address_to_data<'a>(mut pointer: &mut usize,
-                                    address_location: &MemoryLocation,
-                                    expected_len: &usize,
-                                    memory: &'a RuntimeMemoryManager) -> &'a [u8] {
-        let (address, location) = Self::evaluate_address(&mut pointer,
-                                             address_location,
-                                             expected_len,
-                                             memory);
+    pub fn evaluate_address_to_data<'a>(
+        mut pointer: &mut usize,
+        address_location: &MemoryLocation,
+        expected_len: &usize,
+        memory: &'a RuntimeMemoryManager,
+    ) -> &'a [u8] {
+        let (address, location) =
+            Self::evaluate_address(&mut pointer, address_location, expected_len, memory);
 
         memory.get_data(&location, address, *expected_len)
     }

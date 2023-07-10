@@ -1,8 +1,8 @@
+use crate::bx;
 use crate::errors::create_line_error;
 use crate::processing::symbols::Symbol::ArithmeticBlock;
 use crate::processing::symbols::{get_all_symbol, Symbol, STRING_DELIMITERS};
 use debugless_unwrap::DebuglessUnwrapErr;
-use crate::bx;
 
 /// Takes a line of code and returns an array of symbols
 #[allow(clippy::single_match)]

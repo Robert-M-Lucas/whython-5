@@ -1,8 +1,22 @@
-use crate::processing::instructions::print_dump_6::{PRINT_DUMP_INSTRUCTION_CODE, PrintDumpInstruction};
+use crate::processing::instructions::binary_and_8::{
+    BinaryAndInstruction, BINARY_AND_INSTRUCTION_CODE,
+};
+use crate::processing::instructions::binary_not_7::{
+    BinaryNotInstruction, BINARY_NOT_INSTRUCTION_CODE,
+};
 use crate::processing::instructions::copy_3::{CopyInstruction, COPY_INSTRUCTION_CODE};
-use crate::processing::instructions::dump_5::{DUMP_INSTRUCTION_CODE, DumpInstruction};
+use crate::processing::instructions::dump_5::{DumpInstruction, DUMP_INSTRUCTION_CODE};
 use crate::processing::instructions::heap_alloc_2::{
     HeapAllocInstruction, HEAP_ALLOC_INSTRUCTION_CODE,
+};
+use crate::processing::instructions::jump_if_not_9::{
+    JumpIfNotInstruction, JUMP_IF_NOT_INSTRUCTION_CODE,
+};
+use crate::processing::instructions::jump_instruction_10::{
+    JumpInstruction, JUMP_INSTRUCTION_CODE,
+};
+use crate::processing::instructions::print_dump_6::{
+    PrintDumpInstruction, PRINT_DUMP_INSTRUCTION_CODE,
 };
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_create_0::STACK_CREATE_INSTRUCTION_CODE;
@@ -10,11 +24,7 @@ use crate::processing::instructions::stack_down_4::{
     StackDownInstruction, STACK_DOWN_INSTRUCTION_CODE,
 };
 use crate::processing::instructions::stack_up_1::{StackUpInstruction, STACK_UP_INSTRUCTION_CODE};
-use crate::processing::instructions::{INSTRUCTION_CODE_LENGTH, InstructionCodeType};
-use crate::processing::instructions::binary_and_8::{BINARY_AND_INSTRUCTION_CODE, BinaryAndInstruction};
-use crate::processing::instructions::binary_not_7::{BINARY_NOT_INSTRUCTION_CODE, BinaryNotInstruction};
-use crate::processing::instructions::jump_if_not_9::{JUMP_IF_NOT_INSTRUCTION_CODE, JumpIfNotInstruction};
-use crate::processing::instructions::jump_instruction_10::{JUMP_INSTRUCTION_CODE, JumpInstruction};
+use crate::processing::instructions::{InstructionCodeType, INSTRUCTION_CODE_LENGTH};
 
 macro_rules! translate {
     ($instruction: ident, $data: expr, $i: expr) => {
@@ -31,8 +41,6 @@ pub fn translate(data: &[u8], translate_one: bool) {
 
         let code = &data[i..i + INSTRUCTION_CODE_LENGTH];
         i += INSTRUCTION_CODE_LENGTH;
-
-
 
         let output = match InstructionCodeType::from_le_bytes(code.try_into().unwrap()) {
             STACK_CREATE_INSTRUCTION_CODE => translate!(StackCreateInstruction, data, i),

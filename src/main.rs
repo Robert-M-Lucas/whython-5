@@ -105,7 +105,7 @@ fn wrapped_main(exit: &AtomicBool) {
             Err(e) => {
                 col_println!(
                     (red, bold),
-                    "Compilation (post) failed [{:?}]:\n\t{}",
+                    "Compilation (post) failed [{:?}]:\n    {}",
                     start.elapsed(),
                     e
                 );

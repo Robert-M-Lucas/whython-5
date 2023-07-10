@@ -1,6 +1,8 @@
 use crate::address::Address;
 use crate::memory::{MemoryLocation, RuntimeMemoryManager};
-use crate::processing::instructions::{Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH, Execute};
+use crate::processing::instructions::{
+    Execute, Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH,
+};
 use crate::util::get_usize;
 
 pub struct BinaryNotInstruction {
@@ -11,7 +13,7 @@ pub const BINARY_NOT_INSTRUCTION_CODE: InstructionCodeType = 7;
 
 impl BinaryNotInstruction {
     pub fn new_alloc(
-        memory_manager: &mut crate::memory::MemoryManager,
+        program_memory: &mut crate::memory::MemoryManager,
         address_from: &Address,
         address_to: &Address,
         size: usize,
@@ -33,7 +35,7 @@ impl BinaryNotInstruction {
         instruction_memory.append(&mut from_bytes);
         instruction_memory.append(&mut to_bytes);
 
-        let address = memory_manager.append(&instruction_memory);
+        let address = program_memory.append(&instruction_memory);
 
         Self { address }
     }

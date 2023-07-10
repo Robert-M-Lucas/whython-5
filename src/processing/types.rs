@@ -23,7 +23,6 @@ pub trait Type {
         &mut self,
         _stack: &mut StackSizes,
         _program_memory: &mut MemoryManager,
-        _to_assign: Option<&Literal>,
     ) -> Result<(), String> {
         Err(format!(
             "{:?} cannot be allocated as a variable",
@@ -40,15 +39,32 @@ pub trait Type {
 
     fn runtime_copy_from(&self, other: &Box<dyn Type>) -> Result<(), String>;
 
-    fn runtime_copy_from_literal(&self, to_assign: &Literal) -> Result<(), String>;
+    fn runtime_copy_from_literal(
+        &self,
+        literal: &Literal,
+        program_memory: &mut MemoryManager,
+    ) -> Result<(), String>;
 
     fn get_prefix_operation_result_type(&self, operator: &Operator) -> Vec<TypeSymbol>;
 
     fn get_operation_result_type(&self, operator: &Operator, rhs: &TypeSymbol) -> Vec<TypeSymbol>;
 
-    fn operate_prefix(&self, operator: &Operator, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, stack_sizes: &mut StackSizes) -> Result<(), String>;
+    fn operate_prefix(
+        &self,
+        operator: &Operator,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        stack_sizes: &mut StackSizes,
+    ) -> Result<(), String>;
 
-    fn operate(&self, operator: &Operator, rhs: &Box<dyn Type>, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, stack_sizes: &mut StackSizes) -> Result<(), String>;
+    fn operate(
+        &self,
+        operator: &Operator,
+        rhs: &Box<dyn Type>,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        stack_sizes: &mut StackSizes,
+    ) -> Result<(), String>;
 
     fn get_address_and_length(&self) -> (&Address, usize);
 
@@ -71,7 +87,14 @@ pub trait Operation<LHS> {
 
     fn get_result_type(&self, rhs: &TypeSymbol) -> Option<TypeSymbol>;
 
-    fn operate(&self, lhs: &LHS, rhs: &Box<dyn Type>, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, stack_sizes: &mut StackSizes) -> Result<(), String>;
+    fn operate(
+        &self,
+        lhs: &LHS,
+        rhs: &Box<dyn Type>,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        stack_sizes: &mut StackSizes,
+    ) -> Result<(), String>;
 }
 
 pub trait PrefixOperation<LHS> {
@@ -79,7 +102,13 @@ pub trait PrefixOperation<LHS> {
 
     fn get_result_type(&self) -> Option<TypeSymbol>;
 
-    fn operate_prefix(&self, lhs: &LHS, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, stack_sizes: &mut StackSizes) -> Result<(), String>;
+    fn operate_prefix(
+        &self,
+        lhs: &LHS,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        stack_sizes: &mut StackSizes,
+    ) -> Result<(), String>;
 }
 
 // TODO: Refine
@@ -113,10 +142,15 @@ impl TypeFactory {
         }
     }
 
-    pub fn get_default_instantiated_type_for_literal(literal: &Literal, stack: &mut StackSizes, program_memory: &mut MemoryManager) -> Result<Box<dyn Type>, String> {
+    pub fn get_default_instantiated_type_for_literal(
+        literal: &Literal,
+        stack: &mut StackSizes,
+        program_memory: &mut MemoryManager,
+    ) -> Result<Box<dyn Type>, String> {
         let type_symbol = Self::get_default_type_for_literal(literal)?;
         let mut t = Self::get_unallocated_type(&type_symbol)?;
-        t.allocate_variable(stack, program_memory, Some(literal))?;
+        t.allocate_variable(stack, program_memory)?;
+        t.runtime_copy_from_literal(literal, program_memory)?;
         Ok(t)
     }
 }

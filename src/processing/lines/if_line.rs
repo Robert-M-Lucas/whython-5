@@ -1,7 +1,7 @@
 use crate::memory::MemoryManager;
-use crate::processing::blocks::base_block::BaseBlock;
-use crate::processing::blocks::BlockCoordinator;
+
 use crate::processing::blocks::if_block::IfBlock;
+use crate::processing::blocks::BlockCoordinator;
 
 use crate::processing::lines::LineHandler;
 use crate::processing::processor::ProcessingResult;
@@ -12,7 +12,7 @@ pub struct IfLine {}
 impl LineHandler for IfLine {
     fn process_line(
         line: &[Symbol],
-        memory_manager: &mut MemoryManager,
+        program_memory: &mut MemoryManager,
         block_coordinator: &mut BlockCoordinator,
     ) -> ProcessingResult {
         if line.is_empty() {
@@ -23,13 +23,17 @@ impl LineHandler for IfLine {
             Symbol::Block(Block::If) => {
                 match block_coordinator.add_block_handler(
                     IfBlock::new_block(),
-                    memory_manager,
+                    program_memory,
                     line,
                 ) {
                     Err(e) => ProcessingResult::Failure(e),
                     Ok(_) => ProcessingResult::Success,
                 }
             }
+            //? If not intercepted, there was no if
+            Symbol::Block(Block::Elif | Block::Else) => ProcessingResult::Failure(
+                "'elif' and 'else' can only follow an 'if' statement".to_string(),
+            ),
             _ => ProcessingResult::Unmatched,
         }
     }

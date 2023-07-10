@@ -1,6 +1,8 @@
 use crate::address::Address;
 use crate::memory::{MemoryLocation, RuntimeMemoryManager};
-use crate::processing::instructions::{Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH, Execute};
+use crate::processing::instructions::{
+    Execute, Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH,
+};
 use crate::util::get_usize;
 
 pub struct BinaryAndInstruction {
@@ -11,7 +13,7 @@ pub const BINARY_AND_INSTRUCTION_CODE: InstructionCodeType = 8;
 
 impl BinaryAndInstruction {
     pub fn new_alloc(
-        memory_manager: &mut crate::memory::MemoryManager,
+        program_memory: &mut crate::memory::MemoryManager,
         address_from_lhs: &Address,
         address_from_rhs: &Address,
         address_to: &Address,
@@ -27,7 +29,7 @@ impl BinaryAndInstruction {
         let mut from_lhs_bytes = address_from_lhs.get_bytes();
         let mut from_rhs_bytes = address_from_rhs.get_bytes();
         let mut to_bytes = address_to.get_bytes();
-        
+
         let mut instruction_memory = Vec::with_capacity(
             INSTRUCTION_CODE_LENGTH + from_lhs_bytes.len() + to_bytes.len() + size_bytes.len(),
         );
@@ -37,7 +39,7 @@ impl BinaryAndInstruction {
         instruction_memory.append(&mut from_rhs_bytes);
         instruction_memory.append(&mut to_bytes);
 
-        let address = memory_manager.append(&instruction_memory);
+        let address = program_memory.append(&instruction_memory);
 
         Self { address }
     }
@@ -63,7 +65,7 @@ impl Execute for BinaryAndInstruction {
             Address::evaluate_address(pointer, &MemoryLocation::Program, &size, memory);
 
         let mut new_data = Vec::with_capacity(size);
-        
+
         for i in 0..size {
             new_data.push(data_lhs[i] & data_rhs[i]);
         }

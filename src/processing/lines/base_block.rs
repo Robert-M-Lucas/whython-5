@@ -11,7 +11,7 @@ pub struct BaseBlockLine {}
 impl LineHandler for BaseBlockLine {
     fn process_line(
         line: &[Symbol],
-        memory_manager: &mut MemoryManager,
+        program_memory: &mut MemoryManager,
         block_coordinator: &mut BlockCoordinator,
     ) -> ProcessingResult {
         if line.is_empty() {
@@ -22,7 +22,7 @@ impl LineHandler for BaseBlockLine {
             Symbol::Block(Block::BaseBlock) => {
                 match block_coordinator.add_block_handler(
                     BaseBlock::new_block(),
-                    memory_manager,
+                    program_memory,
                     line,
                 ) {
                     Err(e) => ProcessingResult::Failure(e),

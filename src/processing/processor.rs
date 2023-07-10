@@ -4,10 +4,11 @@ use crate::processing::blocks::BlockCoordinator;
 use crate::processing::lines::base_block::BaseBlockLine;
 use crate::processing::lines::dump::DumpLine;
 use crate::processing::lines::if_line::IfLine;
-use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
-use crate::processing::lines::LineHandler;
 use crate::processing::lines::printdump::PrintDumpLine;
 use crate::processing::lines::variable_assignment::VariableAssignmentLine;
+use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
+use crate::processing::lines::while_line::WhileLine;
+use crate::processing::lines::LineHandler;
 use crate::processing::symbols::Symbol;
 
 pub enum ProcessingResult {
@@ -54,12 +55,8 @@ macro_rules! q {
 }
 
 macro_rules! process_line {
-    ($line: ident, $symbol_line: expr, $memory_managers: expr, $block_coordinator: expr) => {
-        $line::process_line(
-            &$symbol_line,
-            &mut $memory_managers,
-            &mut $block_coordinator,
-        )
+    ($line: ident, $symbol_line: expr, $program_memory: expr, $block_coordinator: expr) => {
+        $line::process_line(&$symbol_line, &mut $program_memory, &mut $block_coordinator)
     };
 }
 
@@ -109,45 +106,27 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
 
         //? Process line
         // let r = ProcessingResult::Failure("".to_string());
-        let r =
-            process_line!(BaseBlockLine, symbol_line, memory, block_coordinator).or_else(|| {
+        let r = process_line!(BaseBlockLine, symbol_line, memory, block_coordinator)
+            .or_else(|| {
                 process_line!(
                     VariableInitialisationLine,
                     symbol_line,
                     memory,
                     block_coordinator
                 )
-            }).or_else(|| {
+            })
+            .or_else(|| process_line!(DumpLine, symbol_line, memory, block_coordinator))
+            .or_else(|| process_line!(PrintDumpLine, symbol_line, memory, block_coordinator))
+            .or_else(|| {
                 process_line!(
-                    DumpLine,
-                    symbol_line,
-                    memory,
-                    block_coordinator
-                )
-            }).or_else(|| {
-                process_line!(
-                    PrintDumpLine,
+                    VariableAssignmentLine,
                     symbol_line,
                     memory,
                     block_coordinator
                 )
             })
-            .or_else(|| {
-                process_line!(
-                VariableAssignmentLine,
-                symbol_line,
-                memory,
-                block_coordinator
-            )
-            }).or_else(|| {
-                process_line!(
-                IfLine,
-                symbol_line,
-                memory,
-                block_coordinator
-            )
-            });
-
+            .or_else(|| process_line!(IfLine, symbol_line, memory, block_coordinator))
+            .or_else(|| process_line!(WhileLine, symbol_line, memory, block_coordinator));
 
         //? Handle unmatched / failed line
         if r.is_failure() {

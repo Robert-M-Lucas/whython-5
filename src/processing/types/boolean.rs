@@ -1,18 +1,18 @@
-use crate::processing::instructions::binary_not_7::BinaryNotInstruction;
 use crate::address::Address;
 use crate::errors::create_literal_not_impl_error;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
+use crate::processing::instructions::binary_and_8::BinaryAndInstruction;
+use crate::processing::instructions::binary_not_7::BinaryNotInstruction;
 use crate::processing::instructions::copy_3::CopyInstruction;
 use crate::processing::symbols::Literal;
+use crate::processing::types::PrefixOperation;
 use crate::util::warn;
 use crate::{
     default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl,
     default_type_struct, default_type_wrapper_struct_and_impl,
     processing::symbols::{Operator, TypeSymbol},
 };
-use crate::processing::instructions::binary_and_8::BinaryAndInstruction;
-use crate::processing::types::PrefixOperation;
 
 use super::{Operation, Type};
 
@@ -31,8 +31,7 @@ impl Type for BoolType {
     fn allocate_variable(
         &mut self,
         stack: &mut StackSizes,
-        program_memory: &mut MemoryManager,
-        to_assign: Option<&Literal>,
+        _program_memory: &mut MemoryManager,
     ) -> Result<(), String> {
         if self.address.is_some() {
             warn(
@@ -43,18 +42,9 @@ impl Type for BoolType {
                 .as_str(),
             )
         }
-        self.address = Some(Address::StackDirect(stack.increment_stack_size(BOOLEAN_SIZE)));
-
-        if let Some(literal) = to_assign {
-            let constant = self.get_constant(literal)?;
-            CopyInstruction::new_alloc(
-                program_memory,
-                &constant,
-                self.address.as_ref().unwrap(),
-                1,
-            );
-        }
-        // ? If no literal memory will be default initialised to 0x00 (false)
+        self.address = Some(Address::StackDirect(
+            stack.increment_stack_size(BOOLEAN_SIZE),
+        ));
 
         Ok(())
     }
@@ -83,8 +73,15 @@ impl Type for BoolType {
         todo!()
     }
 
-    fn runtime_copy_from_literal(&self, _to_assign: &Literal) -> Result<(), String> {
-        todo!()
+    fn runtime_copy_from_literal(
+        &self,
+        literal: &Literal,
+        program_memory: &mut MemoryManager,
+    ) -> Result<(), String> {
+        let constant = self.get_constant(literal)?;
+        CopyInstruction::new_alloc(program_memory, &constant, self.address.as_ref().unwrap(), 1);
+
+        Ok(())
     }
 
     default_type_operate_impl!(BoolType);
@@ -109,12 +106,25 @@ impl Operation<BoolType> for BoolAnd {
         }
     }
 
-    fn operate(&self, lhs: &BoolType, rhs: &Box<dyn Type>, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, _stack_sizes: &mut StackSizes) -> Result<(), String> {
+    fn operate(
+        &self,
+        lhs: &BoolType,
+        rhs: &Box<dyn Type>,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        _stack_sizes: &mut StackSizes,
+    ) -> Result<(), String> {
         assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
         assert!(matches!(rhs.get_type_symbol(), TypeSymbol::Boolean));
 
         let (address_from, length) = lhs.get_address_and_length();
-        BinaryAndInstruction::new_alloc(memory_manager, address_from, rhs.get_address_and_length().0, destination.get_address_and_length().0, length);
+        BinaryAndInstruction::new_alloc(
+            program_memory,
+            address_from,
+            rhs.get_address_and_length().0,
+            destination.get_address_and_length().0,
+            length,
+        );
         Ok(())
     }
 }
@@ -130,11 +140,22 @@ impl PrefixOperation<BoolType> for BoolNot {
         Some(TypeSymbol::Boolean)
     }
 
-    fn operate_prefix(&self, lhs: &BoolType, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, _stack_sizes: &mut StackSizes) -> Result<(), String> {
+    fn operate_prefix(
+        &self,
+        lhs: &BoolType,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        _stack_sizes: &mut StackSizes,
+    ) -> Result<(), String> {
         assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
 
         let (address_from, length) = lhs.get_address_and_length();
-        BinaryNotInstruction::new_alloc(memory_manager, address_from, destination.get_address_and_length().0, length);
+        BinaryNotInstruction::new_alloc(
+            program_memory,
+            address_from,
+            destination.get_address_and_length().0,
+            length,
+        );
         Ok(())
     }
 }

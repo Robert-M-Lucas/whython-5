@@ -14,7 +14,7 @@ pub struct VariableInitialisationLine {}
 impl LineHandler for VariableInitialisationLine {
     fn process_line(
         line: &[Symbol],
-        memory_manager: &mut MemoryManager,
+        program_memory: &mut MemoryManager,
         block_coordinator: &mut BlockCoordinator,
     ) -> ProcessingResult {
         if line.is_empty() || !matches!(line[0], Symbol::Type(_)) {
@@ -52,30 +52,18 @@ impl LineHandler for VariableInitialisationLine {
             _ => panic!(),
         };
 
-        if let Symbol::Literal(literal) = &line[3] {
-            q!(object.allocate_variable(
-                block_coordinator.get_stack_sizes(),
-                memory_manager,
-                Some(literal)
-            ));
-        }
-        else {
-            q!(object.allocate_variable(
-                block_coordinator.get_stack_sizes(),
-                memory_manager,
-                None
-            ));
+        q!(object.allocate_variable(block_coordinator.get_stack_sizes(), program_memory,));
 
-            let (stack_sizes, reference_stack) = block_coordinator.get_stack_sizes_and_reference_stack();
+        let (stack_sizes, reference_stack) =
+            block_coordinator.get_stack_sizes_and_reference_stack();
 
-            q!(evaluate_arithmetic_into_type(
-                &line[3..],
-                &object,
-                memory_manager,
-                reference_stack,
-                stack_sizes,
-            ));
-        }
+        q!(evaluate_arithmetic_into_type(
+            &line[3..],
+            &object,
+            program_memory,
+            reference_stack,
+            stack_sizes,
+        ));
 
         if let Err(e) = block_coordinator
             .get_reference_stack_mut()

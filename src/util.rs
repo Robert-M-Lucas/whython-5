@@ -93,7 +93,7 @@ macro_rules! col_print {
 macro_rules! bx {
     ($expr: expr) => {
         Box::new($expr)
-    }
+    };
 }
 
 /// Prints a warning

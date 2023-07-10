@@ -15,13 +15,16 @@ default_instruction_impl!(
 );
 
 impl JumpInstruction {
-    pub fn set_destination(&self, new_destination: usize, memory_manager: &mut MemoryManager) {
-        memory_manager.overwrite(self.address + INSTRUCTION_CODE_LENGTH, &new_destination.to_le_bytes());
+    pub fn set_destination(&self, new_destination: usize, program_memory: &mut MemoryManager) {
+        program_memory.overwrite(
+            self.address + INSTRUCTION_CODE_LENGTH,
+            &new_destination.to_le_bytes(),
+        );
     }
 }
 
 impl Execute for JumpInstruction {
-    fn execute(memory: &mut RuntimeMemoryManager, mut pointer: &mut usize) {
+    fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize) {
         *pointer = get_usize(pointer, memory.program_memory());
     }
 }

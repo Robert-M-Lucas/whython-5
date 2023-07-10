@@ -22,39 +22,39 @@ impl BaseBlock {
 impl BlockHandler for BaseBlock {
     fn on_entry(
         &mut self,
-        memory_manager: &mut MemoryManager,
+        program_memory: &mut MemoryManager,
         _reference_stack: &mut ReferenceStack,
         _stack_sizes: &mut StackSizes,
         _symbol_line: &[Symbol],
     ) -> Result<(), String> {
         self.stack_create_instruction =
-            Some(StackCreateInstruction::new_alloc(memory_manager, 0, 0));
-        StackUpInstruction::new_alloc(memory_manager);
+            Some(StackCreateInstruction::new_alloc(program_memory, 0, 0));
+        StackUpInstruction::new_alloc(program_memory);
         Ok(())
     }
 
     fn on_exit(
         &mut self,
-        memory_manager: &mut MemoryManager,
+        program_memory: &mut MemoryManager,
         reference_stack: &mut ReferenceStack,
         stack_sizes: &mut StackSizes,
         _symbol_line: &[Symbol],
     ) -> Result<bool, String> {
-        self.on_forced_exit(memory_manager, reference_stack, stack_sizes)?;
+        self.on_forced_exit(program_memory, reference_stack, stack_sizes)?;
         Ok(true)
     }
 
     fn on_forced_exit(
         &mut self,
-        memory_manager: &mut MemoryManager,
+        program_memory: &mut MemoryManager,
         _reference_stack: &mut ReferenceStack,
         stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
         self.stack_create_instruction
             .as_mut()
             .expect("No stack create instruction")
-            .change_stack_size(memory_manager, stack_sizes.get_size());
-        StackDownInstruction::new_alloc(memory_manager);
+            .change_stack_size(program_memory, stack_sizes.get_size());
+        StackDownInstruction::new_alloc(program_memory);
         Ok(())
     }
 }

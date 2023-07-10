@@ -1,6 +1,8 @@
 use crate::address::Address;
 use crate::memory::{MemoryLocation, RuntimeMemoryManager};
-use crate::processing::instructions::{Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH, Execute};
+use crate::processing::instructions::{
+    Execute, Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH,
+};
 use crate::util::{get_usize, USIZE_BYTES};
 
 pub struct HeapAllocInstruction {
@@ -11,26 +13,23 @@ pub const HEAP_ALLOC_INSTRUCTION_CODE: InstructionCodeType = 2;
 
 impl HeapAllocInstruction {
     pub fn new_alloc(
-        memory_manager: &mut crate::memory::MemoryManager,
+        program_memory: &mut crate::memory::MemoryManager,
         size: usize,
-        write_frame_id_to: &Address
+        write_frame_id_to: &Address,
     ) -> Self {
         if write_frame_id_to.is_immediate() {
-            panic!(
-                "Can't write frame id to Immediate address!"
-            );
+            panic!("Can't write frame id to Immediate address!");
         }
 
         let size_bytes = size.to_le_bytes();
         let mut output_bytes = write_frame_id_to.get_bytes();
-        let mut instruction_memory = Vec::with_capacity(
-            INSTRUCTION_CODE_LENGTH + size_bytes.len() + output_bytes.len(),
-        );
+        let mut instruction_memory =
+            Vec::with_capacity(INSTRUCTION_CODE_LENGTH + size_bytes.len() + output_bytes.len());
         instruction_memory.extend(HEAP_ALLOC_INSTRUCTION_CODE.to_le_bytes());
         instruction_memory.extend(size_bytes.iter());
         instruction_memory.append(&mut output_bytes);
 
-        let address = memory_manager.append(&instruction_memory);
+        let address = program_memory.append(&instruction_memory);
 
         Self { address }
     }

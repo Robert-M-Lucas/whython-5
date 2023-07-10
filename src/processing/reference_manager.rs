@@ -21,8 +21,10 @@ impl NamedReference {
 
     pub fn get_variable(&self) -> Result<&Box<dyn Type>, String> {
         match &self.reference {
-            ReferenceType::Function | ReferenceType::Class => Err("Reference is not a variable".to_string()),
-            ReferenceType::Variable(variable) => Ok(variable)
+            ReferenceType::Function | ReferenceType::Class => {
+                Err("Reference is not a variable".to_string())
+            }
+            ReferenceType::Variable(variable) => Ok(variable),
         }
     }
 }
@@ -113,7 +115,7 @@ impl ReferenceManager {
     pub fn get_reference(&self, name: &str) -> Result<&NamedReference, String> {
         match self.references.iter().find(|&v| *v.name.as_str() == *name) {
             Some(r) => Ok(r),
-            None => Err(format!("Reference '{}' not found", name))
+            None => Err(format!("Reference '{}' not found", name)),
         }
     }
 }

@@ -80,7 +80,11 @@ macro_rules! default_type_operate_impl {
             results
         }
 
-        fn get_operation_result_type(&self, _operator: &Operator, rhs: &TypeSymbol) -> Vec<TypeSymbol> {
+        fn get_operation_result_type(
+            &self,
+            _operator: &Operator,
+            rhs: &TypeSymbol,
+        ) -> Vec<TypeSymbol> {
             let mut results = Vec::new();
 
             for op in self.operators.iter() {
@@ -94,30 +98,48 @@ macro_rules! default_type_operate_impl {
             results
         }
 
-        fn operate_prefix(&self, operator: &crate::processing::symbols::Operator, destination: &Box<dyn $crate::processing::types::Type>, memory_manager: &mut $crate::memory::MemoryManager, stack_sizes: &mut $crate::processing::blocks::StackSizes) -> Result<(), String> {
+        fn operate_prefix(
+            &self,
+            operator: &crate::processing::symbols::Operator,
+            destination: &Box<dyn $crate::processing::types::Type>,
+            program_memory: &mut $crate::memory::MemoryManager,
+            stack_sizes: &mut $crate::processing::blocks::StackSizes,
+        ) -> Result<(), String> {
             for op in self.operators_prefix.iter() {
-                if matches!(op.get_symbol(), _operator) &&
-                    op.get_result_type()
-                    .is_some()
-                {
-                    return op.operate_prefix(self, destination, memory_manager, stack_sizes);
+                if matches!(op.get_symbol(), _operator) && op.get_result_type().is_some() {
+                    return op.operate_prefix(self, destination, program_memory, stack_sizes);
                 }
             }
 
-            Err(format!("Operator {} not supported on {}", operator, self.get_type_symbol()))
+            Err(format!(
+                "Operator {} not supported on {}",
+                operator,
+                self.get_type_symbol()
+            ))
         }
 
-        fn operate(&self, operator: &crate::processing::symbols::Operator, rhs: &Box<dyn $crate::processing::types::Type>, destination: &Box<dyn $crate::processing::types::Type>, memory_manager: &mut $crate::memory::MemoryManager, stack_sizes: &mut $crate::processing::blocks::StackSizes) -> Result<(), String> {
+        fn operate(
+            &self,
+            operator: &crate::processing::symbols::Operator,
+            rhs: &Box<dyn $crate::processing::types::Type>,
+            destination: &Box<dyn $crate::processing::types::Type>,
+            program_memory: &mut $crate::memory::MemoryManager,
+            stack_sizes: &mut $crate::processing::blocks::StackSizes,
+        ) -> Result<(), String> {
             for op in self.operators.iter() {
-                if matches!(op.get_symbol(), _operator) &&
-                    op.get_result_type(&rhs.get_type_symbol())
-                    .is_some()
+                if matches!(op.get_symbol(), _operator)
+                    && op.get_result_type(&rhs.get_type_symbol()).is_some()
                 {
-                    return op.operate(self, rhs, destination, memory_manager, stack_sizes);
+                    return op.operate(self, rhs, destination, program_memory, stack_sizes);
                 }
             }
 
-            Err(format!("Operator {} not supported between {} and {}", operator, self.get_type_symbol(), rhs.get_type_symbol()))
+            Err(format!(
+                "Operator {} not supported between {} and {}",
+                operator,
+                self.get_type_symbol(),
+                rhs.get_type_symbol()
+            ))
         }
     };
 }

@@ -1,27 +1,29 @@
 use crate::address::Address;
 
 use crate::memory::{MemoryLocation, MemoryManager, RuntimeMemoryManager};
-use crate::processing::instructions::{Execute, Instruction, INSTRUCTION_CODE_LENGTH, InstructionCodeType};
+use crate::processing::instructions::{
+    Execute, Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH,
+};
 use crate::processing::types::Type;
 use crate::util::get_usize;
 
 pub struct PrintDumpInstruction {
-    address: usize
+    address: usize,
 }
 
 pub const PRINT_DUMP_INSTRUCTION_CODE: InstructionCodeType = 6;
 
 impl PrintDumpInstruction {
-    pub fn new_alloc(memory_manager: &mut MemoryManager, to_dump: &Box<dyn Type>) -> Self {
+    pub fn new_alloc(program_memory: &mut MemoryManager, to_dump: &Box<dyn Type>) -> Self {
         let (address, length) = to_dump.get_address_and_length();
 
         #[allow(unused_mut)]
-            let mut instruction_memory = Vec::with_capacity(Self::get_size() + INSTRUCTION_CODE_LENGTH);
+        let mut instruction_memory = Vec::with_capacity(Self::get_size() + INSTRUCTION_CODE_LENGTH);
         instruction_memory.extend(PRINT_DUMP_INSTRUCTION_CODE.to_le_bytes());
         instruction_memory.extend(length.to_le_bytes());
         instruction_memory.extend(address.get_bytes());
 
-        let address = memory_manager.append(&instruction_memory);
+        let address = program_memory.append(&instruction_memory);
 
         Self { address }
     }
@@ -47,7 +49,8 @@ impl Instruction for PrintDumpInstruction {
 impl Execute for PrintDumpInstruction {
     fn execute(memory: &mut RuntimeMemoryManager, _pointer: &mut usize) {
         let length = get_usize(_pointer, memory.program_memory());
-        let data = Address::evaluate_address_to_data(_pointer, &MemoryLocation::Program, &length, memory);
+        let data =
+            Address::evaluate_address_to_data(_pointer, &MemoryLocation::Program, &length, memory);
         for i in data {
             print!("{:02X}", i);
         }

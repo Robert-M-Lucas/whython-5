@@ -6,7 +6,7 @@ pub enum Keyword {
     Break,
     Continue,
     Dump,
-    PrintDump
+    PrintDump,
 }
 
 pub struct KeywordSymbolHandler {}
