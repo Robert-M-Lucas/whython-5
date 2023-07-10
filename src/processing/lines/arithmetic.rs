@@ -94,7 +94,7 @@ fn evaluate_arithmetic_section<'a>(
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
 ) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
-    if section.len() == 0 {
+    if section.is_empty() {
         return Err("Cannot evaluate a section with no symbols".to_string());
     }
 
@@ -104,20 +104,35 @@ fn evaluate_arithmetic_section<'a>(
         return handle_single_symbol(&section[0], return_options, program_memory, reference_stack, stack_sizes);
     }
 
-    // ? Prefix operator e.g. ! A
+
     match &section[0] {
+        // ? Prefix operator e.g. ! A
         Symbol::Operator(operator) => {
             if section.len() != 2 { return Err("Operator must be followed by a Literal or Name".to_string()); }
 
             let operand = handle_single_symbol(&section[1], &ReturnOptions::ReturnAnyType, program_memory, reference_stack, stack_sizes)?.unwrap();
 
-            return handle_prefix_operator(operator, operand, section, return_options, program_memory, reference_stack, stack_sizes);
+            handle_prefix_operation(operator, operand, section, return_options, program_memory, reference_stack, stack_sizes)
         }
-        _ => {}
-    };
+        // ? Normal operation e.g. A + B
+        _ => {
+            if section.len() != 3 {
+                return Err("Arithmetic sections must be formated [Operator] [Value] or [Value] [Operator] [Value]".to_string());
+            }
 
-    // TODO: A + B
-    todo!()
+            let lhs = handle_single_symbol(&section[0], &ReturnOptions::ReturnAnyType, program_memory, reference_stack, stack_sizes)?.unwrap();
+
+            let operator = match &section[1] {
+                Symbol::Operator(operator) => operator,
+                _ => return Err("Arithmetic sections must be formated [Operator] [Value] or [Value] [Operator] [Value]".to_string())
+            };
+
+            let rhs = handle_single_symbol(&section[2], &ReturnOptions::ReturnAnyType, program_memory, reference_stack, stack_sizes)?.unwrap();
+
+            handle_operation(operator, lhs, rhs, section, return_options, program_memory, reference_stack, stack_sizes)
+        }
+    }
+
 }
 
 fn incorrect_type_error(expected: &[TypeSymbol], recieved: &[TypeSymbol]) -> String {
@@ -210,7 +225,7 @@ fn operator_not_implemented_error(lhs: &TypeSymbol, operator: &Operator, rhs: Op
 
 
 // TODO: Consider removing unused arguments
-fn handle_prefix_operator<'a>(
+fn handle_prefix_operation<'a>(
     operator: &Operator,
     operand: Either<Box<dyn Type>, &'a Box<dyn Type>>,
     _section: &[Symbol],
@@ -228,7 +243,7 @@ fn handle_prefix_operator<'a>(
         },
         ReturnOptions::ReturnAnyType => {
             let return_types = operand.get_prefix_operation_result_type(operator);
-            if return_types.len() == 0 {
+            if return_types.is_empty() {
                 Err(operator_not_implemented_error(&operand.get_type_symbol(), operator, None))
             }
             else {
@@ -244,7 +259,7 @@ fn handle_prefix_operator<'a>(
             let return_types = operand
                 .get_prefix_operation_result_type(operator);
             
-            if return_types.len() == 0 {
+            if return_types.is_empty() {
                 return Err(operator_not_implemented_error(&operand.get_type_symbol(), operator, None));
             }
             
@@ -263,6 +278,72 @@ fn handle_prefix_operator<'a>(
                 let mut new_type = TypeFactory::get_unallocated_type(return_type)?;
                 new_type.allocate_variable(stack_sizes, program_memory, None)?;
                 operand.operate_prefix(operator, &new_type, program_memory, stack_sizes)?;
+
+                Ok(Some(Left(new_type)))
+            }
+            else {
+                Err(incorrect_type_error(types, &return_types))
+            }
+
+        },
+    }
+}
+
+fn handle_operation<'a>(
+    operator: &Operator,
+    lhs: Either<Box<dyn Type>, &'a Box<dyn Type>>,
+    rhs: Either<Box<dyn Type>, &'a Box<dyn Type>>,
+    _section: &[Symbol],
+    return_options: &ReturnOptions,
+    program_memory: &mut MemoryManager,
+    _reference_stack: &'a ReferenceStack,
+    stack_sizes: &mut StackSizes,
+)  -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
+    unpack_either!(lhs, lhs);
+    unpack_either!(rhs, rhs);
+
+    match return_options {
+        ReturnOptions::ReturnIntoType(output) => {
+            lhs.operate(operator, rhs, output, program_memory, stack_sizes)?;
+            Ok(None)
+        },
+        ReturnOptions::ReturnAnyType => {
+            let return_types = lhs.get_operation_result_type(operator, &rhs.get_type_symbol());
+            if return_types.is_empty() {
+                Err(operator_not_implemented_error(&lhs.get_type_symbol(), operator, Some(&rhs.get_type_symbol())))
+            }
+            else {
+                let mut new_type = TypeFactory::get_unallocated_type(&return_types[0])?;
+                new_type.allocate_variable(stack_sizes, program_memory, None)?;
+                lhs.operate(operator, rhs, &new_type, program_memory, stack_sizes)?;
+
+                Ok(Some(Left(new_type)))
+            }
+
+        },
+        ReturnOptions::ReturnTypes(types) => {
+            let return_types = lhs
+                .get_operation_result_type(operator, &rhs.get_type_symbol());
+
+            if return_types.is_empty() {
+                return Err(operator_not_implemented_error(&lhs.get_type_symbol(), operator, Some(&rhs.get_type_symbol())));
+            }
+
+            let return_type =
+                return_types.iter()
+                    .find(|t| {
+                        for rt in types.iter() {
+                            if matches!(rt, t) {
+                                return true;
+                            }
+                        }
+                        false
+                    });
+
+            if let Some(return_type) = return_type {
+                let mut new_type = TypeFactory::get_unallocated_type(return_type)?;
+                new_type.allocate_variable(stack_sizes, program_memory, None)?;
+                lhs.operate(operator, rhs, &new_type, program_memory, stack_sizes)?;
 
                 Ok(Some(Left(new_type)))
             }
