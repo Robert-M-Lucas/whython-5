@@ -270,6 +270,10 @@ impl BlockCoordinator {
     pub fn remove_reference_handler(&mut self) {
         self.reference_stack.remove_handler()
     }
+
+    pub fn get_stack_sizes_and_reference_stack(&mut self) -> (&mut StackSizes, &mut ReferenceStack) {
+        (&mut self.stack_sizes, &mut self.reference_stack)
+    }
 }
 
 #[cfg(debug_assertions)]

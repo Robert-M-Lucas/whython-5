@@ -18,6 +18,13 @@ impl NamedReference {
             reference: ReferenceType::Variable(variable),
         }
     }
+
+    pub fn get_variable(&self) -> Result<&Box<dyn Type>, String> {
+        match &self.reference {
+            ReferenceType::Function | ReferenceType::Class => Err("Reference is not a variable".to_string()),
+            ReferenceType::Variable(variable) => Ok(variable)
+        }
+    }
 }
 
 #[derive(Default)]
@@ -54,7 +61,7 @@ impl ReferenceStack {
         let mut reference_manager = &self.stack[i];
         loop {
             let r = reference_manager.get_reference(name);
-            if let Some(i) = r {
+            if let Ok(i) = r {
                 return Ok(i);
             }
             if i == 0 {
@@ -92,7 +99,7 @@ impl ReferenceManager {
 
     /// Registers a variable
     pub fn register_reference(&mut self, reference: NamedReference) -> Result<(), String> {
-        if self.get_reference(reference.name.as_str()).is_some() {
+        if self.get_reference(reference.name.as_str()).is_ok() {
             return Err(format!(
                 "Reference with name '{}' already exists",
                 reference.name
@@ -103,7 +110,10 @@ impl ReferenceManager {
     }
 
     /// Returns the `Some(variable)` if it exists. If not, returns `None`
-    pub fn get_reference(&self, name: &str) -> Option<&NamedReference> {
-        self.references.iter().find(|&v| *v.name.as_str() == *name)
+    pub fn get_reference(&self, name: &str) -> Result<&NamedReference, String> {
+        match self.references.iter().find(|&v| *v.name.as_str() == *name) {
+            Some(r) => Ok(r),
+            None => Err(format!("Reference '{}' not found", name))
+        }
     }
 }

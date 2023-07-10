@@ -1,8 +1,10 @@
 use super::LineHandler;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
+use crate::processing::lines::arithmetic::evaluate_arithmetic_into_type;
 use crate::processing::processor::ProcessingResult;
 use crate::processing::reference_manager::NamedReference;
+use crate::processing::ReferenceManager;
 use crate::processing::symbols::{Assigner, Symbol};
 use crate::processing::types::TypeFactory;
 use crate::q;
@@ -45,35 +47,35 @@ impl LineHandler for VariableInitialisationLine {
             }
         };
 
-        let literal = match &line[3] {
-            Symbol::Literal(l) => l,
-            _ => {
-                return ProcessingResult::Failure(
-                    "Initialisation is currently only possible from literals".to_string(),
-                )
-            }
-        };
-
         let mut object = match &line[0] {
-            Symbol::Type(type_symbol) => q!(TypeFactory::new().get_unallocated_type(type_symbol)),
+            Symbol::Type(type_symbol) => q!(TypeFactory::get_unallocated_type(type_symbol)),
             _ => panic!(),
         };
 
-        /*if let Err(e) = handle_arithmetic_section(
-            memory_managers,
-            block_coordinator.get_reference_stack(),
-            &line[3..],
-            Some(&object),
-            true,
-        ) {
-            return ProcessingResult::Failure(e);
-        };*/
+        if let Symbol::Literal(literal) = &line[3] {
+            q!(object.allocate_variable(
+                block_coordinator.get_stack_sizes(),
+                memory_manager,
+                Some(literal)
+            ));
+        }
+        else {
+            q!(object.allocate_variable(
+                block_coordinator.get_stack_sizes(),
+                memory_manager,
+                None
+            ));
 
-        q!(object.allocate_variable(
-            block_coordinator.get_stack_sizes(),
-            memory_manager,
-            Some(literal)
-        ));
+            let (stack_sizes, reference_stack) = block_coordinator.get_stack_sizes_and_reference_stack();
+
+            q!(evaluate_arithmetic_into_type(
+                &line[3..],
+                &object,
+                memory_manager,
+                reference_stack,
+                stack_sizes,
+            ));
+        }
 
         if let Err(e) = block_coordinator
             .get_reference_stack_mut()

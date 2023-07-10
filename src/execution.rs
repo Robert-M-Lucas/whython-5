@@ -10,8 +10,11 @@ use crate::processing::instructions::InstructionCodeType;
 use crate::util::warn;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use crate::processing::instructions::binary_and_8::{BINARY_AND_INSTRUCTION_CODE, BinaryAndInstruction};
+use crate::processing::instructions::binary_not_7::{BINARY_NOT_INSTRUCTION_CODE, BinaryNotInstruction};
 use crate::processing::instructions::dump_5::{DUMP_INSTRUCTION_CODE, DumpInstruction};
 use crate::processing::instructions::Execute;
+use crate::processing::instructions::print_dump_6::{PRINT_DUMP_INSTRUCTION_CODE, PrintDumpInstruction};
 
 
 macro_rules! execute_instruction {
@@ -32,12 +35,16 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
         let code = &memory.program_memory()[pointer..pointer + 2];
         pointer += 2;
 
+
         match InstructionCodeType::from_le_bytes(code.try_into().unwrap()) {
             STACK_CREATE_INSTRUCTION_CODE => execute_instruction!(StackCreateInstruction, memory, &mut pointer),
             STACK_UP_INSTRUCTION_CODE => execute_instruction!(StackUpInstruction, memory, &mut pointer),
             STACK_DOWN_INSTRUCTION_CODE => execute_instruction!(StackDownInstruction, memory, &mut pointer),
             COPY_INSTRUCTION_CODE => execute_instruction!(CopyInstruction, memory, &mut pointer),
             DUMP_INSTRUCTION_CODE => execute_instruction!(DumpInstruction, memory, &mut pointer),
+            PRINT_DUMP_INSTRUCTION_CODE => execute_instruction!(PrintDumpInstruction, memory, &mut pointer),
+            BINARY_NOT_INSTRUCTION_CODE => execute_instruction!(BinaryNotInstruction, memory, &mut pointer),
+            BINARY_AND_INSTRUCTION_CODE => execute_instruction!(BinaryAndInstruction, memory, &mut pointer),
             code => return Err(format!("Unknown instruction code! [{}]", code)),
         };
 

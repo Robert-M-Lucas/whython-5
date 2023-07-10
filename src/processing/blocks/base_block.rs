@@ -1,3 +1,4 @@
+use crate::bx;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockHandler;
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
@@ -12,7 +13,7 @@ pub struct BaseBlock {
 
 impl BaseBlock {
     pub fn new_block() -> Box<dyn BlockHandler> {
-        Box::new(Self {
+        bx!(Self {
             stack_create_instruction: None,
         })
     }

@@ -6,6 +6,9 @@ pub mod stack_create_0;
 pub mod stack_down_4;
 pub mod stack_up_1;
 pub mod dump_5;
+pub mod print_dump_6;
+pub mod binary_not_7;
+pub mod binary_and_8;
 
 pub type InstructionCodeType = u16;
 pub const INSTRUCTION_CODE_LENGTH: usize = 2;
@@ -36,7 +39,7 @@ macro_rules! default_instruction_impl {
 
             #[allow(unused_variables)]
             pub fn get_debug(program_memory: &[u8], pointer: &mut usize) -> String {
-                *pointer += $crate::processing::instructions::INSTRUCTION_CODE_LENGTH + Self::get_size();
+                *pointer += Self::get_size();
                 stringify!($name).to_string()
             }
         }

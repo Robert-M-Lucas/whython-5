@@ -16,7 +16,7 @@ impl Assigner {
     pub fn get_expanded_equivalent(&self, lhs: Symbol, rhs: Vec<Symbol>) -> Vec<Symbol> {
         let equivalent = match self {
             Assigner::Setter => {
-                return vec![ArithmeticBlock(rhs)];
+                return rhs;
             }
             Assigner::AdditionSetter => Operator::Add,
             Assigner::SubtractionSetter => Operator::Subtract,

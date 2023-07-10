@@ -1,6 +1,9 @@
 pub mod base_block;
 pub mod variable_initialisation;
 pub mod dump;
+pub mod arithmetic;
+pub mod printdump;
+pub mod variable_assignment;
 
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;

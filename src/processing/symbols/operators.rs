@@ -1,8 +1,12 @@
+use crate::processing::symbols::types::TypeSymbolHandler;
+use crate::processing::symbols::TypeSymbol;
+use crate::util::substring;
 use super::Symbol;
 use super::SymbolHandler;
 
 #[derive(PartialEq, Copy, Clone, strum_macros::Display)]
 pub enum Operator {
+    Cast(TypeSymbol),
     Add,
     Subtract,
     Product,
@@ -36,7 +40,28 @@ impl SymbolHandler for OperatorSymbolHandler {
             "|" => Some(Symbol::Operator(Operator::Or)),
             "&" => Some(Symbol::Operator(Operator::And)),
             "!" => Some(Symbol::Operator(Operator::Not)),
-            _ => None,
+            string => {
+                // TODO: Error if invalid type symbol but '<x>' is still present?
+                if string.len() > 2 {
+                    if string.chars().nth(0).unwrap() == '<' && string.chars().last().unwrap() == '>' {
+                        let type_name = substring(string, 1, string.len() - 2);
+                        let type_symbol = TypeSymbolHandler::get_raw_symbol(type_name.as_str());
+
+                        if let Some(type_symbol) = type_symbol {
+                            Some(Symbol::Operator(Operator::Cast(type_symbol)))
+                        }
+                        else {
+                            None
+                        }
+                    }
+                    else {
+                        None
+                    }
+                }
+                else {
+                    None
+                }
+            },
         }
     }
 }
