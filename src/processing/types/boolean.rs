@@ -107,7 +107,7 @@ impl Operation<BoolType> for BoolAnd {
         }
     }
 
-    fn operate(&self, lhs: &BoolType, rhs: &Box<dyn Type>, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, stack_sizes: &mut StackSizes) -> Result<(), String> {
+    fn operate(&self, lhs: &BoolType, rhs: &Box<dyn Type>, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, _stack_sizes: &mut StackSizes) -> Result<(), String> {
         assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
         assert!(matches!(rhs.get_type_symbol(), TypeSymbol::Boolean));
 
@@ -128,7 +128,7 @@ impl PrefixOperation<BoolType> for BoolNot {
         Some(TypeSymbol::Boolean)
     }
 
-    fn operate_prefix(&self, lhs: &BoolType, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, stack_sizes: &mut StackSizes) -> Result<(), String> {
+    fn operate_prefix(&self, lhs: &BoolType, destination: &Box<dyn Type>, memory_manager: &mut MemoryManager, _stack_sizes: &mut StackSizes) -> Result<(), String> {
         assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
 
         let (address_from, length) = lhs.get_address_and_length();

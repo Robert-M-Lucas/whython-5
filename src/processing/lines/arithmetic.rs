@@ -1,9 +1,9 @@
 use either::{Either, Left, Right};
-use crate::address::Address;
+
 use crate::memory::MemoryManager;
-use crate::processing::blocks::{BlockCoordinator, StackSizes};
+use crate::processing::blocks::{StackSizes};
 use crate::processing::reference_manager::ReferenceStack;
-use crate::processing::symbols::{Literal, Operator, Symbol, TypeSymbol};
+use crate::processing::symbols::{Operator, Symbol, TypeSymbol};
 use crate::processing::types::{Type, TypeFactory};
 
 
@@ -176,7 +176,7 @@ fn handle_single_symbol<'a>(symbol: &Symbol,
                 },
                 ReturnOptions::ReturnTypes(types) => {
                     let variable_type = variable.get_type_symbol();
-                    if types.len() != 0 && types.iter().find(|t| matches!(t, variable_type)).is_none() {
+                    if types.len() != 0 && types.iter().find(|t| matches!(t, _variable_type)).is_none() {
                         Err(incorrect_type_error(types, &[variable_type]))
                     }
                     else {
@@ -198,7 +198,7 @@ fn handle_single_symbol<'a>(symbol: &Symbol,
                     // TODO: Potentially request types from literals i.e. not default
                     let default_type = TypeFactory::get_default_instantiated_type_for_literal(literal, stack_sizes, program_memory)?;
                     let default_type_type = default_type.get_type_symbol();
-                    if types.len() != 0 && types.iter().find(|t| matches!(t, default_type_type)).is_none() {
+                    if types.len() != 0 && types.iter().find(|t| matches!(t, _default_type_type)).is_none() {
                         Err(incorrect_type_error(types, &[default_type_type]))
                     }
                     else {
@@ -265,9 +265,9 @@ fn handle_prefix_operation<'a>(
             
             let return_type =
                 return_types.iter()
-                    .find(|t| {
+                    .find(|_t| {
                         for rt in types.iter() {
-                            if matches!(rt, t) {
+                            if matches!(rt, _t) {
                                 return true;
                             }
                         }
@@ -331,9 +331,9 @@ fn handle_operation<'a>(
 
             let return_type =
                 return_types.iter()
-                    .find(|t| {
+                    .find(|_t| {
                         for rt in types.iter() {
-                            if matches!(rt, t) {
+                            if matches!(rt, _t) {
                                 return true;
                             }
                         }

@@ -4,7 +4,7 @@ use crate::processing::blocks::BlockCoordinator;
 use crate::processing::lines::arithmetic::evaluate_arithmetic_into_type;
 use crate::processing::processor::ProcessingResult;
 use crate::processing::reference_manager::NamedReference;
-use crate::processing::ReferenceManager;
+
 use crate::processing::symbols::{Assigner, Symbol};
 use crate::processing::types::TypeFactory;
 use crate::q;

@@ -136,6 +136,7 @@ fn wrapped_main(exit: &AtomicBool) {
         return;
     }
 
+    #[cfg(debug_assertions)]
     translate(&memory.memory, false);
 
     let mut runtime_memory = RuntimeMemoryManager::from_program_memory(memory);

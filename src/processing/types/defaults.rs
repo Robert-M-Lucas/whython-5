@@ -66,11 +66,11 @@ macro_rules! default_get_type_symbol_impl {
 #[macro_export]
 macro_rules! default_type_operate_impl {
     ($type_name: ident) => {
-        fn get_prefix_operation_result_type(&self, operator: &Operator) -> Vec<TypeSymbol> {
+        fn get_prefix_operation_result_type(&self, _operator: &Operator) -> Vec<TypeSymbol> {
             let mut results = Vec::new();
 
             for op in self.operators_prefix.iter() {
-                if matches!(op.get_symbol(), operator) {
+                if matches!(op.get_symbol(), _operator) {
                     if let Some(result) = op.get_result_type() {
                         results.push(result);
                     }
@@ -80,11 +80,11 @@ macro_rules! default_type_operate_impl {
             results
         }
 
-        fn get_operation_result_type(&self, operator: &Operator, rhs: &TypeSymbol) -> Vec<TypeSymbol> {
+        fn get_operation_result_type(&self, _operator: &Operator, rhs: &TypeSymbol) -> Vec<TypeSymbol> {
             let mut results = Vec::new();
 
             for op in self.operators.iter() {
-                if matches!(op.get_symbol(), operator) {
+                if matches!(op.get_symbol(), _operator) {
                     if let Some(result) = op.get_result_type(rhs) {
                         results.push(result);
                     }
@@ -96,7 +96,7 @@ macro_rules! default_type_operate_impl {
 
         fn operate_prefix(&self, operator: &crate::processing::symbols::Operator, destination: &Box<dyn $crate::processing::types::Type>, memory_manager: &mut $crate::memory::MemoryManager, stack_sizes: &mut $crate::processing::blocks::StackSizes) -> Result<(), String> {
             for op in self.operators_prefix.iter() {
-                if matches!(op.get_symbol(), operator) &&
+                if matches!(op.get_symbol(), _operator) &&
                     op.get_result_type()
                     .is_some()
                 {
@@ -109,7 +109,7 @@ macro_rules! default_type_operate_impl {
 
         fn operate(&self, operator: &crate::processing::symbols::Operator, rhs: &Box<dyn $crate::processing::types::Type>, destination: &Box<dyn $crate::processing::types::Type>, memory_manager: &mut $crate::memory::MemoryManager, stack_sizes: &mut $crate::processing::blocks::StackSizes) -> Result<(), String> {
             for op in self.operators.iter() {
-                if matches!(op.get_symbol(), operator) &&
+                if matches!(op.get_symbol(), _operator) &&
                     op.get_result_type(&rhs.get_type_symbol())
                     .is_some()
                 {
