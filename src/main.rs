@@ -31,6 +31,8 @@ fn main() {
     .expect("Error setting Ctrl-C handler");
 
     wrapped_main(&CTRL_C);
+
+    #[cfg(not(debug_assertions))]
     util::pause();
 }
 
