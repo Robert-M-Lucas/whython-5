@@ -6,6 +6,7 @@ pub enum Keyword {
     Break,
     Continue,
     Dump,
+    PrintDump
 }
 
 pub struct KeywordSymbolHandler {}
@@ -16,6 +17,7 @@ impl SymbolHandler for KeywordSymbolHandler {
             "break" => Some(Symbol::Keyword(Keyword::Break)),
             "continue" => Some(Symbol::Keyword(Keyword::Continue)),
             "dump" => Some(Symbol::Keyword(Keyword::Dump)),
+            "printdump" => Some(Symbol::Keyword(Keyword::PrintDump)),
             _ => None,
         }
     }
