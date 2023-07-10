@@ -2,6 +2,7 @@ use crate::errors::create_line_error;
 use crate::processing::symbols::Symbol::ArithmeticBlock;
 use crate::processing::symbols::{get_all_symbol, Symbol, STRING_DELIMITERS};
 use debugless_unwrap::DebuglessUnwrapErr;
+use crate::bx;
 
 /// Takes a line of code and returns an array of symbols
 #[allow(clippy::single_match)]
@@ -155,7 +156,7 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
             let symbol = symbol_line
                 .pop()
                 .expect("Tried to pop from symbol line when empty");
-            symbol_line.push(Symbol::Indexer(Box::new(symbol)));
+            symbol_line.push(Symbol::Indexer(bx!(symbol)));
             in_indexer = false;
             continue;
         }

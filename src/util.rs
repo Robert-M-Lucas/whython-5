@@ -89,6 +89,13 @@ macro_rules! col_print {
     };
 }
 
+#[macro_export]
+macro_rules! bx {
+    ($expr: expr) => {
+        Box::new($expr)
+    }
+}
+
 /// Prints a warning
 pub fn warn(warning: &str) {
     col_println!((yellow, bold), "[WARNING]: {}", warning);
@@ -108,4 +115,8 @@ pub fn pause() {
         .expect("Stdout write failed");
     stdout.flush().expect("Stdout flush failed");
     stdin().read(&mut [0]).expect("Stdin read failed");
+}
+
+pub fn substring(string: &str, start: usize, len: usize) -> String {
+    string.chars().skip(start).take(len).collect()
 }

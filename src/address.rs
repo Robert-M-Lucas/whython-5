@@ -2,6 +2,7 @@ use crate::memory::{MemoryLocation, RuntimeMemoryManager};
 use crate::util::{get_usize, USIZE_BYTES};
 use std::fmt::Debug;
 use std::fmt::Formatter;
+use crate::bx;
 
 pub struct CloneableBox<T>
 where
@@ -13,7 +14,7 @@ where
 impl<T: Clone + Debug> CloneableBox<T> {
     pub fn new(inner: T) -> CloneableBox<T> {
         Self {
-            inner_box: Box::new(inner),
+            inner_box: bx!(inner),
         }
     }
 }
@@ -34,7 +35,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            inner_box: Box::new(*self.inner_box.clone()),
+            inner_box: bx!(*self.inner_box.clone()),
         }
     }
 }
