@@ -31,15 +31,16 @@ macro_rules! get_variable {
 
 /// Takes an output name and an `Either`. The `Either` must be formatted as
 /// `Either<T, &T>`. Sets output to &T.
-macro_rules! unpack_either {
-    ($output: ident, $either: ident) => {
+#[macro_export]
+macro_rules! unpack_either_type {
+    ($output: ident, $either: expr) => {
         let temp;
         let $output = match $either {
-            Either::Left(t) => {
+            either::Either::Left(t) => {
                 temp = t;
                 &temp
             },
-            Either::Right(t) => t
+            either::Either::Right(t) => t
         };
     };
 }
@@ -112,7 +113,7 @@ fn evaluate_arithmetic_section<'a>(
 
             let operand = handle_single_symbol(&section[1], &ReturnOptions::ReturnAnyType, program_memory, reference_stack, stack_sizes)?.unwrap();
 
-            handle_prefix_operation(operator, operand, section, return_options, program_memory, reference_stack, stack_sizes)
+            handle_prefix_operation(operator, operand, return_options, program_memory, stack_sizes)
         }
         // ? Normal operation e.g. A + B
         _ => {
@@ -129,13 +130,13 @@ fn evaluate_arithmetic_section<'a>(
 
             let rhs = handle_single_symbol(&section[2], &ReturnOptions::ReturnAnyType, program_memory, reference_stack, stack_sizes)?.unwrap();
 
-            handle_operation(operator, lhs, rhs, section, return_options, program_memory, reference_stack, stack_sizes)
+            handle_operation(operator, lhs, rhs, return_options, program_memory, stack_sizes)
         }
     }
 
 }
 
-fn incorrect_type_error(expected: &[TypeSymbol], recieved: &[TypeSymbol]) -> String {
+fn incorrect_type_error(expected: &[TypeSymbol], received: &[TypeSymbol]) -> String {
     let mut expected_text = "[any]".to_string();
     if expected.len() != 0 {
         expected_text = "[".to_string();
@@ -146,9 +147,9 @@ fn incorrect_type_error(expected: &[TypeSymbol], recieved: &[TypeSymbol]) -> Str
     }
 
     let mut received_text = "[any]".to_string();
-    if recieved.len() != 0 {
+    if received.len() != 0 {
         received_text = "[".to_string();
-        for r in recieved {
+        for r in received {
             received_text += (r.to_string() + ", ").as_str();
         }
         received_text = received_text[..received_text.len() - 2].to_string();
@@ -228,13 +229,11 @@ fn operator_not_implemented_error(lhs: &TypeSymbol, operator: &Operator, rhs: Op
 fn handle_prefix_operation<'a>(
     operator: &Operator,
     operand: Either<Box<dyn Type>, &'a Box<dyn Type>>,
-    _section: &[Symbol],
     return_options: &ReturnOptions,
     program_memory: &mut MemoryManager,
-    _reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
 )  -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
-    unpack_either!(operand, operand);
+    unpack_either_type!(operand, operand);
 
     match return_options {
         ReturnOptions::ReturnIntoType(output) => {
@@ -293,14 +292,12 @@ fn handle_operation<'a>(
     operator: &Operator,
     lhs: Either<Box<dyn Type>, &'a Box<dyn Type>>,
     rhs: Either<Box<dyn Type>, &'a Box<dyn Type>>,
-    _section: &[Symbol],
     return_options: &ReturnOptions,
     program_memory: &mut MemoryManager,
-    _reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
 )  -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
-    unpack_either!(lhs, lhs);
-    unpack_either!(rhs, rhs);
+    unpack_either_type!(lhs, lhs);
+    unpack_either_type!(rhs, rhs);
 
     match return_options {
         ReturnOptions::ReturnIntoType(output) => {
