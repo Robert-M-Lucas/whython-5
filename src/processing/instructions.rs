@@ -9,6 +9,8 @@ pub mod dump_5;
 pub mod print_dump_6;
 pub mod binary_not_7;
 pub mod binary_and_8;
+pub mod jump_if_not_9;
+pub mod jump_instruction_10;
 
 pub type InstructionCodeType = u16;
 pub const INSTRUCTION_CODE_LENGTH: usize = 2;

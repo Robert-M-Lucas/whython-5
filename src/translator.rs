@@ -13,6 +13,8 @@ use crate::processing::instructions::stack_up_1::{StackUpInstruction, STACK_UP_I
 use crate::processing::instructions::{INSTRUCTION_CODE_LENGTH, InstructionCodeType};
 use crate::processing::instructions::binary_and_8::{BINARY_AND_INSTRUCTION_CODE, BinaryAndInstruction};
 use crate::processing::instructions::binary_not_7::{BINARY_NOT_INSTRUCTION_CODE, BinaryNotInstruction};
+use crate::processing::instructions::jump_if_not_9::{JUMP_IF_NOT_INSTRUCTION_CODE, JumpIfNotInstruction};
+use crate::processing::instructions::jump_instruction_10::{JUMP_INSTRUCTION_CODE, JumpInstruction};
 
 macro_rules! translate {
     ($instruction: ident, $data: expr, $i: expr) => {
@@ -42,6 +44,8 @@ pub fn translate(data: &[u8], translate_one: bool) {
             PRINT_DUMP_INSTRUCTION_CODE => translate!(PrintDumpInstruction, data, i),
             BINARY_NOT_INSTRUCTION_CODE => translate!(BinaryNotInstruction, data, i),
             BINARY_AND_INSTRUCTION_CODE => translate!(BinaryAndInstruction, data, i),
+            JUMP_IF_NOT_INSTRUCTION_CODE => translate!(JumpIfNotInstruction, data, i),
+            JUMP_INSTRUCTION_CODE => translate!(JumpInstruction, data, i),
             code => panic!("Debug not implemented for code {}", code),
         };
 

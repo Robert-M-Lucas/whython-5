@@ -14,6 +14,8 @@ use crate::processing::instructions::binary_and_8::{BINARY_AND_INSTRUCTION_CODE,
 use crate::processing::instructions::binary_not_7::{BINARY_NOT_INSTRUCTION_CODE, BinaryNotInstruction};
 use crate::processing::instructions::dump_5::{DUMP_INSTRUCTION_CODE, DumpInstruction};
 use crate::processing::instructions::Execute;
+use crate::processing::instructions::jump_if_not_9::{JUMP_IF_NOT_INSTRUCTION_CODE, JumpIfNotInstruction};
+use crate::processing::instructions::jump_instruction_10::{JUMP_INSTRUCTION_CODE, JumpInstruction};
 use crate::processing::instructions::print_dump_6::{PRINT_DUMP_INSTRUCTION_CODE, PrintDumpInstruction};
 
 
@@ -36,6 +38,7 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
         pointer += 2;
 
 
+
         match InstructionCodeType::from_le_bytes(code.try_into().unwrap()) {
             STACK_CREATE_INSTRUCTION_CODE => execute_instruction!(StackCreateInstruction, memory, &mut pointer),
             STACK_UP_INSTRUCTION_CODE => execute_instruction!(StackUpInstruction, memory, &mut pointer),
@@ -45,6 +48,8 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
             PRINT_DUMP_INSTRUCTION_CODE => execute_instruction!(PrintDumpInstruction, memory, &mut pointer),
             BINARY_NOT_INSTRUCTION_CODE => execute_instruction!(BinaryNotInstruction, memory, &mut pointer),
             BINARY_AND_INSTRUCTION_CODE => execute_instruction!(BinaryAndInstruction, memory, &mut pointer),
+            JUMP_IF_NOT_INSTRUCTION_CODE => execute_instruction!(JumpIfNotInstruction, memory, &mut pointer),
+            JUMP_INSTRUCTION_CODE => execute_instruction!(JumpInstruction, memory, &mut pointer),
             code => return Err(format!("Unknown instruction code! [{}]", code)),
         };
 
