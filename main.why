@@ -1,5 +1,13 @@
 bool a = false
 bool b = false
 bool c = a & b
-printdump c
+if c
+    printdump c
+elif a
+    printdump c
+    printdump c
+else
+    printdump c
+    printdump c
+    printdump c
 dump
