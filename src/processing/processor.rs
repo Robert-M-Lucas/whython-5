@@ -3,6 +3,7 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
 use crate::processing::lines::base_block::BaseBlockLine;
 use crate::processing::lines::dump::DumpLine;
+use crate::processing::lines::if_line::IfLine;
 use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
 use crate::processing::lines::LineHandler;
 use crate::processing::lines::printdump::PrintDumpLine;
@@ -138,7 +139,15 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
                 memory,
                 block_coordinator
             )
+            }).or_else(|| {
+                process_line!(
+                IfLine,
+                symbol_line,
+                memory,
+                block_coordinator
+            )
             });
+
 
         //? Handle unmatched / failed line
         if r.is_failure() {

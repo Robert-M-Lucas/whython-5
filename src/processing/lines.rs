@@ -4,6 +4,7 @@ pub mod dump;
 pub mod arithmetic;
 pub mod printdump;
 pub mod variable_assignment;
+pub mod if_line;
 
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;

@@ -1,4 +1,5 @@
 pub mod base_block;
+pub mod if_block;
 
 use crate::memory::MemoryManager;
 use crate::processing::blocks::base_block::BaseBlock;
@@ -12,6 +13,7 @@ pub trait BlockHandler {
         &mut self,
         memory_manager: &mut MemoryManager,
         reference_stack: &mut ReferenceStack,
+        stack_sizes: &mut StackSizes,
         symbol_line: &[Symbol],
     ) -> Result<(), String>;
 
@@ -22,10 +24,10 @@ pub trait BlockHandler {
         &mut self,
         memory_manager: &mut MemoryManager,
         reference_stack: &mut ReferenceStack,
+        stack_sizes: &mut StackSizes,
         _symbol_line: &[Symbol],
-        current_stack_size: usize,
     ) -> Result<bool, String> {
-        self.on_forced_exit(memory_manager, reference_stack, current_stack_size)?;
+        self.on_forced_exit(memory_manager, reference_stack, stack_sizes)?;
         Ok(true)
     }
 
@@ -33,8 +35,8 @@ pub trait BlockHandler {
     fn on_forced_exit(
         &mut self,
         memory_manager: &mut MemoryManager,
-        block_coordinator: &mut ReferenceStack,
-        current_stack_size: usize,
+        reference_stack: &mut ReferenceStack,
+        stack_sizes: &mut StackSizes,
     ) -> Result<(), String>;
 
     /// Break from block e.g. while
@@ -124,6 +126,10 @@ impl BlockCoordinator {
         &mut self.stack_sizes
     }
 
+    pub fn get_reference_stack_and_stack_sizes(&mut self) -> (&mut ReferenceStack, &mut StackSizes) {
+        (&mut self.reference_stack, &mut self.stack_sizes)
+    }
+
     /// Add a block handler
     ///
     /// # Arguments
@@ -135,7 +141,8 @@ impl BlockCoordinator {
         symbol_line: &[Symbol],
     ) -> Result<(), String> {
         self.reference_stack.add_handler();
-        let r = handler.on_entry(memory_managers, self.get_reference_stack_mut(), symbol_line);
+        let (reference_stack, stack_sizes) = self.get_reference_stack_and_stack_sizes();
+        let r = handler.on_entry(memory_managers, reference_stack, stack_sizes, symbol_line);
         self.stack.push(handler);
         self.stack_sizes.add_stack();
         r
@@ -192,13 +199,13 @@ impl BlockCoordinator {
             .pop()
             .expect("Called on_exit when not BlockHandler exists on stack!");
 
-        let stack_size = self.stack_sizes.get_size();
+        let (reference_stack, stack_sizes) = self.get_reference_stack_and_stack_sizes();
 
         let result = handler.on_exit(
             memory_managers,
-            self.get_reference_stack_mut(),
+            reference_stack,
+            stack_sizes,
             symbol_line,
-            stack_size,
         );
 
         if let Ok(r) = result {
@@ -225,10 +232,10 @@ impl BlockCoordinator {
             .pop()
             .expect("Called on_exit when no BlockHandler exists on stack!");
 
-        let stack_size = self.stack_sizes.get_size();
+        let (reference_stack, stack_sizes) = self.get_reference_stack_and_stack_sizes();
 
         let result =
-            handler.on_forced_exit(memory_managers, self.get_reference_stack_mut(), stack_size);
+            handler.on_forced_exit(memory_managers, reference_stack, stack_sizes);
 
         self.stack_sizes.remove_stack();
 

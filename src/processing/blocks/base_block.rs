@@ -1,6 +1,6 @@
 use crate::bx;
 use crate::memory::MemoryManager;
-use crate::processing::blocks::BlockHandler;
+use crate::processing::blocks::{BlockHandler, StackSizes};
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_down_4::StackDownInstruction;
 use crate::processing::instructions::stack_up_1::StackUpInstruction;
@@ -24,6 +24,7 @@ impl BlockHandler for BaseBlock {
         &mut self,
         memory_manager: &mut MemoryManager,
         _reference_stack: &mut ReferenceStack,
+        _stack_sizes: &mut StackSizes,
         _symbol_line: &[Symbol],
     ) -> Result<(), String> {
         self.stack_create_instruction =
@@ -36,10 +37,10 @@ impl BlockHandler for BaseBlock {
         &mut self,
         memory_manager: &mut MemoryManager,
         reference_stack: &mut ReferenceStack,
+        stack_sizes: &mut StackSizes,
         _symbol_line: &[Symbol],
-        current_stack_size: usize,
     ) -> Result<bool, String> {
-        self.on_forced_exit(memory_manager, reference_stack, current_stack_size)?;
+        self.on_forced_exit(memory_manager, reference_stack, stack_sizes)?;
         Ok(true)
     }
 
@@ -47,12 +48,12 @@ impl BlockHandler for BaseBlock {
         &mut self,
         memory_manager: &mut MemoryManager,
         _reference_stack: &mut ReferenceStack,
-        current_stack_size: usize,
+        stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
         self.stack_create_instruction
             .as_mut()
             .expect("No stack create instruction")
-            .change_stack_size(memory_manager, current_stack_size);
+            .change_stack_size(memory_manager, stack_sizes.get_size());
         StackDownInstruction::new_alloc(memory_manager);
         Ok(())
     }
