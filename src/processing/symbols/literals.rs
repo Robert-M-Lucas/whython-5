@@ -2,7 +2,7 @@ use super::Symbol;
 use super::SymbolHandler;
 use crate::processing::symbols::TypeSymbol;
 
-#[derive(PartialEq, Clone, strum_macros::Display)]
+#[derive(PartialEq, Clone, strum_macros::Display, Debug)]
 pub enum Literal {
     String(String),
     Int(i64),

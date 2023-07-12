@@ -32,14 +32,14 @@ pub use punctuation::PunctuationSymbolHandler;
 pub use keywords::Keyword;
 pub use keywords::KeywordSymbolHandler;
 
-#[derive(PartialEq, Clone, strum_macros::Display)]
+#[derive(PartialEq, Clone, strum_macros::Display, Debug)]
 pub enum Symbol {
     Assigner(Assigner),
     Literal(Literal),
     Operator(Operator),
     ArithmeticBlock(Vec<Symbol>),
     Indexer(Box<Symbol>),
-    List(Vec<Symbol>),
+    List(Vec<Vec<Symbol>>),
     Type(TypeSymbol),
     Block(Block),
     Builtin(Builtin),

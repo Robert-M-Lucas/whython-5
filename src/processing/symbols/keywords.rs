@@ -1,7 +1,7 @@
 use super::Symbol;
 use super::SymbolHandler;
 
-#[derive(PartialEq, Copy, Clone, strum_macros::Display)]
+#[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug)]
 pub enum Keyword {
     Break,
     Continue,

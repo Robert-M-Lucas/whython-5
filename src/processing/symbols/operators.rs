@@ -4,7 +4,7 @@ use crate::processing::symbols::types::TypeSymbolHandler;
 use crate::processing::symbols::TypeSymbol;
 use crate::util::substring;
 
-#[derive(PartialEq, Copy, Clone, strum_macros::Display)]
+#[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug)]
 pub enum Operator {
     Cast(TypeSymbol),
     Add,

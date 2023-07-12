@@ -21,6 +21,9 @@ use std::fs;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use std::fmt::Write as _;
+use std::fs::OpenOptions;
+use std::io::Write;
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 
@@ -78,13 +81,13 @@ fn wrapped_main(exit: &AtomicBool) {
             Ok(value) => value,
         };
 
-        println!("Starting compilation (pre)");
+        println!("Starting compilation (stage 1)");
         let start = Instant::now();
         let r = match convert_to_symbols(input) {
             Err(e) => {
                 col_println!(
                     (red, bold),
-                    "Compilation (pre) failed [{:?}]:\n\t{}",
+                    "Compilation (stage 1) failed [{:?}]:\n\t{}",
                     start.elapsed(),
                     e
                 );
@@ -95,17 +98,37 @@ fn wrapped_main(exit: &AtomicBool) {
 
         col_println!(
             (green, bold),
-            "Compilation (pre) completed [{:?}]",
+            "Compilation (stage 1) completed [{:?}]",
             start.elapsed()
         );
 
-        println!("Starting compilation (post)");
+        #[cfg(debug_assertions)]
+        {
+            let mut lexical_result = String::new();
+            for l in &r {
+                for _ in 0..(l.0 * 4) {
+                    lexical_result.push(' ');
+                }
+                write!(lexical_result, "{:?}\n", l.1).unwrap();
+            }
+            let mut write = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open("lexical_result.txt")
+                .expect("Unable to open file");
+
+            write.write(lexical_result.as_str().as_ref()).expect("Failed to write to file");
+        }
+
+
+        println!("Starting compilation (stage 2)");
         let start = Instant::now();
         memory = match process_symbols(r) {
             Err(e) => {
                 col_println!(
                     (red, bold),
-                    "Compilation (post) failed [{:?}]:\n    {}",
+                    "Compilation (stage 2) failed [{:?}]:\n    {}",
                     start.elapsed(),
                     e
                 );
@@ -116,7 +139,7 @@ fn wrapped_main(exit: &AtomicBool) {
 
         col_println!(
             (green, bold),
-            "Compilation (post) completed [{:?}]",
+            "Compilation (stage 2) completed [{:?}]",
             start.elapsed()
         );
 
@@ -145,5 +168,5 @@ fn wrapped_main(exit: &AtomicBool) {
         col_println!((red, bold), "Execution failed:\n\t{}", e)
     }
 
-    // runtime_memory.dump_all();
+    // runtime_memory.dump_all("after-dump");
 }
