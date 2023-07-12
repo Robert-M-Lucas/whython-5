@@ -10,6 +10,6 @@ default_instruction_impl!(DumpInstruction, DUMP_INSTRUCTION_CODE, 5);
 
 impl Execute for DumpInstruction {
     fn execute(memory: &mut RuntimeMemoryManager, _pointer: &mut usize) {
-        memory.dump_all();
+        memory.dump_all("dump");
     }
 }

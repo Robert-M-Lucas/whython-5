@@ -56,7 +56,7 @@ impl HeapMemory {
     pub fn dump_bytes(&self, folder_name: &str) {
         fs::create_dir_all(folder_name).unwrap();
         for i in self.memory.iter() {
-            dump_bytes(format!("{}/{}.bin", folder_name, i.0).as_str(), &(i.1));
+            dump_bytes(format!("{}/heap-{}.bin", folder_name, i.0).as_str(), &(i.1));
         }
     }
 }

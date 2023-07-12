@@ -79,7 +79,7 @@ impl StackMemory {
     pub fn dump_bytes(&self, folder_name: &str) {
         fs::create_dir_all(folder_name).unwrap();
         for i in self.memory.iter().enumerate() {
-            dump_bytes(format!("{}/{}.bin", folder_name, i.0).as_str(), &(i.1 .0));
+            dump_bytes(format!("{}/stack-{}.bin", folder_name, i.0).as_str(), &(i.1 .0));
         }
     }
 }

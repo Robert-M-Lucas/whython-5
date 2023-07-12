@@ -103,8 +103,7 @@ impl RuntimeMemoryManager {
         }
     }
 
-    pub fn dump_all(&self) {
-        let dir_name = "dump";
+    pub fn dump_all(&self, dir_name: &str) {
         fs::remove_dir_all(dir_name).ok();
         fs::create_dir_all(dir_name).unwrap();
         dump_bytes(
