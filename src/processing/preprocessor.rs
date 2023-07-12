@@ -1,7 +1,7 @@
 use crate::bx;
 use crate::errors::create_line_error;
 use crate::processing::symbols::Symbol::ArithmeticBlock;
-use crate::processing::symbols::{get_all_symbol, Symbol, STRING_DELIMITERS};
+use crate::processing::symbols::{get_all_symbol, Symbol, STRING_DELIMITERS, Punctuation};
 use debugless_unwrap::DebuglessUnwrapErr;
 
 /// Takes a line of code and returns an array of symbols
@@ -104,7 +104,9 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
             match bracket_depth {
                 0 => {
                     symbol_line.push(match get_symbols_from_line(buffer.as_str()) {
-                        Ok(symbols) => ArithmeticBlock(symbols),
+                        Ok(symbols) => {
+                            get_bracketed_symbols_type(symbols)
+                        },
                         Err(e) => return Err(e),
                     });
                     buffer.clear();
@@ -233,4 +235,31 @@ pub fn convert_to_symbols(data: String) -> Result<Vec<(usize, Vec<Symbol>)>, Str
     }
 
     Ok(output)
+}
+
+fn get_bracketed_symbols_type(symbols: Vec<Symbol>) -> Symbol {
+    let mut has_separator = false;
+    for s in &symbols {
+        if matches!(s, Symbol::Punctuation(Punctuation::ListSeparator)) {
+            has_separator = true;
+            break;
+        }
+    }
+
+    if !has_separator { return Symbol::ArithmeticBlock(symbols); }
+
+    let mut list = Vec::new();
+    let mut item = Vec::new();
+
+    for s in symbols {
+        if matches!(s, Symbol::Punctuation(Punctuation::ListSeparator)) {
+            list.push(item);
+            item = Vec::new();
+        }
+        else {
+            item.push(s);
+        }
+    }
+
+    Symbol::List(list)
 }
