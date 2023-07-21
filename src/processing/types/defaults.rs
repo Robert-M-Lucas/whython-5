@@ -29,16 +29,16 @@ macro_rules! default_type_struct {
 
 #[macro_export]
 macro_rules! default_type_initialiser {
-    ($type_name: ident,  ($($operator: ident)*), ($($operator_prefix: ident)*)) => {
+    ($type_name: ident,  ($( $operator: ident ),*), ($( $operator_prefix: ident ),*)) => {
         impl $type_name {
             pub fn new() -> Self {
                 Self {
                     operators: vec![
-                        $(Box::new($operator{})
+                        $(Box::new($operator{}),
                     )*
                     ],
                     operators_prefix: vec![
-                        $(Box::new($operator_prefix{})
+                        $(Box::new($operator_prefix{}),
                     )*
                     ],
                     address: None
@@ -106,7 +106,7 @@ macro_rules! default_type_operate_impl {
             stack_sizes: &mut $crate::processing::blocks::StackSizes,
         ) -> Result<(), String> {
             for op in self.operators_prefix.iter() {
-                if matches!(op.get_symbol(), _operator) && op.get_result_type().is_some() {
+                if op.get_symbol() == *operator && op.get_result_type().is_some() {
                     return op.operate_prefix(self, destination, program_memory, stack_sizes);
                 }
             }
@@ -127,7 +127,7 @@ macro_rules! default_type_operate_impl {
             stack_sizes: &mut $crate::processing::blocks::StackSizes,
         ) -> Result<(), String> {
             for op in self.operators.iter() {
-                if matches!(op.get_symbol(), _operator)
+                if op.get_symbol() == *operator
                     && op.get_result_type(&rhs.get_type_symbol()).is_some()
                 {
                     return op.operate(self, rhs, destination, program_memory, stack_sizes);
