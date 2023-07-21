@@ -1,7 +1,7 @@
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
 use crate::processing::lines::LineHandler;
-use crate::processing::processor::{ProcessingResult};
+use crate::processing::processor::ProcessingResult;
 use crate::processing::symbols::{Keyword, Symbol};
 
 pub struct BreakContinueLine {}
