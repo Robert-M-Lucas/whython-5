@@ -1,9 +1,9 @@
 use crate::address::Address;
-use crate::memory::{MemoryLocation, RuntimeMemoryManager};
+use crate::memory::{MemoryLocation, MemoryManager, RuntimeMemoryManager};
 use crate::processing::instructions::{
     Execute, Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH,
 };
-use crate::util::get_usize;
+use crate::util::{get_usize, USIZE_BYTES};
 
 pub struct CopyInstruction {
     address: usize,
@@ -13,7 +13,7 @@ pub const COPY_INSTRUCTION_CODE: InstructionCodeType = 3;
 
 impl CopyInstruction {
     pub fn new_alloc(
-        program_memory: &mut crate::memory::MemoryManager,
+        program_memory: &mut MemoryManager,
         address_from: &Address,
         address_to: &Address,
         size: usize,
@@ -39,6 +39,17 @@ impl CopyInstruction {
 
         Self { address }
     }
+    
+    pub fn get_source_address(&self) -> usize {
+        self.address + INSTRUCTION_CODE_LENGTH + USIZE_BYTES
+    }
+
+    pub fn set_source(&self, new_source: &Address, program_memory: &mut MemoryManager) {
+        program_memory.overwrite(
+            self.address + INSTRUCTION_CODE_LENGTH + USIZE_BYTES,
+            &new_source.get_bytes(),
+        );
+    }
 
     #[allow(unused_variables)]
     pub fn get_debug(program_memory: &[u8], pointer: &mut usize) -> String {
@@ -52,6 +63,7 @@ impl CopyInstruction {
 impl Execute for CopyInstruction {
     fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize) {
         let size = get_usize(pointer, memory.program_memory());
+
         let data =
             Address::evaluate_address_to_data(pointer, &MemoryLocation::Program, &size, memory);
         let data_destination =
