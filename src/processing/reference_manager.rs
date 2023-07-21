@@ -1,9 +1,14 @@
+pub mod class;
+pub mod function;
+
+use crate::processing::reference_manager::class::ClassReference;
+use crate::processing::reference_manager::function::FunctionReference;
 use crate::processing::types::Type;
 
 pub enum ReferenceType {
     Variable(Box<dyn Type>),
-    Function,
-    Class,
+    Function(FunctionReference),
+    Class(ClassReference),
 }
 
 pub struct NamedReference {
@@ -12,6 +17,13 @@ pub struct NamedReference {
 }
 
 impl NamedReference {
+    pub fn is_variable(&self) -> bool {
+        match self.reference {
+            ReferenceType::Variable(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn new_variable(name: String, variable: Box<dyn Type>) -> Self {
         NamedReference {
             name,
@@ -19,12 +31,54 @@ impl NamedReference {
         }
     }
 
-    pub fn get_variable(&self) -> Result<&Box<dyn Type>, String> {
+    pub fn new_function(name: String, function: FunctionReference) -> Self {
+        NamedReference {
+            name,
+            reference: ReferenceType::Function(function),
+        }
+    }
+
+    pub fn get_variable_ref(&self) -> Result<&Box<dyn Type>, String> {
         match &self.reference {
-            ReferenceType::Function | ReferenceType::Class => {
-                Err("Reference is not a variable".to_string())
-            }
             ReferenceType::Variable(variable) => Ok(variable),
+            _ => Err("Reference is not a variable".to_string()),
+        }
+    }
+
+    pub fn get_variable(self) -> Result<Box<dyn Type>, String> {
+        match self.reference {
+            ReferenceType::Variable(variable) => Ok(variable),
+            _ => Err("Reference is not a variable".to_string()),
+        }
+    }
+
+    pub fn clone_variable(&self) -> Result<NamedReference, String> {
+        match &self.reference {
+            ReferenceType::Variable(t) => {
+                Ok(NamedReference::new_variable(self.name.clone(), t.duplicate()))
+            },
+            _ => Err("Reference not a variable".to_string())
+        }
+    }
+
+    pub fn get_function_ref(&self) -> Result<&FunctionReference, String> {
+        match &self.reference {
+            ReferenceType::Function(function) => Ok(function),
+            _ => Err("Reference is not a variable".to_string()),
+        }
+    }
+
+    pub fn get_function_mut(&mut self) -> Result<&mut FunctionReference, String> {
+        match &mut self.reference {
+            ReferenceType::Function(function) => Ok(function),
+            _ => Err("Reference is not a variable".to_string()),
+        }
+    }
+
+    pub fn get_function(self) -> Result<FunctionReference, String> {
+        match self.reference {
+            ReferenceType::Function(function) => Ok(function),
+            _ => Err("Reference is not a variable".to_string()),
         }
     }
 }
@@ -32,13 +86,38 @@ impl NamedReference {
 #[derive(Default)]
 pub struct ReferenceStack {
     stack: Vec<ReferenceManager>,
+    reference_depth_limit: usize,
 }
 
 impl ReferenceStack {
     pub fn new() -> Self {
         ReferenceStack {
-            stack: vec![ReferenceManager::new()],
+            stack: Vec::new(),
+            reference_depth_limit: 0,
         }
+    }
+
+    pub fn get_and_remove_stack_contents(&mut self) -> Vec<NamedReference> {
+        let mut last = self.stack.pop().unwrap();
+        let r = last.references;
+        last.references = Vec::new();
+        self.stack.push(last);
+        r
+    }
+
+    pub fn set_reference_depth_limit(&mut self, reference_depth_limit: usize) {
+        self.reference_depth_limit = reference_depth_limit
+    }
+
+    pub fn get_reference_depth_limit(&self) -> usize {
+        self.reference_depth_limit
+    }
+
+    pub fn get_depth(&self) -> usize {
+        if self.stack.is_empty() {
+            panic!("No reference managers");
+        }
+        self.stack.len() - 1
     }
 
     /// Registers a variable
@@ -59,18 +138,41 @@ impl ReferenceStack {
     /// Searches for a variable going up the reference stack
     pub fn get_reference(&self, name: &str) -> Result<&NamedReference, String> {
         //? Go up the stack and search for a variable
+
         let mut i = self.stack.len() - 1;
-        let mut reference_manager = &self.stack[i];
         loop {
-            let r = reference_manager.get_reference(name);
-            if let Ok(i) = r {
-                return Ok(i);
+            if let Ok(r) = &self.stack[i].get_reference(name) {
+                if i < self.reference_depth_limit && r.is_variable() {
+                    continue;
+                }
+                return Ok(r);
             }
             if i == 0 {
                 break;
             }
             i -= 1;
-            reference_manager = &self.stack[i];
+        }
+
+        Err(format!("Reference '{}' not found", name))
+    }
+
+    pub fn get_and_remove_reference(&mut self, name: &str) -> Result<(NamedReference, usize), String> {
+        //? Go up the stack and search for a variable
+
+        let mut i = self.stack.len() - 1;
+        loop {
+            if let Ok(r) =
+                self.stack[i].get_and_remove_reference(name, i < self.reference_depth_limit)
+            {
+                if i < self.reference_depth_limit && r.is_variable() {
+                    continue;
+                }
+                return Ok((r, self.stack.len() - 1 - i));
+            }
+            if i == 0 {
+                break;
+            }
+            i -= 1;
         }
 
         Err(format!("Reference '{}' not found", name))
@@ -83,6 +185,9 @@ impl ReferenceStack {
 
     /// Removes a reference handler (removes a variable scope)
     pub fn remove_handler(&mut self) {
+        if self.reference_depth_limit >= self.stack.len() {
+            panic!("Number of reference stacks lower than reference depth limit!");
+        }
         self.stack.pop();
     }
 }
@@ -117,5 +222,21 @@ impl ReferenceManager {
             Some(r) => Ok(r),
             None => Err(format!("Reference '{}' not found", name)),
         }
+    }
+
+    pub fn get_and_remove_reference(
+        &mut self,
+        name: &str,
+        disallow_variables: bool,
+    ) -> Result<NamedReference, String> {
+        for i in 0..self.references.len() {
+            if self.references[i].name == *name
+                && (!disallow_variables || !self.references[i].is_variable())
+            {
+                return Ok(self.references.remove(i));
+            }
+        }
+
+        Err(format!("Reference '{}' not found", name))
     }
 }

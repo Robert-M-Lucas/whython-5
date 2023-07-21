@@ -1,4 +1,5 @@
 use crate::processing::symbols::{Literal, Operator, TypeSymbol};
+use std::ops::Add;
 
 use self::boolean::BoolWrapper;
 
@@ -6,9 +7,12 @@ mod defaults;
 use crate::address::Address;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
+use crate::processing::instructions::copy_3::CopyInstruction;
 pub use defaults::*;
+use crate::processing::types::pointer::PointerWrapper;
 
 pub mod boolean;
+pub mod pointer;
 
 pub trait UninstantiatedType {
     fn instantiate(&self) -> Box<dyn Type>;
@@ -37,13 +41,17 @@ pub trait Type {
         ))
     }
 
-    fn runtime_copy_from(&self, other: &Box<dyn Type>) -> Result<(), String>;
+    fn runtime_copy_from(
+        &self,
+        other: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+    ) -> Result<CopyInstruction, String>;
 
     fn runtime_copy_from_literal(
         &self,
         literal: &Literal,
         program_memory: &mut MemoryManager,
-    ) -> Result<(), String>;
+    ) -> Result<CopyInstruction, String>;
 
     fn get_prefix_operation_result_type(&self, operator: &Operator) -> Vec<TypeSymbol>;
 
@@ -68,6 +76,8 @@ pub trait Type {
 
     fn get_address_and_length(&self) -> (&Address, usize);
 
+    fn get_address_mut(&mut self) -> &mut Address;
+
     fn run_method(
         &self,
         method_name: &String,
@@ -80,6 +90,8 @@ pub trait Type {
             self.get_type_symbol()
         ))
     }
+
+    fn duplicate(&self) -> Box<dyn Type>;
 }
 
 pub trait Operation<LHS> {
@@ -119,7 +131,10 @@ pub struct TypeFactory {
 impl TypeFactory {
     pub fn get() -> Self {
         Self {
-            uninstantiated_types: vec![Box::new(BoolWrapper {})],
+            uninstantiated_types: vec![
+                Box::new(BoolWrapper {}),
+                Box::new(PointerWrapper {})
+            ],
         }
     }
 
