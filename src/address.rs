@@ -65,6 +65,7 @@ pub enum Address {
     ),
 }
 
+const ADDRESS_CODE_LENGTH: usize = 1;
 const IMMEDIATE_CODE: u8 = 0;
 const IMMEDIATE_INDEXED_CODE: u8 = 1;
 const STACK_DIRECT_CODE: u8 = 2;
@@ -82,24 +83,33 @@ impl Address {
         }
     }
 
+    pub fn offset_if_stack(&mut self, amount: usize) {
+        match self {
+            Address::StackDirect(address) | Address::StackIndirect(address) => {
+                *address += amount;
+            }
+            _ => {}
+        }
+    }
+
     pub fn get_address_size(memory: &[u8], address: usize, expected_len: usize) -> usize {
         match memory[address] {
             // ? Code + length
-            IMMEDIATE_CODE => 1 + expected_len,
+            IMMEDIATE_CODE => ADDRESS_CODE_LENGTH + expected_len,
             // ? Code + address length
-            STACK_DIRECT_CODE | STACK_INDIRECT_CODE => 1 + USIZE_BYTES,
+            STACK_DIRECT_CODE | STACK_INDIRECT_CODE => ADDRESS_CODE_LENGTH + USIZE_BYTES,
             // ? Code + heap frame length + address length
-            HEAP_DIRECT_CODE | HEAP_INDIRECT_CODE => 1 + USIZE_BYTES + USIZE_BYTES,
+            HEAP_DIRECT_CODE | HEAP_INDIRECT_CODE => ADDRESS_CODE_LENGTH + USIZE_BYTES + USIZE_BYTES,
             //? Code + location address length + offset address length
             IMMEDIATE_INDEXED_CODE | STACK_INDEXED_CODE => {
-                let mut p = address + 1;
+                let mut p = address + ADDRESS_CODE_LENGTH;
                 p += Self::get_address_size(memory, p, USIZE_BYTES);
                 p += Self::get_address_size(memory, p, USIZE_BYTES);
                 p - address
             }
             //? Code + frame address length + location address length + offset address length
             HEAP_INDEXED_CODE => {
-                let mut p = address + 1;
+                let mut p = address + ADDRESS_CODE_LENGTH;
                 p += Self::get_address_size(memory, p, USIZE_BYTES);
                 p += Self::get_address_size(memory, p, USIZE_BYTES);
                 p += Self::get_address_size(memory, p, USIZE_BYTES);
@@ -160,6 +170,24 @@ impl Address {
         }
     }
 
+    pub fn stack_address_from_bytes(mut pointer: usize, data: &[u8]) -> Result<Address, String> {
+        pointer += ADDRESS_CODE_LENGTH;
+        match data[pointer - 1] {
+            STACK_DIRECT_CODE => {
+                Ok(Address::StackDirect(get_usize(&mut pointer, data)))
+            },
+            STACK_INDIRECT_CODE => {
+                Ok(Address::StackIndirect(get_usize(&mut pointer, data)))
+            },
+            STACK_INDEXED_CODE => {
+                todo!();
+            }
+            IMMEDIATE_CODE | IMMEDIATE_INDEXED_CODE => Err("Address [Immediate] is not a stack address".to_string()),
+            HEAP_DIRECT_CODE | HEAP_INDIRECT_CODE | HEAP_INDEXED_CODE => Err("Address [Heap] is not a stack address".to_string()),
+            _ => panic!("Invalid address code!"),
+        }
+    }
+    
     // TODO: Properly support heap memory
     /// Evaluates a pointer to find the final data it points to.
     ///
@@ -175,7 +203,7 @@ impl Address {
         memory: &RuntimeMemoryManager,
     ) -> (usize, MemoryLocation) {
         let code = memory.get_byte(address_location, *pointer);
-        *pointer += 1;
+        *pointer += ADDRESS_CODE_LENGTH;
 
         match code {
             IMMEDIATE_CODE => {
