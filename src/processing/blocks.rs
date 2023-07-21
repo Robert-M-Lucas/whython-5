@@ -1,4 +1,5 @@
 pub mod base_block;
+pub mod function_block;
 pub mod if_block;
 pub mod while_block;
 
@@ -19,7 +20,6 @@ pub trait BlockHandler {
     ) -> Result<(), String>;
 
     /// Try to exit block
-    ///
     /// Returns `Ok(true)` if block exit is successful
     fn on_exit(
         &mut self,
@@ -41,12 +41,12 @@ pub trait BlockHandler {
     ) -> Result<(), String>;
 
     /// Break from block e.g. while
-    fn on_break(&mut self, _program_memorys: &mut MemoryManager) -> Result<bool, String> {
+    fn on_break(&mut self, _program_memory: &mut MemoryManager) -> Result<bool, String> {
         Ok(false)
     }
 
     /// Continue block e.g. while
-    fn on_continue(&mut self, _program_memorys: &mut MemoryManager) -> Result<bool, String> {
+    fn on_continue(&mut self, _program_memory: &mut MemoryManager) -> Result<bool, String> {
         Ok(false)
     }
 }
@@ -147,7 +147,7 @@ impl BlockCoordinator {
         let (reference_stack, stack_sizes) = self.get_reference_stack_and_stack_sizes();
         let r = handler.on_entry(program_memory, reference_stack, stack_sizes, symbol_line);
         self.stack.push(handler);
-        self.stack_sizes.add_stack();
+        // self.stack_sizes.add_stack();
         r
     }
 
@@ -213,7 +213,7 @@ impl BlockCoordinator {
                 Ok(false)
             } else {
                 self.reference_stack.remove_handler();
-                self.stack_sizes.remove_stack();
+                // self.stack_sizes.remove_stack();
                 Ok(true)
             };
         }
@@ -234,7 +234,8 @@ impl BlockCoordinator {
 
         let result = handler.on_forced_exit(program_memory, reference_stack, stack_sizes);
 
-        self.stack_sizes.remove_stack();
+        self.reference_stack.remove_handler();
+        // self.stack_sizes.remove_stack();
 
         result
     }
@@ -261,7 +262,7 @@ impl BlockCoordinator {
     }
 
     /// Searches for a variable going up the reference stack
-    pub fn get_variable(&self, name: &str) -> Result<&NamedReference, String> {
+    pub fn get_reference(&self, name: &str) -> Result<&NamedReference, String> {
         self.reference_stack.get_reference(name)
     }
 
