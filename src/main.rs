@@ -17,13 +17,13 @@ use processing::preprocessor::convert_to_symbols;
 use processing::processor::process_symbols;
 use std::env;
 use std::ffi::OsStr;
+use std::fmt::Write as _;
 use std::fs;
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
-use std::fmt::Write as _;
-use std::fs::OpenOptions;
-use std::io::Write;
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 
@@ -118,9 +118,10 @@ fn wrapped_main(exit: &AtomicBool) {
                 .open("lexical_result.txt")
                 .expect("Unable to open file");
 
-            write.write(lexical_result.as_str().as_ref()).expect("Failed to write to file");
+            write
+                .write(lexical_result.as_str().as_ref())
+                .expect("Failed to write to file");
         }
-
 
         println!("Starting compilation (stage 2)");
         let start = Instant::now();
@@ -163,6 +164,9 @@ fn wrapped_main(exit: &AtomicBool) {
     translate(&memory.memory, false);
 
     let mut runtime_memory = RuntimeMemoryManager::from_program_memory(memory);
+
+    #[cfg(debug_assertions)]
+    runtime_memory.dump_all("dump");
 
     if let Err(e) = execute(&mut runtime_memory, exit) {
         col_println!((red, bold), "Execution failed:\n\t{}", e)

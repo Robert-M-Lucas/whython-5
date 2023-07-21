@@ -37,7 +37,7 @@ impl LineHandler for VariableAssignmentLine {
         let (stack_sizes, reference_stack) =
             block_coordinator.get_stack_sizes_and_reference_stack();
 
-        let variable = q!(q!(reference_stack.get_reference(name.as_str())).get_variable());
+        let variable = q!(q!(reference_stack.get_reference(name.as_str())).get_variable_ref());
 
         let assigner = match &line[1] {
             Symbol::Assigner(assigner) => assigner,

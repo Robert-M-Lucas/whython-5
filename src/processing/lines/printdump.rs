@@ -33,7 +33,7 @@ impl LineHandler for PrintDumpLine {
 
         let variable = match &line[1] {
             Symbol::Name(name) => {
-                match &q!(block_coordinator.get_variable(name.as_str())).reference {
+                match &q!(block_coordinator.get_reference(name.as_str())).reference {
                     ReferenceType::Variable(variable) => variable,
                     _ => {
                         return ProcessingResult::Failure(
