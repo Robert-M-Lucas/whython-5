@@ -24,12 +24,12 @@ impl BlockHandler for BaseBlock {
         &mut self,
         program_memory: &mut MemoryManager,
         _reference_stack: &mut ReferenceStack,
-        _stack_sizes: &mut StackSizes,
+        stack_sizes: &mut StackSizes,
         _symbol_line: &[Symbol],
     ) -> Result<(), String> {
-        self.stack_create_instruction =
-            Some(StackCreateInstruction::new_alloc(program_memory, 0, 0));
+        self.stack_create_instruction = Some(StackCreateInstruction::new_alloc(program_memory, 0));
         StackUpInstruction::new_alloc(program_memory);
+        stack_sizes.add_stack();
         Ok(())
     }
 
@@ -50,11 +50,13 @@ impl BlockHandler for BaseBlock {
         _reference_stack: &mut ReferenceStack,
         stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
+        StackDownInstruction::new_alloc(program_memory);
         self.stack_create_instruction
             .as_mut()
             .expect("No stack create instruction")
-            .change_stack_size(program_memory, stack_sizes.get_size());
-        StackDownInstruction::new_alloc(program_memory);
+            .set_stack_size(stack_sizes.get_size(), program_memory);
+        // self.stack_create_instruction.as_mut().unwrap().set_return_address(program_memory, program_memory.get_position());
+        stack_sizes.remove_stack();
         Ok(())
     }
 }
