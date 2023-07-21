@@ -9,7 +9,8 @@ pub struct StackDownInstruction {
 default_instruction_impl!(StackDownInstruction, STACK_DOWN_INSTRUCTION_CODE, 4);
 
 impl Execute for StackDownInstruction {
-    fn execute(memory: &mut RuntimeMemoryManager, _pointer: &mut usize) {
-        memory.stack_memory().stack_down_and_delete()
+    fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize) {
+        memory.stack_memory().stack_down_and_delete();
+        *pointer += StackDownInstruction::get_size();
     }
 }
