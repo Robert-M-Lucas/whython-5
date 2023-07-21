@@ -11,6 +11,17 @@ pub enum Keyword {
 
 pub struct KeywordSymbolHandler {}
 
+impl Keyword {
+    pub fn get_code_representation(&self) -> &str {
+        match self {
+            Keyword::Break => "break",
+            Keyword::Continue => "continue",
+            Keyword::Dump => "dump",
+            Keyword::PrintDump => "printdump",
+        }
+    }
+}
+
 impl SymbolHandler for KeywordSymbolHandler {
     fn get_symbol(string: &str) -> Option<Symbol> {
         match string {
