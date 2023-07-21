@@ -6,6 +6,9 @@ use crate::processing::instructions::binary_not_7::{
 };
 use crate::processing::instructions::copy_3::{CopyInstruction, COPY_INSTRUCTION_CODE};
 use crate::processing::instructions::dump_5::{DumpInstruction, DUMP_INSTRUCTION_CODE};
+use crate::processing::instructions::dynamic_jump_11::{
+    DynamicJumpInstruction, DYNAMIC_JUMP_INSTRUCTION_CODE,
+};
 use crate::processing::instructions::heap_alloc_2::{
     HeapAllocInstruction, HEAP_ALLOC_INSTRUCTION_CODE,
 };
@@ -25,6 +28,7 @@ use crate::processing::instructions::stack_down_4::{
 };
 use crate::processing::instructions::stack_up_1::{StackUpInstruction, STACK_UP_INSTRUCTION_CODE};
 use crate::processing::instructions::{InstructionCodeType, INSTRUCTION_CODE_LENGTH};
+use crate::processing::instructions::binary_or_12::{BINARY_OR_INSTRUCTION_CODE, BinaryOrInstruction};
 
 macro_rules! translate {
     ($instruction: ident, $data: expr, $i: expr) => {
@@ -54,7 +58,9 @@ pub fn translate(data: &[u8], translate_one: bool) {
             BINARY_AND_INSTRUCTION_CODE => translate!(BinaryAndInstruction, data, i),
             JUMP_IF_NOT_INSTRUCTION_CODE => translate!(JumpIfNotInstruction, data, i),
             JUMP_INSTRUCTION_CODE => translate!(JumpInstruction, data, i),
-            code => panic!("Debug not implemented for code {}", code),
+            DYNAMIC_JUMP_INSTRUCTION_CODE => translate!(DynamicJumpInstruction, data, i),
+            BINARY_OR_INSTRUCTION_CODE => translate!(BinaryOrInstruction, data, i),
+            code => format!("Debug not implemented for code {}", code),
         };
 
         println!("{}", output);

@@ -8,6 +8,9 @@ use crate::processing::instructions::binary_not_7::{
 };
 use crate::processing::instructions::copy_3::{CopyInstruction, COPY_INSTRUCTION_CODE};
 use crate::processing::instructions::dump_5::{DumpInstruction, DUMP_INSTRUCTION_CODE};
+use crate::processing::instructions::dynamic_jump_11::{
+    DynamicJumpInstruction, DYNAMIC_JUMP_INSTRUCTION_CODE,
+};
 use crate::processing::instructions::jump_if_not_9::{
     JumpIfNotInstruction, JUMP_IF_NOT_INSTRUCTION_CODE,
 };
@@ -29,6 +32,7 @@ use crate::processing::instructions::InstructionCodeType;
 use crate::util::warn;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use crate::processing::instructions::binary_or_12::{BINARY_OR_INSTRUCTION_CODE, BinaryOrInstruction};
 
 macro_rules! execute_instruction {
     ($instruction: ident, $memory: expr, $pointer: expr) => {
@@ -45,10 +49,15 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
     let start_time = Instant::now();
 
     while pointer < program_length {
-        let code = &memory.program_memory()[pointer..pointer + 2];
+        let code = InstructionCodeType::from_le_bytes(
+            (&memory.program_memory()[pointer..pointer + 2])
+                .try_into()
+                .unwrap(),
+        );
+        // println!("{} | {}", code, pointer);
         pointer += 2;
 
-        match InstructionCodeType::from_le_bytes(code.try_into().unwrap()) {
+        match code {
             STACK_CREATE_INSTRUCTION_CODE => {
                 execute_instruction!(StackCreateInstruction, memory, &mut pointer)
             }
@@ -73,8 +82,15 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
                 execute_instruction!(JumpIfNotInstruction, memory, &mut pointer)
             }
             JUMP_INSTRUCTION_CODE => execute_instruction!(JumpInstruction, memory, &mut pointer),
+            DYNAMIC_JUMP_INSTRUCTION_CODE => {
+                execute_instruction!(DynamicJumpInstruction, memory, &mut pointer)
+            }
+            BINARY_OR_INSTRUCTION_CODE => {
+                execute_instruction!(BinaryOrInstruction, memory, &mut pointer)
+            }
             code => return Err(format!("Unknown instruction code! [{}]", code)),
         };
+
 
         if exit.load(Ordering::Relaxed) {
             return Err("Program terminated by Ctrl+C".to_string());
