@@ -31,9 +31,12 @@ impl LineHandler for IfLine {
                 }
             }
             //? If not intercepted, there was no if
-            Symbol::Block(Block::Elif | Block::Else) => ProcessingResult::Failure(
-                "'elif' and 'else' can only follow an 'if' statement".to_string(),
-            ),
+            Symbol::Block(Block::Elif | Block::Else) => ProcessingResult::Failure(format!(
+                "{} and {} can only follow an {} statement",
+                Block::Elif,
+                Block::Else,
+                Block::If
+            )),
             _ => ProcessingResult::Unmatched,
         }
     }

@@ -86,10 +86,11 @@ impl BlockHandler for IfBlock {
         match block_type {
             Block::Elif => {
                 if self.jump_next_instruction.is_none() {
-                    return Err(
-                        "'elif' cannot follow an 'else' block as it will never be reached"
-                            .to_string(),
-                    );
+                    return Err(format!(
+                        "{} cannot follow an {} block as it will never be reached",
+                        Block::Elif,
+                        Block::Else
+                    ));
                 }
 
                 // Add instruction to skip to end if previous if/elif condition was met and executed
