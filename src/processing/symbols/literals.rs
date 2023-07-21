@@ -5,7 +5,7 @@ use crate::processing::symbols::TypeSymbol;
 #[derive(PartialEq, Clone, strum_macros::Display, Debug)]
 pub enum Literal {
     String(String),
-    Int(i64),
+    Int(i128),
     Bool(bool),
     ParameterList(Vec<(TypeSymbol, String)>),
     None,
@@ -66,7 +66,7 @@ impl SymbolHandler for LiteralSymbolHandler {
         )
         .or_else(
             // Integer
-            || match string.parse::<i64>() {
+            || match string.parse::<i128>() {
                 Ok(ok) => Some(Symbol::Literal(Literal::Int(ok))),
                 Err(_) => None,
             },
