@@ -46,11 +46,23 @@ macro_rules! unpack_either_type {
 
 pub enum ReturnOptions<'a> {
     /// Places the calculated value into the type - returns `None`
-    ReturnIntoType(&'a Box<dyn Type>),
+    ReturnIntoType(&'a Box<dyn Type>), //, Option<Box<dyn FnOnce(&mut MemoryManager, &mut StackSizes)>>, usize),
     /// Returns a type from the specified list
     ReturnTypes(&'a [TypeSymbol]),
     /// Returns any type
     ReturnAnyType,
+}
+
+impl<'a> ReturnOptions<'a> {
+    // pub fn remove_return_into_type_options(&mut self) {
+    //     match self {
+    //         ReturnOptions::ReturnIntoType(_, run_before_last_step, offset) => {
+    //             *run_before_last_step = None;
+    //             *offset = 0;
+    //         }
+    //         _ => {}
+    //     }
+    // }
 }
 
 /// Evaluates an arithmetic section and puts the result into a type
@@ -60,10 +72,12 @@ pub fn evaluate_arithmetic_into_type<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
+    // run_before_last_step: Option<fn(&mut MemoryManager, &mut StackSizes)>,
+    // offset: usize
 ) -> Result<(), String> {
     evaluate_arithmetic_section(
         section,
-        &ReturnOptions::ReturnIntoType(destination),
+        &mut ReturnOptions::ReturnIntoType(destination), //, run_before_last_step, offset),
         program_memory,
         reference_stack,
         stack_sizes,
@@ -81,7 +95,7 @@ pub fn evaluate_arithmetic_to_types<'a>(
 ) -> Result<Either<Box<dyn Type>, &'a Box<dyn Type>>, String> {
     Ok(evaluate_arithmetic_section(
         section,
-        &ReturnOptions::ReturnTypes(return_type_options),
+        &mut ReturnOptions::ReturnTypes(return_type_options),
         program_memory,
         reference_stack,
         stack_sizes,
@@ -98,7 +112,7 @@ pub fn evaluate_arithmetic_to_any_type<'a>(
 ) -> Result<Either<Box<dyn Type>, &'a Box<dyn Type>>, String> {
     Ok(evaluate_arithmetic_section(
         section,
-        &ReturnOptions::ReturnAnyType,
+        &mut ReturnOptions::ReturnAnyType,
         program_memory,
         reference_stack,
         stack_sizes,
@@ -108,7 +122,7 @@ pub fn evaluate_arithmetic_to_any_type<'a>(
 
 fn evaluate_arithmetic_section<'a>(
     section: &[Symbol],
-    return_options: &ReturnOptions<'_>,
+    return_options: &mut ReturnOptions<'_>,
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
@@ -138,7 +152,7 @@ fn evaluate_arithmetic_section<'a>(
 
             let operand = handle_single_symbol(
                 &section[1],
-                &ReturnOptions::ReturnAnyType,
+                &mut ReturnOptions::ReturnAnyType,
                 program_memory,
                 reference_stack,
                 stack_sizes,
@@ -161,7 +175,7 @@ fn evaluate_arithmetic_section<'a>(
 
             let lhs = handle_single_symbol(
                 &section[0],
-                &ReturnOptions::ReturnAnyType,
+                &mut ReturnOptions::ReturnAnyType,
                 program_memory,
                 reference_stack,
                 stack_sizes,
@@ -175,7 +189,7 @@ fn evaluate_arithmetic_section<'a>(
 
             let rhs = handle_single_symbol(
                 &section[2],
-                &ReturnOptions::ReturnAnyType,
+                &mut ReturnOptions::ReturnAnyType,
                 program_memory,
                 reference_stack,
                 stack_sizes,
@@ -221,7 +235,7 @@ fn incorrect_type_error(expected: &[TypeSymbol], received: &[TypeSymbol]) -> Str
 
 fn handle_single_symbol<'a>(
     symbol: &Symbol,
-    return_options: &ReturnOptions,
+    return_options: &mut ReturnOptions,
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
@@ -230,10 +244,14 @@ fn handle_single_symbol<'a>(
         Symbol::Name(name) => {
             let variable = reference_stack
                 .get_reference(name.as_str())?
-                .get_variable()?;
+                .get_variable_ref()?;
             match return_options {
                 ReturnOptions::ReturnIntoType(output) => {
-                    output.runtime_copy_from(variable)?;
+                    //, run_before_last_step, offset) => {
+                    // if let Some(f) = run_before_last_step {
+                    //     f(program_memory, stack_sizes);
+                    // }
+                    output.runtime_copy_from(variable, program_memory)?; //, *offset)?;
                     Ok(None)
                 }
                 ReturnOptions::ReturnAnyType => Ok(Some(Right(variable))),
@@ -252,6 +270,10 @@ fn handle_single_symbol<'a>(
         Symbol::Literal(literal) => {
             match return_options {
                 ReturnOptions::ReturnIntoType(output) => {
+                    //, run_before_last_step, offset) => {
+                    // if let Some(f) = run_before_last_step {
+                    //     f(program_memory, stack_sizes);
+                    // }
                     output.runtime_copy_from_literal(literal, program_memory)?;
                     Ok(None)
                 }
@@ -283,13 +305,16 @@ fn handle_single_symbol<'a>(
                 }
             }
         }
-        Symbol::ArithmeticBlock(section) => evaluate_arithmetic_section(
-            section,
-            return_options,
-            program_memory,
-            reference_stack,
-            stack_sizes,
-        ),
+        Symbol::ArithmeticBlock(section) => {
+            // return_options.remove_return_into_type_options();
+            evaluate_arithmetic_section(
+                section,
+                return_options,
+                program_memory,
+                reference_stack,
+                stack_sizes,
+            )
+        }
         _ => Err("Expected an expression".to_string()),
     }
 }
@@ -318,6 +343,10 @@ fn handle_prefix_operation<'a>(
 
     match return_options {
         ReturnOptions::ReturnIntoType(output) => {
+            //, run_before_last_step, offset) => {
+            // if let Some(f) = run_before_last_step {
+            //     f(program_memory, stack_sizes);
+            // }
             operand.operate_prefix(operator, output, program_memory, stack_sizes)?;
             Ok(None)
         }
@@ -383,6 +412,10 @@ fn handle_operation<'a>(
 
     match return_options {
         ReturnOptions::ReturnIntoType(output) => {
+            // , run_before_last_step, offset) => {
+            // if let Some(f) = run_before_last_step {
+            //     f(program_memory, stack_sizes);
+            // }
             lhs.operate(operator, rhs, output, program_memory, stack_sizes)?;
             Ok(None)
         }
