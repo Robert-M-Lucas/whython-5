@@ -1,12 +1,14 @@
 pub mod arithmetic;
 pub mod base_block;
+pub mod break_continue;
+pub mod call;
 pub mod dump;
+pub mod function_line;
 pub mod if_line;
 pub mod printdump;
 pub mod variable_assignment;
 pub mod variable_initialisation;
 pub mod while_line;
-pub mod break_continue;
 
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;

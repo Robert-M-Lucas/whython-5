@@ -3,7 +3,9 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
 use crate::processing::lines::base_block::BaseBlockLine;
 use crate::processing::lines::break_continue::BreakContinueLine;
+use crate::processing::lines::call::CallLine;
 use crate::processing::lines::dump::DumpLine;
+use crate::processing::lines::function_line::FunctionLine;
 use crate::processing::lines::if_line::IfLine;
 use crate::processing::lines::printdump::PrintDumpLine;
 use crate::processing::lines::variable_assignment::VariableAssignmentLine;
@@ -128,7 +130,9 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
             })
             .or_else(|| process_line!(IfLine, symbol_line, memory, block_coordinator))
             .or_else(|| process_line!(WhileLine, symbol_line, memory, block_coordinator))
-            .or_else(|| process_line!(BreakContinueLine, symbol_line, memory, block_coordinator));
+            .or_else(|| process_line!(BreakContinueLine, symbol_line, memory, block_coordinator))
+            .or_else(|| process_line!(FunctionLine, symbol_line, memory, block_coordinator))
+            .or_else(|| process_line!(CallLine, symbol_line, memory, block_coordinator));
 
         //? Handle unmatched / failed line
         if r.is_failure() {
