@@ -14,6 +14,20 @@ pub enum Block {
 
 pub struct BlockSymbolHandler {}
 
+impl Block {
+    pub fn get_code_representation(&self) -> &str {
+        match self {
+            Block::While => "while",
+            Block::Loop => "loop",
+            Block::If => "if",
+            Block::Elif => "elif",
+            Block::Else => "else",
+            Block::Function => "fn",
+            Block::BaseBlock => "block",
+        }
+    }
+}
+
 impl SymbolHandler for BlockSymbolHandler {
     fn get_symbol(string: &str) -> Option<Symbol> {
         match string {
