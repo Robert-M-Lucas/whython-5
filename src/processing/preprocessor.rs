@@ -1,7 +1,6 @@
 use crate::bx;
 use crate::errors::create_line_error;
-use crate::processing::symbols::Symbol::ArithmeticBlock;
-use crate::processing::symbols::{get_all_symbol, Symbol, STRING_DELIMITERS, Punctuation};
+use crate::processing::symbols::{get_all_symbol, Punctuation, Symbol, STRING_DELIMITERS};
 use debugless_unwrap::DebuglessUnwrapErr;
 
 /// Takes a line of code and returns an array of symbols
@@ -104,9 +103,7 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
             match bracket_depth {
                 0 => {
                     symbol_line.push(match get_symbols_from_line(buffer.as_str()) {
-                        Ok(symbols) => {
-                            get_bracketed_symbols_type(symbols)
-                        },
+                        Ok(symbols) => get_bracketed_symbols_type(symbols),
                         Err(e) => return Err(e),
                     });
                     buffer.clear();
@@ -238,6 +235,10 @@ pub fn convert_to_symbols(data: String) -> Result<Vec<(usize, Vec<Symbol>)>, Str
 }
 
 fn get_bracketed_symbols_type(symbols: Vec<Symbol>) -> Symbol {
+    if symbols.is_empty() {
+        return Symbol::List(Vec::new());
+    }
+
     let mut has_separator = false;
     for s in &symbols {
         if matches!(s, Symbol::Punctuation(Punctuation::ListSeparator)) {
@@ -246,7 +247,9 @@ fn get_bracketed_symbols_type(symbols: Vec<Symbol>) -> Symbol {
         }
     }
 
-    if !has_separator { return Symbol::ArithmeticBlock(symbols); }
+    if !has_separator {
+        return Symbol::ArithmeticBlock(symbols);
+    }
 
     let mut list = Vec::new();
     let mut item = Vec::new();
@@ -255,10 +258,13 @@ fn get_bracketed_symbols_type(symbols: Vec<Symbol>) -> Symbol {
         if matches!(s, Symbol::Punctuation(Punctuation::ListSeparator)) {
             list.push(item);
             item = Vec::new();
-        }
-        else {
+        } else {
             item.push(s);
         }
+    }
+
+    if !item.is_empty() {
+        list.push(item);
     }
 
     Symbol::List(list)
