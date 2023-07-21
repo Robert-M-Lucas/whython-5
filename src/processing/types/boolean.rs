@@ -13,12 +13,13 @@ use crate::{
     default_type_struct, default_type_wrapper_struct_and_impl,
     processing::symbols::{Operator, TypeSymbol},
 };
+use crate::processing::instructions::binary_or_12::BinaryOrInstruction;
 
 use super::{Operation, Type};
 
 default_type_wrapper_struct_and_impl!(BoolWrapper, BoolType, TypeSymbol::Boolean);
 default_type_struct!(BoolType);
-default_type_initialiser!(BoolType, (BoolAnd), (BoolNot));
+default_type_initialiser!(BoolType, (BoolAnd, BoolOr), (BoolNot));
 
 pub const BOOL_TRUE: u8 = 0xFF;
 pub const BOOL_FALSE: u8 = 0x00;
@@ -69,25 +70,57 @@ impl Type for BoolType {
         }
     }
 
-    fn runtime_copy_from(&self, _other: &Box<dyn Type>) -> Result<(), String> {
-        todo!()
+    fn runtime_copy_from(
+        &self,
+        other: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+    ) -> Result<CopyInstruction, String> {
+        match other.get_type_symbol() {
+            TypeSymbol::Boolean => {
+                Ok(CopyInstruction::new_alloc(
+                    program_memory,
+                    other.get_address_and_length().0,
+                    self.address.as_ref().unwrap(),
+                    BOOLEAN_SIZE,
+                ))
+            }
+            s => Err(format!(
+                "Copy not implemented from type '{}' to '{}'",
+                s,
+                TypeSymbol::Boolean
+            )),
+        }
     }
 
     fn runtime_copy_from_literal(
         &self,
         literal: &Literal,
         program_memory: &mut MemoryManager,
-    ) -> Result<(), String> {
+    ) -> Result<CopyInstruction, String> {
         let constant = self.get_constant(literal)?;
-        CopyInstruction::new_alloc(program_memory, &constant, self.address.as_ref().unwrap(), 1);
 
-        Ok(())
+        Ok(CopyInstruction::new_alloc(
+            program_memory,
+            &constant,
+            self.address.as_ref().unwrap(),
+            BOOLEAN_SIZE,
+        ))
     }
 
     default_type_operate_impl!(BoolType);
 
     fn get_address_and_length(&self) -> (&Address, usize) {
         (self.address.as_ref().unwrap(), BOOLEAN_SIZE)
+    }
+
+    fn get_address_mut(&mut self) -> &mut Address {
+        self.address.as_mut().unwrap()
+    }
+
+    fn duplicate(&self) -> Box<dyn Type> {
+        let mut t = BoolType::new();
+        t.address = self.address.as_ref().and_then(|a| Some(a.clone()));
+        Box::new(t)
     }
 }
 
@@ -114,11 +147,51 @@ impl Operation<BoolType> for BoolAnd {
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
+        println!("And");
         assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
         assert!(matches!(rhs.get_type_symbol(), TypeSymbol::Boolean));
 
         let (address_from, length) = lhs.get_address_and_length();
         BinaryAndInstruction::new_alloc(
+            program_memory,
+            address_from,
+            rhs.get_address_and_length().0,
+            destination.get_address_and_length().0,
+            length,
+        );
+        Ok(())
+    }
+}
+
+pub struct BoolOr {}
+
+impl Operation<BoolType> for BoolOr {
+    fn get_symbol(&self) -> Operator {
+        Operator::Or
+    }
+
+    fn get_result_type(&self, rhs: &TypeSymbol) -> Option<TypeSymbol> {
+        // let rhs = rhs?;
+        match rhs {
+            TypeSymbol::Boolean => Some(TypeSymbol::Boolean),
+            _ => None,
+        }
+    }
+
+    fn operate(
+        &self,
+        lhs: &BoolType,
+        rhs: &Box<dyn Type>,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        _stack_sizes: &mut StackSizes,
+    ) -> Result<(), String> {
+        println!("Or");
+        assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
+        assert!(matches!(rhs.get_type_symbol(), TypeSymbol::Boolean));
+
+        let (address_from, length) = lhs.get_address_and_length();
+        BinaryOrInstruction::new_alloc(
             program_memory,
             address_from,
             rhs.get_address_and_length().0,
