@@ -25,6 +25,7 @@ impl HeapMemory {
         self.next_frame - 1
     }
 
+    /// Gets a frame's data with the specified frame id
     pub fn get_frame(&self, frame: usize) -> &[u8] {
         for f in self.memory.iter() {
             if f.0 == frame {
@@ -35,6 +36,7 @@ impl HeapMemory {
         panic!("Frame not in Heap!");
     }
 
+    /// Gets a frame's data with the specified frame id
     pub fn get_mut_frame(&mut self, frame: usize) -> &mut [u8] {
         for f in self.memory.iter_mut() {
             if f.0 == frame {
@@ -45,14 +47,17 @@ impl HeapMemory {
         panic!("Frame not in Heap!");
     }
 
+    /// Gets a single byte out of a frame
     pub fn index(&self, frame: usize, position: usize) -> u8 {
         self.get_frame(frame)[position]
     }
 
+    /// Gets a slice out of a frame
     pub fn index_slice(&self, frame: usize, start: usize, end: usize) -> &[u8] {
         &self.get_frame(frame)[start..end]
     }
 
+    /// Writes all data in the heap to a specified folder for debugging
     pub fn dump_bytes(&self, folder_name: &str) {
         fs::create_dir_all(folder_name).unwrap();
         for i in self.memory.iter() {
