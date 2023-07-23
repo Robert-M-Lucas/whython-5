@@ -13,6 +13,7 @@ pub mod stack_create_0;
 pub mod stack_down_4;
 pub mod stack_up_1;
 pub mod binary_or_12;
+pub mod add_instruction_13;
 
 pub type InstructionCodeType = u16;
 pub const INSTRUCTION_CODE_LENGTH: usize = 2;

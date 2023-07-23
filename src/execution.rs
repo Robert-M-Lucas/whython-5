@@ -32,6 +32,7 @@ use crate::processing::instructions::InstructionCodeType;
 use crate::util::warn;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use crate::processing::instructions::add_instruction_13::{ADD_INSTRUCTION_CODE, AddInstruction};
 use crate::processing::instructions::binary_or_12::{BINARY_OR_INSTRUCTION_CODE, BinaryOrInstruction};
 
 macro_rules! execute_instruction {
@@ -88,8 +89,12 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
             BINARY_OR_INSTRUCTION_CODE => {
                 execute_instruction!(BinaryOrInstruction, memory, &mut pointer)
             }
+            ADD_INSTRUCTION_CODE => {
+                execute_instruction!(AddInstruction, memory, &mut pointer)
+            }
             code => return Err(format!("Unknown instruction code! [{}]", code)),
         };
+
 
 
         if exit.load(Ordering::Relaxed) {
