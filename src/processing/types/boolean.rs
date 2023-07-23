@@ -147,7 +147,6 @@ impl Operation<BoolType> for BoolAnd {
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
-        println!("And");
         assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
         assert!(matches!(rhs.get_type_symbol(), TypeSymbol::Boolean));
 
@@ -186,7 +185,6 @@ impl Operation<BoolType> for BoolOr {
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
-        println!("Or");
         assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
         assert!(matches!(rhs.get_type_symbol(), TypeSymbol::Boolean));
 
