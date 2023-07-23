@@ -7,6 +7,7 @@ pub enum Keyword {
     Continue,
     Dump,
     PrintDump,
+    As,
 }
 
 pub struct KeywordSymbolHandler {}
@@ -18,6 +19,7 @@ impl Keyword {
             Keyword::Continue => "continue",
             Keyword::Dump => "dump",
             Keyword::PrintDump => "printdump",
+            Keyword::As => "as",
         }
     }
 }
@@ -29,6 +31,7 @@ impl SymbolHandler for KeywordSymbolHandler {
             "continue" => Some(Symbol::Keyword(Keyword::Continue)),
             "dump" => Some(Symbol::Keyword(Keyword::Dump)),
             "printdump" => Some(Symbol::Keyword(Keyword::PrintDump)),
+            "as" => Some(Symbol::Keyword(Keyword::As)),
             _ => None,
         }
     }

@@ -3,7 +3,7 @@ use either::{Either, Left, Right};
 use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
 use crate::processing::reference_manager::ReferenceStack;
-use crate::processing::symbols::{Operator, Symbol, TypeSymbol};
+use crate::processing::symbols::{Keyword, Operator, Symbol, TypeSymbol};
 use crate::processing::types::{Type, TypeFactory};
 
 /*
@@ -127,12 +127,15 @@ fn evaluate_arithmetic_section<'a>(
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
 ) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
+    fn get_formatting_error() -> String {
+        "Arithmetic sections must be formated [Operator] [Value], [Value] [Operator] [Value] or [Value] as [Type]".to_string()
+    }
+
     if section.is_empty() {
         return Err("Cannot evaluate a section with no symbols".to_string());
     }
 
     // ? No operation
-
     if section.len() == 1 {
         return handle_single_symbol(
             &section[0],
@@ -167,43 +170,52 @@ fn evaluate_arithmetic_section<'a>(
                 stack_sizes,
             )
         }
-        // ? Normal operation e.g. A + B
+        // ? Normal operation e.g. A + B or Casting e.g. A as bool
         _ => {
             if section.len() != 3 {
-                return Err("Arithmetic sections must be formated [Operator] [Value] or [Value] [Operator] [Value]".to_string());
+                return Err(get_formatting_error());
             }
 
-            let lhs = handle_single_symbol(
-                &section[0],
-                &mut ReturnOptions::ReturnAnyType,
-                program_memory,
-                reference_stack,
-                stack_sizes,
-            )?
-            .unwrap();
+            match &section[1] {
+                // ? Casting
+                Symbol::Keyword(Keyword::As) => {
+                    let type_symbol = match &section[2] {
+                        Symbol::Type(type_symbol) => type_symbol,
+                        _ => { return Err(get_formatting_error()); }
+                    };
 
-            let operator = match &section[1] {
-                Symbol::Operator(operator) => operator,
-                _ => return Err("Arithmetic sections must be formated [Operator] [Value] or [Value] [Operator] [Value]".to_string())
-            };
+                    handle_casting(&section[0], type_symbol, return_options, program_memory, reference_stack, stack_sizes)
+                }
+                // ? Normal operation
+                Symbol::Operator(operator) => {
+                    let lhs = handle_single_symbol(
+                        &section[0],
+                        &mut ReturnOptions::ReturnAnyType,
+                        program_memory,
+                        reference_stack,
+                        stack_sizes,
+                    )?.unwrap();
 
-            let rhs = handle_single_symbol(
-                &section[2],
-                &mut ReturnOptions::ReturnAnyType,
-                program_memory,
-                reference_stack,
-                stack_sizes,
-            )?
-            .unwrap();
+                    let rhs = handle_single_symbol(
+                        &section[2],
+                        &mut ReturnOptions::ReturnAnyType,
+                        program_memory,
+                        reference_stack,
+                        stack_sizes,
+                    )?
+                        .unwrap();
 
-            handle_operation(
-                operator,
-                lhs,
-                rhs,
-                return_options,
-                program_memory,
-                stack_sizes,
-            )
+                    handle_operation(
+                        operator,
+                        lhs,
+                        rhs,
+                        return_options,
+                        program_memory,
+                        stack_sizes,
+                    )
+                }
+                _ => { return Err(get_formatting_error()); }
+            }
         }
     }
 }
@@ -463,6 +475,88 @@ fn handle_operation<'a>(
                 Ok(Some(Left(new_type)))
             } else {
                 Err(incorrect_type_error(types, &return_types))
+            }
+        }
+    }
+}
+
+fn handle_casting<'a>(symbol: &Symbol, type_symbol: &TypeSymbol, return_options: &ReturnOptions,
+                      program_memory: &mut MemoryManager, reference_stack: &ReferenceStack,
+                      stack_sizes: &mut StackSizes) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
+    match symbol {
+        Symbol::Literal(literal) => {
+            // ? Ignore cast if going into correct type
+            match return_options {
+                ReturnOptions::ReturnIntoType(output) => {
+                    if output.get_type_symbol() == *type_symbol {
+                        output.runtime_copy_from_literal(literal, program_memory)?;
+                        return Ok(None)
+                    }
+                }
+                _ => {}
+            }
+
+            let mut new_type = TypeFactory::get_unallocated_type(type_symbol)?;
+            new_type.allocate_variable(stack_sizes, program_memory)?;
+            new_type.runtime_copy_from_literal(literal, program_memory)?;
+
+            match return_options {
+                ReturnOptions::ReturnIntoType(output) => {
+                    output.runtime_copy_from(&new_type, program_memory)?;
+                    Ok(None)
+                },
+                ReturnOptions::ReturnTypes(return_types) => {
+                    if return_types.iter().find(|t| **t == *type_symbol).is_some() {
+                        Ok(Some(Left(new_type)))
+                    }
+                    else {
+                        let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;
+                        return_type.runtime_copy_from(&new_type, program_memory)?;
+                        Ok(Some(Left(return_type)))
+                    }
+                },
+                ReturnOptions::ReturnAnyType => {
+                    Ok(Some(Left(new_type)))
+                }
+            }
+        },
+        _ => {
+            let value = evaluate_arithmetic_to_any_type(&[symbol.clone()], program_memory, reference_stack, stack_sizes)?;
+            unpack_either_type!(value, value);
+
+            // ? Ignore cast if going into correct type
+            match return_options {
+                ReturnOptions::ReturnIntoType(output) => {
+                    if output.get_type_symbol() == *type_symbol {
+                        output.runtime_copy_from(value, program_memory)?;
+                        return Ok(None)
+                    }
+                }
+                _ => {}
+            }
+
+            let mut new_type = TypeFactory::get_unallocated_type(type_symbol)?;
+            new_type.allocate_variable(stack_sizes, program_memory)?;
+            new_type.runtime_copy_from(value, program_memory)?;
+
+            match return_options {
+                ReturnOptions::ReturnIntoType(output) => {
+                    output.runtime_copy_from(&new_type, program_memory)?;
+                    Ok(None)
+                },
+                ReturnOptions::ReturnTypes(return_types) => {
+                    if return_types.iter().find(|t| **t == *type_symbol).is_some() {
+                        Ok(Some(Left(new_type)))
+                    }
+                    else {
+                        let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;
+                        return_type.runtime_copy_from(&new_type, program_memory)?;
+                        Ok(Some(Left(return_type)))
+                    }
+                },
+                ReturnOptions::ReturnAnyType => {
+                    Ok(Some(Left(new_type)))
+                }
             }
         }
     }
