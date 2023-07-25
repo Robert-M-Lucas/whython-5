@@ -17,8 +17,8 @@ use crate::processing::instructions::jump_if_not_9::{
 use crate::processing::instructions::jump_instruction_10::{
     JumpInstruction, JUMP_INSTRUCTION_CODE,
 };
-use crate::processing::instructions::print_dump_6::{
-    PrintDumpInstruction, PRINT_DUMP_INSTRUCTION_CODE,
+use crate::processing::instructions::view_memory_6::{
+    ViewMemoryInstruction, VIEW_MEMORY_INSTRUCTION_CODE,
 };
 use crate::processing::instructions::stack_create_0::{
     StackCreateInstruction, STACK_CREATE_INSTRUCTION_CODE,
@@ -70,8 +70,8 @@ pub fn execute(memory: &mut RuntimeMemoryManager, exit: &AtomicBool) -> Result<(
             }
             COPY_INSTRUCTION_CODE => execute_instruction!(CopyInstruction, memory, &mut pointer),
             DUMP_INSTRUCTION_CODE => execute_instruction!(DumpInstruction, memory, &mut pointer),
-            PRINT_DUMP_INSTRUCTION_CODE => {
-                execute_instruction!(PrintDumpInstruction, memory, &mut pointer)
+            VIEW_MEMORY_INSTRUCTION_CODE => {
+                execute_instruction!(ViewMemoryInstruction, memory, &mut pointer)
             }
             BINARY_NOT_INSTRUCTION_CODE => {
                 execute_instruction!(BinaryNotInstruction, memory, &mut pointer)

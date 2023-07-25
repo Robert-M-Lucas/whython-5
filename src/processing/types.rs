@@ -1,5 +1,4 @@
 use crate::processing::symbols::{Literal, Operator, TypeSymbol};
-use std::ops::Add;
 
 use self::boolean::BoolWrapper;
 
@@ -9,6 +8,7 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
 use crate::processing::instructions::copy_3::CopyInstruction;
 pub use defaults::*;
+use crate::bx;
 use crate::processing::types::pointer::PointerWrapper;
 
 pub mod boolean;
@@ -132,8 +132,8 @@ impl TypeFactory {
     pub fn get() -> Self {
         Self {
             uninstantiated_types: vec![
-                Box::new(BoolWrapper {}),
-                Box::new(PointerWrapper {})
+                bx!(BoolWrapper {}),
+                bx!(PointerWrapper {})
             ],
         }
     }

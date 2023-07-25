@@ -18,8 +18,8 @@ use crate::processing::instructions::jump_if_not_9::{
 use crate::processing::instructions::jump_instruction_10::{
     JumpInstruction, JUMP_INSTRUCTION_CODE,
 };
-use crate::processing::instructions::print_dump_6::{
-    PrintDumpInstruction, PRINT_DUMP_INSTRUCTION_CODE,
+use crate::processing::instructions::view_memory_6::{
+    ViewMemoryInstruction, VIEW_MEMORY_INSTRUCTION_CODE,
 };
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_create_0::STACK_CREATE_INSTRUCTION_CODE;
@@ -54,7 +54,7 @@ pub fn translate(data: &[u8], translate_one: bool) {
             COPY_INSTRUCTION_CODE => translate!(CopyInstruction, data, i),
             STACK_DOWN_INSTRUCTION_CODE => translate!(StackDownInstruction, data, i),
             DUMP_INSTRUCTION_CODE => translate!(DumpInstruction, data, i),
-            PRINT_DUMP_INSTRUCTION_CODE => translate!(PrintDumpInstruction, data, i),
+            VIEW_MEMORY_INSTRUCTION_CODE => translate!(ViewMemoryInstruction, data, i),
             BINARY_NOT_INSTRUCTION_CODE => translate!(BinaryNotInstruction, data, i),
             BINARY_AND_INSTRUCTION_CODE => translate!(BinaryAndInstruction, data, i),
             JUMP_IF_NOT_INSTRUCTION_CODE => translate!(JumpIfNotInstruction, data, i),

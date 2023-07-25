@@ -28,6 +28,7 @@ use builtins::BuiltinSymbolHandler;
 
 pub use punctuation::Punctuation;
 pub use punctuation::PunctuationSymbolHandler;
+pub use punctuation::LIST_SEPARATOR_CHARACTER;
 
 pub use keywords::Keyword;
 pub use keywords::KeywordSymbolHandler;
@@ -37,9 +38,10 @@ pub enum Symbol {
     Assigner(Assigner),
     Literal(Literal),
     Operator(Operator),
-    ArithmeticBlock(Vec<Symbol>),
-    Indexer(Box<Symbol>),
+    BracketedSection(Vec<Symbol>),
+    Indexer(Box<Symbol>, Vec<Symbol>),
     List(Vec<Vec<Symbol>>),
+    MethodCall(Box<Symbol>, String, Vec<Vec<Symbol>>), // ? Value, method, arguments
     Type(TypeSymbol),
     Block(Block),
     Builtin(Builtin),
@@ -59,14 +61,14 @@ pub fn get_all_symbol(string: &str) -> Option<Symbol> {
 }
 
 /// Converts an arithmetic block into a `Literal::ParameterList(parameters)`
-pub fn try_arithmetic_block_into_parameters(arithmetic_block: &Symbol) -> Result<Literal, String> {
+pub fn try_bracketed_into_parameters(bracketed: &Symbol) -> Result<Literal, String> {
     fn formatting_error() -> String {
         "Parameters must be formatted ([Type] [Name] , [Type] [Name] , [...])".to_string()
     }
 
-    let list = match arithmetic_block {
-        Symbol::ArithmeticBlock(list) => list,
-        _ => panic!("Must be arithmetic block"),
+    let list = match bracketed {
+        Symbol::BracketedSection(list) => list,
+        _ => panic!("Must be bracketed section"),
     };
 
     if list.is_empty() {

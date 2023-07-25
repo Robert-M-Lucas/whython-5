@@ -5,10 +5,7 @@ use crate::processing::instructions::copy_3::CopyInstruction;
 use crate::processing::instructions::jump_instruction_10::JumpInstruction;
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_down_4::StackDownInstruction;
-use crate::processing::instructions::INSTRUCTION_CODE_LENGTH;
-use crate::processing::lines::arithmetic::{
-    evaluate_arithmetic_into_type, evaluate_arithmetic_to_types,
-};
+use crate::processing::lines::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::reference_manager::ReferenceStack;
 use crate::processing::symbols::{Literal, Symbol};
 use crate::processing::types::pointer::PointerType;
@@ -73,7 +70,7 @@ impl FunctionReference {
 
     pub fn call(
         &mut self,
-        return_into: Option<&Box<dyn Type>>,
+        _return_into: Option<&Box<dyn Type>>,
         arguments: &Vec<Vec<Symbol>>,
         program_memory: &mut MemoryManager,
         reference_stack: &mut ReferenceStack,
@@ -91,7 +88,7 @@ impl FunctionReference {
         // Evaluate arguments to intermediate type
         let mut intermediate = Vec::with_capacity(self.parameters.len());
         for i in 0..self.parameters.len() {
-            let new = intermediate.push(evaluate_arithmetic_to_types(
+            intermediate.push(evaluate_arithmetic_to_types(
                 &arguments[i],
                 &[self.parameters[i].1.get_type_symbol()],
                 program_memory,

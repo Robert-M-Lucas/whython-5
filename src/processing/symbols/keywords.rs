@@ -6,7 +6,7 @@ pub enum Keyword {
     Break,
     Continue,
     Dump,
-    PrintDump,
+    ViewMemory,
     As,
 }
 
@@ -18,7 +18,7 @@ impl Keyword {
             Keyword::Break => "break",
             Keyword::Continue => "continue",
             Keyword::Dump => "dump",
-            Keyword::PrintDump => "printdump",
+            Keyword::ViewMemory => "viewmem",
             Keyword::As => "as",
         }
     }
@@ -30,7 +30,7 @@ impl SymbolHandler for KeywordSymbolHandler {
             "break" => Some(Symbol::Keyword(Keyword::Break)),
             "continue" => Some(Symbol::Keyword(Keyword::Continue)),
             "dump" => Some(Symbol::Keyword(Keyword::Dump)),
-            "printdump" => Some(Symbol::Keyword(Keyword::PrintDump)),
+            "viewmem" => Some(Symbol::Keyword(Keyword::ViewMemory)),
             "as" => Some(Symbol::Keyword(Keyword::As)),
             _ => None,
         }

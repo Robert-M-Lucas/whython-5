@@ -5,7 +5,7 @@ macro_rules! default_type_wrapper_struct_and_impl {
 
         impl $crate::processing::types::UninstantiatedType for $wrapper_name {
             fn instantiate(&self) -> Box<dyn $crate::processing::types::Type> {
-                Box::new($type_name::new())
+                bx!($type_name::new())
             }
 
             fn get_type_symbol(&self) -> $crate::processing::symbols::TypeSymbol {
@@ -34,11 +34,11 @@ macro_rules! default_type_initialiser {
             pub fn new() -> Self {
                 Self {
                     operators: vec![
-                        $(Box::new($operator{}),
+                        $($crate::bx!($operator{}),
                     )*
                     ],
                     operators_prefix: vec![
-                        $(Box::new($operator_prefix{}),
+                        $($crate::bx!($operator_prefix{}),
                     )*
                     ],
                     address: None

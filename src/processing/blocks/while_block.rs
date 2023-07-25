@@ -5,7 +5,7 @@ use crate::processing::instructions::jump_instruction_10::JumpInstruction;
 use crate::processing::lines::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::reference_manager::ReferenceStack;
 use crate::processing::symbols::{Symbol, TypeSymbol};
-use crate::unpack_either_type;
+use crate::{bx, unpack_either_type};
 
 pub struct WhileBlock {
     jump_end_instruction: Option<JumpIfNotInstruction>,
@@ -16,7 +16,7 @@ pub struct WhileBlock {
 
 impl WhileBlock {
     pub fn new_block() -> Box<dyn BlockHandler> {
-        Box::new(Self {
+        bx!(Self {
             jump_end_instruction: None,
             jump_end_instructions: Vec::new(),
             jump_start_instructions: Vec::new(),

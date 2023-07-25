@@ -1,20 +1,16 @@
 use crate::memory::MemoryManager;
 use crate::processing::blocks::{BlockHandler, StackSizes};
 use crate::processing::instructions::dynamic_jump_11::DynamicJumpInstruction;
-use crate::processing::instructions::jump_if_not_9::JumpIfNotInstruction;
 use crate::processing::instructions::jump_instruction_10::JumpInstruction;
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
-use crate::processing::instructions::stack_down_4::StackDownInstruction;
 use crate::processing::instructions::stack_up_1::StackUpInstruction;
-use crate::processing::lines::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
-use crate::processing::reference_manager::function::{FunctionReference, IncompleteFunctionCall};
+use crate::processing::reference_manager::function::FunctionReference;
 use crate::processing::reference_manager::{NamedReference, ReferenceStack, ReferenceType};
-use crate::processing::symbols::{Block, Symbol, TypeSymbol};
+use crate::processing::symbols::{Block, Symbol};
 use crate::processing::types::pointer::PointerType;
 use crate::processing::types::Type;
-use crate::unpack_either_type;
-use num_format::Locale::se;
+use crate::bx;
 
 pub struct FunctionBlock {
     name: Option<String>,
@@ -28,7 +24,7 @@ pub struct FunctionBlock {
 
 impl FunctionBlock {
     pub fn new_block() -> Box<dyn BlockHandler> {
-        Box::new(Self {
+        bx!(Self {
             name: None,
             start_position: None,
             previous_reference_limit: None,
@@ -49,6 +45,7 @@ impl FunctionBlock {
     - Move parameter references from reference stack (1) to a FunctionReference
     - FunctionReference is then added to a ClassReference above (if it exists) or just added to the above stack
 */
+
 impl BlockHandler for FunctionBlock {
     fn on_entry(
         &mut self,

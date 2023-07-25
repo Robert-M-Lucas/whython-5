@@ -7,19 +7,19 @@ use crate::processing::instructions::{
 use crate::processing::types::Type;
 use crate::util::get_usize;
 
-pub struct PrintDumpInstruction {
+pub struct ViewMemoryInstruction {
     address: usize,
 }
 
-pub const PRINT_DUMP_INSTRUCTION_CODE: InstructionCodeType = 6;
+pub const VIEW_MEMORY_INSTRUCTION_CODE: InstructionCodeType = 6;
 
-impl PrintDumpInstruction {
+impl ViewMemoryInstruction {
     pub fn new_alloc(program_memory: &mut MemoryManager, to_dump: &Box<dyn Type>) -> Self {
         let (address, length) = to_dump.get_address_and_length();
 
         #[allow(unused_mut)]
         let mut instruction_memory = Vec::with_capacity(Self::get_size() + INSTRUCTION_CODE_LENGTH);
-        instruction_memory.extend(PRINT_DUMP_INSTRUCTION_CODE.to_le_bytes());
+        instruction_memory.extend(VIEW_MEMORY_INSTRUCTION_CODE.to_le_bytes());
         instruction_memory.extend(length.to_le_bytes());
         instruction_memory.extend(address.get_bytes());
 
@@ -40,13 +40,13 @@ impl PrintDumpInstruction {
     }
 }
 
-impl Instruction for PrintDumpInstruction {
+impl Instruction for ViewMemoryInstruction {
     fn get_address(&self) -> usize {
         self.address
     }
 }
 
-impl Execute for PrintDumpInstruction {
+impl Execute for ViewMemoryInstruction {
     fn execute(memory: &mut RuntimeMemoryManager, _pointer: &mut usize) {
         let length = get_usize(_pointer, memory.program_memory());
         let data =

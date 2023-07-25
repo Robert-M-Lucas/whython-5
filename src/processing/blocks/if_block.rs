@@ -6,7 +6,7 @@ use crate::processing::instructions::jump_instruction_10::JumpInstruction;
 use crate::processing::lines::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::reference_manager::ReferenceStack;
 use crate::processing::symbols::{Block, Symbol, TypeSymbol};
-use crate::unpack_either_type;
+use crate::{bx, unpack_either_type};
 
 pub struct IfBlock {
     jump_next_instruction: Option<JumpIfNotInstruction>,
@@ -15,7 +15,7 @@ pub struct IfBlock {
 
 impl IfBlock {
     pub fn new_block() -> Box<dyn BlockHandler> {
-        Box::new(Self {
+        bx!(Self {
             jump_next_instruction: None,
             jump_end_instructions: Vec::new(),
         })

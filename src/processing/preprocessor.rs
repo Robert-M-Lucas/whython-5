@@ -1,19 +1,17 @@
 use crate::bx;
 use crate::errors::create_line_error;
-use crate::processing::symbols::{get_all_symbol, Punctuation, Symbol, STRING_DELIMITERS};
-use debugless_unwrap::DebuglessUnwrapErr;
+use crate::processing::symbols::{get_all_symbol, Punctuation, Symbol, STRING_DELIMITERS, LIST_SEPARATOR_CHARACTER};
+
+pub const COMMENT_CHARACTER: char = '#';
+pub const OPEN_BRACKET_CHARACTER: char = '(';
+pub const CLOSE_BRACKET_CHARACTER: char = ')';
+pub const OPEN_INDEXER_CHARACTER: char = '[';
+pub const CLOSE_INDEXER_CHARACTER: char = ']';
+pub const DOT_SEPARATOR_CHARACTER: char = '.';
 
 /// Takes a line of code and returns an array of symbols
 #[allow(clippy::single_match)]
 pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
-    let mut symbol_line = Vec::new();
-
-    let mut buffer = String::new();
-    let mut in_string = false;
-    let mut bracket_depth = 0;
-    let mut in_indexer = false;
-    let mut indexing_start: usize = 0;
-
     fn process_buffer(buffer: &mut String, symbol_line: &mut Vec<Symbol>) -> Result<(), String> {
         if buffer.is_empty() {
             return Ok(());
@@ -28,84 +26,88 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
         }
     }
 
+    let mut symbol_line = Vec::new();
+
+    let mut buffer = String::new();
+    let mut in_string: Option<char> = None; // Option<delimiter>
+    let mut bracket_depth = 0;
+    let mut indexer_depth = 0;
+    let mut next_character_escaped = false;
+
     for c in line.chars() {
-        //? Comments
-        if c == '#' && !in_string {
-            break;
+        //? String handling
+        if let Some(delimiter) = in_string {
+            if next_character_escaped {
+                buffer.push(c);
+                next_character_escaped = false;
+                continue;
+            }
+
+            if delimiter == c {
+                buffer.push(c);
+                in_string = None;
+                process_buffer(&mut buffer, &mut symbol_line)?;
+                continue;
+            }
+
+            buffer.push(c);
+            continue;
+        }
+        else if STRING_DELIMITERS.contains(&c) {
+            buffer.push(c.clone());
+            in_string = Some(c);
+            continue;
         }
 
-        if bracket_depth == 0 && !in_string {
-            //? Process buffer and ignore c
-            match match c {
-                ' ' => Some(process_buffer(&mut buffer, &mut symbol_line)),
-                _ => None,
-            } {
-                Some(value) => match value {
-                    Err(e) => return Err(e),
-                    Ok(_) => continue,
+        //? Comments
+        if c == COMMENT_CHARACTER { break; }
+
+
+        if bracket_depth == 0 && indexer_depth == 0 {
+            match c {
+                //? Process buffer, ignore c
+                ' ' => {
+                    process_buffer(&mut buffer, &mut symbol_line)?;
+                    continue;
                 },
-                None => {}
-            }
-
-            //? Process buffer and then treat c normally
-            match match c {
-                '(' => Some(process_buffer(&mut buffer, &mut symbol_line)),
-                _ => None,
-            } {
-                Some(value) => value?,
-                None => {}
-            }
-
-            // //? If buffer is empty, process character alone
-            // match
-            //     match c {
-            //         '!' => {
-            //             if buffer.len() != 0 { None }
-            //             else {
-            //                 buffer.push(c);
-            //                 Some(process_buffer(&mut buffer, &mut symbol_line))
-            //             }
-            //         },
-            //         _ => None
-            //     }
-            // {
-            //     Some(value) => match value {
-            //         Err(e) => return Err(e),
-            //         Ok(_) => continue
-            //     },
-            //     None => {}
-            // }
-
-            //? Process character alone
-            match match c {
-                ',' => {
-                    let r = process_buffer(&mut buffer, &mut symbol_line);
-                    if r.is_err() {
-                        return Err(r.debugless_unwrap_err());
-                    }
-                    buffer.push(c);
-                    Some(process_buffer(&mut buffer, &mut symbol_line))
+                //? Process buffer, then process c
+                OPEN_BRACKET_CHARACTER | CLOSE_BRACKET_CHARACTER | OPEN_INDEXER_CHARACTER | CLOSE_INDEXER_CHARACTER | DOT_SEPARATOR_CHARACTER | LIST_SEPARATOR_CHARACTER => {
+                    process_buffer(&mut buffer, &mut symbol_line)?;
                 }
-                _ => None,
-            } {
-                Some(value) => match value {
-                    Err(e) => return Err(e),
-                    Ok(_) => continue,
-                },
-                None => {}
+                _ => {},
+            };
+        }
+
+        //? List separator
+        // if c == LIST_SEPARATOR_CHARACTER {
+        //
+        // }
+
+        //? Start bracket
+        if c == OPEN_BRACKET_CHARACTER {
+            if bracket_depth != 0 {
+                buffer.push(c);
             }
+            bracket_depth += 1;
+            continue;
+        }
+
+        //? Start bracket
+        if c == OPEN_INDEXER_CHARACTER {
+            if indexer_depth != 0 {
+                buffer.push(c);
+            }
+            indexer_depth += 1;
+            continue;
         }
 
         //? End bracket section
-        if c == ')' && !in_string {
+        if c == CLOSE_BRACKET_CHARACTER {
             bracket_depth -= 1;
 
             match bracket_depth {
                 0 => {
-                    symbol_line.push(match get_symbols_from_line(buffer.as_str()) {
-                        Ok(symbols) => get_bracketed_symbols_type(symbols),
-                        Err(e) => return Err(e),
-                    });
+                    symbol_line.push(get_bracketed_symbols_type(get_symbols_from_line(buffer.as_str())?));
                     buffer.clear();
                 }
                 i32::MIN..=-1 => {
@@ -121,62 +123,40 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
             continue;
         }
 
-        //? End string
-        if STRING_DELIMITERS.contains(&c) {
-            in_string = !in_string;
-        }
-
-        //? Start bracket
-        if c == '(' && !in_string {
-            if bracket_depth != 0 {
-                buffer.push(c);
-            }
-            bracket_depth += 1;
-            continue;
-        }
-
         //? End indexer
-        if c == ']' && !in_string {
-            if !buffer.is_empty() {
-                process_buffer(&mut buffer, &mut symbol_line)?;
-            }
-            if !in_indexer {
-                return Err(
-                    "Closing indexer bracket found with no corresponding opening bracket"
-                        .to_string(),
-                );
-            }
-            if symbol_line.len() - indexing_start > 1 {
-                return Err("Indexers may only contain one symbol".to_string());
-            }
-            if symbol_line.len() - indexing_start < 1 {
-                return Err("Indexer must contain a symbol".to_string());
-            }
-            let symbol = symbol_line
-                .pop()
-                .expect("Tried to pop from symbol line when empty");
-            symbol_line.push(Symbol::Indexer(bx!(symbol)));
-            in_indexer = false;
-            continue;
-        }
+        if c == CLOSE_INDEXER_CHARACTER {
+            indexer_depth -= 1;
 
-        //? Start indexer
-        if c == '[' && !in_string {
-            if !buffer.is_empty() {
-                process_buffer(&mut buffer, &mut symbol_line)?;
+            match indexer_depth {
+                0 => {
+                    if symbol_line.len() == 0 {
+                        return Err("Indexers must be applied to something".to_string());
+                    }
+
+                    let applied_to = symbol_line.pop().unwrap();
+                    let index = get_symbols_from_line(buffer.as_str())?;
+
+                    symbol_line.push(Symbol::Indexer(bx!(applied_to), index));
+
+                    buffer.clear();
+                }
+                i32::MIN..=-1 => {
+                    return Err(
+                        "Closing indexing bracket found with no corresponding opening bracket".to_string(),
+                    );
+                }
+                _ => {
+                    buffer.push(c);
+                }
             }
-            if in_indexer {
-                return Err("Recursive indexing not permitted".to_string());
-            }
-            indexing_start = symbol_line.len();
-            in_indexer = true;
+
             continue;
         }
 
         buffer.push(c);
     }
 
-    if in_string {
+    if in_string.is_some() {
         return Err("Unclosed string".to_string());
     }
 
@@ -186,11 +166,7 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
 
     //? Push remaining data
     if !buffer.is_empty() {
-        if let Some(symbol) = get_all_symbol(&buffer) {
-            symbol_line.push(symbol);
-        } else {
-            return Err(format!("Symbol '{}' not found", buffer));
-        }
+        process_buffer(&mut buffer, &mut symbol_line)?;
     }
 
     Ok(symbol_line)
@@ -248,7 +224,7 @@ fn get_bracketed_symbols_type(symbols: Vec<Symbol>) -> Symbol {
     }
 
     if !has_separator {
-        return Symbol::ArithmeticBlock(symbols);
+        return Symbol::BracketedSection(symbols);
     }
 
     let mut list = Vec::new();

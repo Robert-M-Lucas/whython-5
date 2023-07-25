@@ -8,7 +8,7 @@ pub mod dynamic_jump_11;
 pub mod heap_alloc_2;
 pub mod jump_if_not_9;
 pub mod jump_instruction_10;
-pub mod print_dump_6;
+pub mod view_memory_6;
 pub mod stack_create_0;
 pub mod stack_down_4;
 pub mod stack_up_1;

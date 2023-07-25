@@ -8,11 +8,15 @@ pub enum Punctuation {
 
 pub struct PunctuationSymbolHandler {}
 
+pub const LIST_SEPARATOR_CHARACTER: char = ',';
+
 impl SymbolHandler for PunctuationSymbolHandler {
     fn get_symbol(string: &str) -> Option<Symbol> {
-        match string {
-            "," => Some(Symbol::Punctuation(Punctuation::ListSeparator)),
-            _ => None,
+        if string.len() == 1 && string.starts_with(LIST_SEPARATOR_CHARACTER) {
+            Some(Symbol::Punctuation(Punctuation::ListSeparator))
+        }
+        else {
+            None
         }
     }
 }

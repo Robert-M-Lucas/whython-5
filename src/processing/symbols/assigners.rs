@@ -1,7 +1,7 @@
 use super::Operator;
 use super::Symbol;
 use super::SymbolHandler;
-use crate::processing::symbols::Symbol::ArithmeticBlock;
+use crate::processing::symbols::Symbol::BracketedSection;
 
 #[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug)]
 pub enum Assigner {
@@ -24,7 +24,7 @@ impl Assigner {
             Assigner::DivisionSetter => Operator::Divide,
         };
 
-        vec![lhs, Symbol::Operator(equivalent), ArithmeticBlock(rhs)]
+        vec![lhs, Symbol::Operator(equivalent), BracketedSection(rhs)]
     }
 }
 

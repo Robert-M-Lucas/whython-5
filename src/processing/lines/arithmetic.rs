@@ -317,7 +317,7 @@ fn handle_single_symbol<'a>(
                 }
             }
         }
-        Symbol::ArithmeticBlock(section) => {
+        Symbol::BracketedSection(section) => {
             // return_options.remove_return_into_type_options();
             evaluate_arithmetic_section(
                 section,

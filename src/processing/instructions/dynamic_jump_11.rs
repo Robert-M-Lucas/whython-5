@@ -1,10 +1,9 @@
 use crate::address::Address;
-use crate::default_instruction_impl;
 use crate::memory::{MemoryLocation, MemoryManager, RuntimeMemoryManager};
 use crate::processing::instructions::{
-    Execute, Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH,
+    Execute, Instruction, InstructionCodeType,
 };
-use crate::util::{get_usize, USIZE_BYTES};
+use crate::util::USIZE_BYTES;
 use std::usize;
 
 pub struct DynamicJumpInstruction {

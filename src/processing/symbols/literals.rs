@@ -15,7 +15,9 @@ pub struct LiteralSymbolHandler {}
 
 pub const STRING_DELIMITERS: [char; 2] = ['\'', '"'];
 
-const ESCAPE_CODES: [(char, char); 3] = [('n', '\n'), ('\\', '\\'), ('0', '\0')];
+pub const STRING_ESCAPE_CHAR: char = '\\';
+
+const ESCAPE_CODES: [(char, char); 5] = [('n', '\n'), ('\\', '\\'), ('0', '\0'), ('"', '"'), ('\'', '\'')];
 
 /// Takes an input string and replaces escape codes with their corresponding values
 fn format_escape_codes(input: String) -> String {

@@ -1,7 +1,7 @@
 use crate::default_instruction_impl;
 use crate::memory::{MemoryManager, RuntimeMemoryManager};
 use crate::processing::instructions::{Execute, INSTRUCTION_CODE_LENGTH};
-use crate::util::{get_usize, USIZE_BYTES};
+use crate::util::get_usize;
 
 pub struct StackCreateInstruction {
     address: usize,

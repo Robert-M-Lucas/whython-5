@@ -1,7 +1,6 @@
 use crate::memory::MemoryManager;
 
 use crate::processing::blocks::function_block::FunctionBlock;
-use crate::processing::blocks::while_block::WhileBlock;
 use crate::processing::blocks::BlockCoordinator;
 
 use crate::processing::lines::LineHandler;

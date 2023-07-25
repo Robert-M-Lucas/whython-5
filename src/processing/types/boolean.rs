@@ -8,11 +8,7 @@ use crate::processing::instructions::copy_3::CopyInstruction;
 use crate::processing::symbols::Literal;
 use crate::processing::types::PrefixOperation;
 use crate::util::warn;
-use crate::{
-    default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl,
-    default_type_struct, default_type_wrapper_struct_and_impl,
-    processing::symbols::{Operator, TypeSymbol},
-};
+use crate::{bx, default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl, default_type_struct, default_type_wrapper_struct_and_impl, processing::symbols::{Operator, TypeSymbol}};
 use crate::processing::instructions::binary_or_12::BinaryOrInstruction;
 
 use super::{Operation, Type};
@@ -120,7 +116,7 @@ impl Type for BoolType {
     fn duplicate(&self) -> Box<dyn Type> {
         let mut t = BoolType::new();
         t.address = self.address.as_ref().and_then(|a| Some(a.clone()));
-        Box::new(t)
+        bx!(t)
     }
 }
 

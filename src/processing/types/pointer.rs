@@ -1,19 +1,12 @@
-use std::fmt::Pointer;
 use crate::address::Address;
 use crate::errors::create_literal_not_impl_error;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
-use crate::processing::instructions::binary_and_8::BinaryAndInstruction;
-use crate::processing::instructions::binary_not_7::BinaryNotInstruction;
 use crate::processing::instructions::copy_3::CopyInstruction;
 use crate::processing::symbols::Literal;
-use crate::processing::types::{Operation, PrefixOperation, Type};
+use crate::processing::types::{Operation, Type};
 use crate::util::{warn, USIZE_BYTES};
-use crate::{
-    default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl,
-    default_type_struct, default_type_wrapper_struct_and_impl,
-    processing::symbols::{Operator, TypeSymbol},
-};
+use crate::{bx, default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl, default_type_struct, default_type_wrapper_struct_and_impl, processing::symbols::{Operator, TypeSymbol}};
 use crate::processing::instructions::add_instruction_13::AddInstruction;
 
 default_type_wrapper_struct_and_impl!(PointerWrapper, PointerType, TypeSymbol::Pointer);
@@ -118,7 +111,7 @@ impl Type for PointerType {
     }
 
     fn duplicate(&self) -> Box<dyn Type> {
-        Box::new(self.duplicate_known())
+        bx!(self.duplicate_known())
     }
 }
 

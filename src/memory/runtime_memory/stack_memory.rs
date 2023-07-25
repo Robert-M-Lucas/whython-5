@@ -78,7 +78,7 @@ impl StackMemory {
 
     /// Removes a stack
     pub fn stack_down_and_delete(&mut self) {
-        let stack = self
+        self
             .memory
             .pop_front()
             .expect("Tried to stack down when there are no stacks!");

@@ -2,7 +2,7 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
 use crate::q;
 
-use crate::processing::instructions::print_dump_6::PrintDumpInstruction;
+use crate::processing::instructions::view_memory_6::ViewMemoryInstruction;
 use crate::processing::lines::LineHandler;
 use crate::processing::processor::ProcessingResult;
 use crate::processing::reference_manager::ReferenceType;
@@ -21,7 +21,7 @@ impl LineHandler for PrintDumpLine {
         }
 
         match line[0] {
-            Symbol::Keyword(Keyword::PrintDump) => {}
+            Symbol::Keyword(Keyword::ViewMemory) => {}
             _ => return ProcessingResult::Unmatched,
         };
 
@@ -49,7 +49,7 @@ impl LineHandler for PrintDumpLine {
             }
         };
 
-        PrintDumpInstruction::new_alloc(program_memory, variable);
+        ViewMemoryInstruction::new_alloc(program_memory, variable);
 
         return ProcessingResult::Success;
     }
