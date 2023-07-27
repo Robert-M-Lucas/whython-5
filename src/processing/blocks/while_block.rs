@@ -51,7 +51,7 @@ impl BlockHandler for WhileBlock {
         //? Create instruction to leave while if condition is false
         self.jump_end_instruction = Some(JumpIfNotInstruction::new_alloc(
             program_memory,
-            condition_boolean.get_address_and_length().0,
+            condition_boolean.get_address(),
             0,
         ));
 

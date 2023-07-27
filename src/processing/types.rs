@@ -74,7 +74,9 @@ pub trait Type {
         stack_sizes: &mut StackSizes,
     ) -> Result<(), String>;
 
-    fn get_address_and_length(&self) -> (&Address, usize);
+    fn get_address(&self) -> &Address;
+
+    fn get_length(&self) -> usize;
 
     fn get_address_mut(&mut self) -> &mut Address;
 

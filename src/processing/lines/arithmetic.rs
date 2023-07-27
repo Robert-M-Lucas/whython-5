@@ -270,7 +270,7 @@ fn handle_single_symbol<'a>(
                 ReturnOptions::ReturnTypes(types) => {
                     let variable_type = variable.get_type_symbol();
                     if types.len() != 0
-                        && types.iter().find(|t| matches!(t, _variable_type)).is_none()
+                        && types.iter().find(|t| **t == variable_type).is_none()
                     {
                         Err(incorrect_type_error(types, &[variable_type]))
                     } else {
@@ -307,7 +307,7 @@ fn handle_single_symbol<'a>(
                     if types.len() != 0
                         && types
                             .iter()
-                            .find(|t| matches!(t, _default_type_type))
+                            .find(|t| **t == default_type_type)
                             .is_none()
                     {
                         Err(incorrect_type_error(types, &[default_type_type]))
@@ -391,7 +391,7 @@ fn handle_prefix_operation<'a>(
 
             let return_type = return_types.iter().find(|_t| {
                 for rt in types.iter() {
-                    if matches!(rt, _t) {
+                    if *rt == **_t {
                         return true;
                     }
                 }
@@ -460,7 +460,7 @@ fn handle_operation<'a>(
 
             let return_type = return_types.iter().find(|_t| {
                 for rt in types.iter() {
-                    if matches!(rt, _t) {
+                    if *rt == **_t {
                         return true;
                     }
                 }

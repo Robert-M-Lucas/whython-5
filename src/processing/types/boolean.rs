@@ -75,7 +75,7 @@ impl Type for BoolType {
             TypeSymbol::Boolean => {
                 Ok(CopyInstruction::new_alloc(
                     program_memory,
-                    other.get_address_and_length().0,
+                    other.get_address(),
                     self.address.as_ref().unwrap(),
                     BOOLEAN_SIZE,
                 ))
@@ -105,8 +105,12 @@ impl Type for BoolType {
 
     default_type_operate_impl!(BoolType);
 
-    fn get_address_and_length(&self) -> (&Address, usize) {
-        (self.address.as_ref().unwrap(), BOOLEAN_SIZE)
+    fn get_address(&self) -> &Address {
+        self.address.as_ref().unwrap()
+    }
+
+    fn get_length(&self) -> usize {
+        BOOLEAN_SIZE
     }
 
     fn get_address_mut(&mut self) -> &mut Address {
@@ -143,15 +147,15 @@ impl Operation<BoolType> for BoolAnd {
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
-        assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
-        assert!(matches!(rhs.get_type_symbol(), TypeSymbol::Boolean));
+        assert_eq!(destination.get_type_symbol(), TypeSymbol::Boolean);
+        assert_eq!(rhs.get_type_symbol(), TypeSymbol::Boolean);
 
-        let (address_from, length) = lhs.get_address_and_length();
+        let (address_from, length) = (lhs.get_address(), lhs.get_length());
         BinaryAndInstruction::new_alloc(
             program_memory,
             address_from,
-            rhs.get_address_and_length().0,
-            destination.get_address_and_length().0,
+            rhs.get_address(),
+            destination.get_address(),
             length,
         );
         Ok(())
@@ -181,15 +185,15 @@ impl Operation<BoolType> for BoolOr {
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
-        assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
-        assert!(matches!(rhs.get_type_symbol(), TypeSymbol::Boolean));
+        assert_eq!(destination.get_type_symbol(), TypeSymbol::Boolean);
+        assert_eq!(rhs.get_type_symbol(), TypeSymbol::Boolean);
 
-        let (address_from, length) = lhs.get_address_and_length();
+        let (address_from, length) = (lhs.get_address(), lhs.get_length());
         BinaryOrInstruction::new_alloc(
             program_memory,
             address_from,
-            rhs.get_address_and_length().0,
-            destination.get_address_and_length().0,
+            rhs.get_address(),
+            destination.get_address(),
             length,
         );
         Ok(())
@@ -214,13 +218,13 @@ impl PrefixOperation<BoolType> for BoolNot {
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
-        assert!(matches!(destination.get_type_symbol(), TypeSymbol::Boolean));
+        assert_eq!(destination.get_type_symbol(), TypeSymbol::Boolean);
 
-        let (address_from, length) = lhs.get_address_and_length();
+        let (address_from, length) = (lhs.get_address(), lhs.get_length());
         BinaryNotInstruction::new_alloc(
             program_memory,
             address_from,
-            destination.get_address_and_length().0,
+            destination.get_address(),
             length,
         );
         Ok(())

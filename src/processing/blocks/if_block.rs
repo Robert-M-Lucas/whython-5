@@ -45,7 +45,7 @@ impl BlockHandler for IfBlock {
         //? Insert instruction to skip this section if boolean is false
         self.jump_next_instruction = Some(JumpIfNotInstruction::new_alloc(
             program_memory,
-            condition_boolean.get_address_and_length().0,
+            condition_boolean.get_address(),
             0,
         ));
 

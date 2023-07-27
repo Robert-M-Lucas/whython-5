@@ -186,8 +186,7 @@ impl BlockHandler for FunctionBlock {
             self.return_pointer
                 .as_ref()
                 .unwrap()
-                .get_address_and_length()
-                .0,
+                .get_address(),
         );
 
         //? Update reference
