@@ -8,10 +8,13 @@ use crate::processing::types::{Operation, Type};
 use crate::util::{warn, USIZE_BYTES};
 use crate::{bx, default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl, default_type_struct, default_type_wrapper_struct_and_impl, processing::symbols::{Operator, TypeSymbol}};
 use crate::processing::instructions::add_instruction_13::AddInstruction;
+use crate::processing::instructions::binary_not_7::BinaryNotInstruction;
+use crate::processing::instructions::equality_14::EqualityInstruction;
+use crate::processing::instructions::not_equal_15::NotEqualInstruction;
 
 default_type_wrapper_struct_and_impl!(PointerWrapper, PointerType, TypeSymbol::Pointer);
 default_type_struct!(PointerType);
-default_type_initialiser!(PointerType, (Add), ());
+default_type_initialiser!(PointerType, (Add, Subtract, Equal, NotEqual), ());
 
 impl PointerType {
     pub fn duplicate_known(&self) -> PointerType {
@@ -72,7 +75,7 @@ impl Type for PointerType {
             TypeSymbol::Pointer => {
                 Ok(CopyInstruction::new_alloc(
                     program_memory,
-                    other.get_address_and_length().0,
+                    other.get_address(),
                     self.address.as_ref().unwrap(),
                     USIZE_BYTES,
                 ))
@@ -102,8 +105,12 @@ impl Type for PointerType {
 
     default_type_operate_impl!(PointerType);
 
-    fn get_address_and_length(&self) -> (&Address, usize) {
-        (self.address.as_ref().unwrap(), USIZE_BYTES)
+    fn get_address(&self) -> &Address {
+        self.address.as_ref().unwrap()
+    }
+
+    fn get_length(&self) -> usize {
+        USIZE_BYTES
     }
 
     fn get_address_mut(&mut self) -> &mut Address {
@@ -138,15 +145,138 @@ impl Operation<PointerType> for Add {
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
-        assert!(matches!(destination.get_type_symbol(), TypeSymbol::Pointer));
-        assert!(matches!(rhs.get_type_symbol(), TypeSymbol::Pointer));
+        assert_eq!(destination.get_type_symbol(), TypeSymbol::Pointer);
+        assert_eq!(rhs.get_type_symbol(), TypeSymbol::Pointer);
 
-        let (address_from, length) = lhs.get_address_and_length();
+        let (address_from, length) = (lhs.get_address(), lhs.get_length());
         AddInstruction::new_alloc(
             program_memory,
             address_from,
-            rhs.get_address_and_length().0,
-            destination.get_address_and_length().0,
+            rhs.get_address(),
+            destination.get_address(),
+            length,
+        );
+        Ok(())
+    }
+}
+
+pub struct Subtract {}
+
+impl Operation<PointerType> for Subtract {
+    fn get_symbol(&self) -> Operator {
+        Operator::Subtract
+    }
+
+    fn get_result_type(&self, rhs: &TypeSymbol) -> Option<TypeSymbol> {
+        // let rhs = rhs?;
+        match rhs {
+            TypeSymbol::Pointer => Some(TypeSymbol::Pointer),
+            _ => None,
+        }
+    }
+
+    fn operate(
+        &self,
+        lhs: &PointerType,
+        rhs: &Box<dyn Type>,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        stack_sizes: &mut StackSizes,
+    ) -> Result<(), String> {
+        assert_eq!(destination.get_type_symbol(), TypeSymbol::Pointer);
+        assert_eq!(rhs.get_type_symbol(), TypeSymbol::Pointer);
+
+        let mut magic_number = PointerType::new();
+        magic_number.allocate_variable(stack_sizes, program_memory).unwrap();
+        //? Not the subtracted value
+        BinaryNotInstruction::new_alloc(program_memory, rhs.get_address(), magic_number.get_address(), USIZE_BYTES);
+        //? Add one to the magic number
+        AddInstruction::new_alloc(program_memory, magic_number.get_address(), &Address::Immediate(Vec::from(1usize.to_le_bytes())), magic_number.get_address(), USIZE_BYTES);
+
+        let (address_from, length) = (lhs.get_address(), lhs.get_length());
+        AddInstruction::new_alloc(
+            program_memory,
+            address_from,
+            magic_number.get_address(),
+            destination.get_address(),
+            length,
+        );
+        Ok(())
+    }
+}
+
+pub struct Equal {}
+
+impl Operation<PointerType> for Equal {
+    fn get_symbol(&self) -> Operator {
+        Operator::Equal
+    }
+
+    fn get_result_type(&self, rhs: &TypeSymbol) -> Option<TypeSymbol> {
+        // let rhs = rhs?;
+        match rhs {
+            TypeSymbol::Pointer => Some(TypeSymbol::Boolean),
+            _ => None,
+        }
+    }
+
+    fn operate(
+        &self,
+        lhs: &PointerType,
+        rhs: &Box<dyn Type>,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        stack_sizes: &mut StackSizes,
+    ) -> Result<(), String> {
+        assert_eq!(destination.get_type_symbol(), TypeSymbol::Boolean);
+        assert_eq!(rhs.get_type_symbol(), TypeSymbol::Pointer);
+
+
+        let (address_from, length) = (lhs.get_address(), lhs.get_length());
+        EqualityInstruction::new_alloc(
+            program_memory,
+            address_from,
+            rhs.get_address(),
+            destination.get_address(),
+            length,
+        );
+        Ok(())
+    }
+}
+
+pub struct NotEqual {}
+
+impl Operation<PointerType> for NotEqual {
+    fn get_symbol(&self) -> Operator {
+        Operator::NotEqual
+    }
+
+    fn get_result_type(&self, rhs: &TypeSymbol) -> Option<TypeSymbol> {
+        // let rhs = rhs?;
+        match rhs {
+            TypeSymbol::Pointer => Some(TypeSymbol::Boolean),
+            _ => None,
+        }
+    }
+
+    fn operate(
+        &self,
+        lhs: &PointerType,
+        rhs: &Box<dyn Type>,
+        destination: &Box<dyn Type>,
+        program_memory: &mut MemoryManager,
+        stack_sizes: &mut StackSizes,
+    ) -> Result<(), String> {
+        assert_eq!(destination.get_type_symbol(), TypeSymbol::Boolean);
+        assert_eq!(rhs.get_type_symbol(), TypeSymbol::Pointer);
+
+
+        let (address_from, length) = (lhs.get_address(), lhs.get_length());
+        NotEqualInstruction::new_alloc(
+            program_memory,
+            address_from,
+            rhs.get_address(),
+            destination.get_address(),
             length,
         );
         Ok(())

@@ -5,7 +5,7 @@ pub mod call;
 pub mod dump;
 pub mod function_line;
 pub mod if_line;
-pub mod printdump;
+pub mod view_memory;
 pub mod variable_assignment;
 pub mod variable_initialisation;
 pub mod while_line;

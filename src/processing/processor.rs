@@ -7,7 +7,7 @@ use crate::processing::lines::call::CallLine;
 use crate::processing::lines::dump::DumpLine;
 use crate::processing::lines::function_line::FunctionLine;
 use crate::processing::lines::if_line::IfLine;
-use crate::processing::lines::printdump::PrintDumpLine;
+use crate::processing::lines::view_memory::ViewMemoryLine;
 use crate::processing::lines::variable_assignment::VariableAssignmentLine;
 use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
 use crate::processing::lines::while_line::WhileLine;
@@ -119,7 +119,7 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
                 )
             })
             .or_else(|| process_line!(DumpLine, symbol_line, memory, block_coordinator))
-            .or_else(|| process_line!(PrintDumpLine, symbol_line, memory, block_coordinator))
+            .or_else(|| process_line!(ViewMemoryLine, symbol_line, memory, block_coordinator))
             .or_else(|| {
                 process_line!(
                     VariableAssignmentLine,

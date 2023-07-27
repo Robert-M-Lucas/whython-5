@@ -50,9 +50,12 @@ fn wrapped_main(exit: &AtomicBool) {
         .as_str(),
     );
 
+    let input_defaulted;
     let input_file = if args.len() >= 2 {
+        input_defaulted = false;
         args[1].clone()
     } else {
+        input_defaulted = true;
         "main.why".to_string()
     };
 
@@ -70,12 +73,22 @@ fn wrapped_main(exit: &AtomicBool) {
     if extension == "why" {
         let input = match fs::read_to_string(&input_file) {
             Err(e) => {
-                col_println!(
-                    (red, bold),
-                    "Error reading file '{}' - {}",
-                    input_file,
-                    e.to_string()
-                );
+                if input_defaulted {
+                    col_println!(
+                        (red, bold),
+                        "Error reading file '{}' - {}. You did not specify a file so 'main.why' was used as a default.",
+                        input_file,
+                        e.to_string()
+                    );
+                }
+                else {
+                    col_println!(
+                        (red, bold),
+                        "Error reading file '{}' - {}",
+                        input_file,
+                        e.to_string()
+                    );
+                }
                 return;
             }
             Ok(value) => value,

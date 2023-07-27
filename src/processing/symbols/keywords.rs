@@ -7,6 +7,7 @@ pub enum Keyword {
     Continue,
     Dump,
     ViewMemory,
+    ViewMemoryDecimal,
     As,
 }
 
@@ -19,6 +20,7 @@ impl Keyword {
             Keyword::Continue => "continue",
             Keyword::Dump => "dump",
             Keyword::ViewMemory => "viewmem",
+            Keyword::ViewMemoryDecimal => "viewmemdec",
             Keyword::As => "as",
         }
     }
@@ -31,6 +33,7 @@ impl SymbolHandler for KeywordSymbolHandler {
             "continue" => Some(Symbol::Keyword(Keyword::Continue)),
             "dump" => Some(Symbol::Keyword(Keyword::Dump)),
             "viewmem" => Some(Symbol::Keyword(Keyword::ViewMemory)),
+            "viewmemdec" => Some(Symbol::Keyword(Keyword::ViewMemoryDecimal)),
             "as" => Some(Symbol::Keyword(Keyword::As)),
             _ => None,
         }

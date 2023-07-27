@@ -30,6 +30,9 @@ use crate::processing::instructions::stack_up_1::{StackUpInstruction, STACK_UP_I
 use crate::processing::instructions::{InstructionCodeType, INSTRUCTION_CODE_LENGTH};
 use crate::processing::instructions::add_instruction_13::{ADD_INSTRUCTION_CODE, AddInstruction};
 use crate::processing::instructions::binary_or_12::{BINARY_OR_INSTRUCTION_CODE, BinaryOrInstruction};
+use crate::processing::instructions::equality_14::{EQUALITY_INSTRUCTION_CODE, EqualityInstruction};
+use crate::processing::instructions::not_equal_15::{NOT_EQUAL_INSTRUCTION_CODE, NotEqualInstruction};
+use crate::processing::instructions::view_memory_dec_16::{VIEW_MEMORY_DEC_INSTRUCTION_CODE, ViewMemoryDecInstruction};
 
 macro_rules! translate {
     ($instruction: ident, $data: expr, $i: expr) => {
@@ -62,7 +65,13 @@ pub fn translate(data: &[u8], translate_one: bool) {
             DYNAMIC_JUMP_INSTRUCTION_CODE => translate!(DynamicJumpInstruction, data, i),
             BINARY_OR_INSTRUCTION_CODE => translate!(BinaryOrInstruction, data, i),
             ADD_INSTRUCTION_CODE => translate!(AddInstruction, data, i),
-            code => format!("Debug not implemented for code {}", code),
+            EQUALITY_INSTRUCTION_CODE => translate!(EqualityInstruction, data, i),
+            NOT_EQUAL_INSTRUCTION_CODE => translate!(NotEqualInstruction, data, i),
+            VIEW_MEMORY_DEC_INSTRUCTION_CODE => translate!(ViewMemoryDecInstruction, data, i),
+            code =>  {
+                println!("Debug not implemented for code {}. Terminating translation due to unknown instruction size.", code);
+                return;
+            },
         };
 
         println!("{}", output);

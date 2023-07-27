@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 debugless-unwrap = "0.0.4"
 num-format = "0.4.4"
-strum_macros = "0.24.3"
+strum_macros = "0.25.0"
 colored = "2.0.0"
 ctrlc = "3.2.5"
 walkdir = "2.3.3"
@@ -24,7 +24,7 @@ criterion = "0.5.1"
 name = "atomic_bool_test"
 harness = false
 
-#[profile.release]
-#lto = true
-#codegen-units = 1
-#panic = "abort"
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"

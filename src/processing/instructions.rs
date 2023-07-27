@@ -14,6 +14,9 @@ pub mod stack_down_4;
 pub mod stack_up_1;
 pub mod binary_or_12;
 pub mod add_instruction_13;
+pub mod equality_14;
+pub mod not_equal_15;
+pub mod view_memory_dec_16;
 
 pub type InstructionCodeType = u16;
 pub const INSTRUCTION_CODE_LENGTH: usize = 2;

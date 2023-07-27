@@ -3,15 +3,16 @@ use crate::memory::{MemoryLocation, RuntimeMemoryManager};
 use crate::processing::instructions::{
     Execute, Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH,
 };
+use crate::processing::types::boolean::{BOOL_FALSE, BOOL_TRUE, BOOLEAN_SIZE};
 use crate::util::get_usize;
 
-pub struct BinaryAndInstruction {
+pub struct NotEqualInstruction {
     address: usize,
 }
 
-pub const BINARY_AND_INSTRUCTION_CODE: InstructionCodeType = 8;
+pub const NOT_EQUAL_INSTRUCTION_CODE: InstructionCodeType = 15;
 
-impl BinaryAndInstruction {
+impl NotEqualInstruction {
     pub fn new_alloc(
         program_memory: &mut crate::memory::MemoryManager,
         address_from_lhs: &Address,
@@ -21,7 +22,7 @@ impl BinaryAndInstruction {
     ) -> Self {
         if address_to.is_immediate() {
             panic!(
-                "Attempted to create BinaryAndInstruction that overwrites Immediate (program) memory!"
+                "Attempted to create NotEqualInstruction that overwrites Immediate (program) memory!"
             );
         }
 
@@ -33,7 +34,7 @@ impl BinaryAndInstruction {
         let mut instruction_memory = Vec::with_capacity(
             INSTRUCTION_CODE_LENGTH + from_lhs_bytes.len() + to_bytes.len() + size_bytes.len(),
         );
-        instruction_memory.extend(BINARY_AND_INSTRUCTION_CODE.to_le_bytes());
+        instruction_memory.extend(NOT_EQUAL_INSTRUCTION_CODE.to_le_bytes());
         instruction_memory.extend(size_bytes.iter());
         instruction_memory.append(&mut from_lhs_bytes);
         instruction_memory.append(&mut from_rhs_bytes);
@@ -50,11 +51,11 @@ impl BinaryAndInstruction {
         *pointer += Address::get_address_size(program_memory, *pointer, size);
         *pointer += Address::get_address_size(program_memory, *pointer, size);
         *pointer += Address::get_address_size(program_memory, *pointer, size);
-        "BinaryAndInstruction".to_string()
+        "NotEqualInstruction".to_string()
     }
 }
 
-impl Execute for BinaryAndInstruction {
+impl Execute for NotEqualInstruction {
     fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize) {
         let size = get_usize(pointer, memory.program_memory());
         let data_lhs =
@@ -62,19 +63,21 @@ impl Execute for BinaryAndInstruction {
         let data_rhs =
             Address::evaluate_address_to_data(pointer, &MemoryLocation::Program, &size, memory);
         let data_destination =
-            Address::evaluate_address(pointer, &MemoryLocation::Program, &size, memory);
+            Address::evaluate_address(pointer, &MemoryLocation::Program, &BOOLEAN_SIZE, memory);
 
-        let mut new_data = Vec::with_capacity(size);
 
         for i in 0..size {
-            new_data.push(data_lhs[i] & data_rhs[i]);
+            if data_lhs[i] != data_rhs[i] {
+                memory.overwrite_data(&data_destination.1, data_destination.0, &[BOOL_TRUE]);
+                return;
+            }
         }
 
-        memory.overwrite_data(&data_destination.1, data_destination.0, &new_data);
+        memory.overwrite_data(&data_destination.1, data_destination.0, &[BOOL_FALSE]);
     }
 }
 
-impl Instruction for BinaryAndInstruction {
+impl Instruction for NotEqualInstruction {
     fn get_address(&self) -> usize {
         self.address
     }

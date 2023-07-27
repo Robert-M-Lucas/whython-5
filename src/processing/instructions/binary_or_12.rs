@@ -21,7 +21,7 @@ impl BinaryOrInstruction {
     ) -> Self {
         if address_to.is_immediate() {
             panic!(
-                "Attempted to create BinaryNotInstruction that overwrites Immediate (program) memory!"
+                "Attempted to create BinaryOrInstruction that overwrites Immediate (program) memory!"
             );
         }
 

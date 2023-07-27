@@ -3,14 +3,15 @@ use crate::processing::blocks::BlockCoordinator;
 use crate::q;
 
 use crate::processing::instructions::view_memory_6::ViewMemoryInstruction;
+use crate::processing::instructions::view_memory_dec_16::ViewMemoryDecInstruction;
 use crate::processing::lines::LineHandler;
 use crate::processing::processor::ProcessingResult;
 use crate::processing::reference_manager::ReferenceType;
 use crate::processing::symbols::{Keyword, Symbol};
 
-pub struct PrintDumpLine {}
+pub struct ViewMemoryLine {}
 
-impl LineHandler for PrintDumpLine {
+impl LineHandler for ViewMemoryLine {
     fn process_line(
         line: &[Symbol],
         program_memory: &mut MemoryManager,
@@ -20,14 +21,16 @@ impl LineHandler for PrintDumpLine {
             return ProcessingResult::Unmatched;
         }
 
+        let dec;
         match line[0] {
-            Symbol::Keyword(Keyword::ViewMemory) => {}
+            Symbol::Keyword(Keyword::ViewMemory) => { dec = false; }
+            Symbol::Keyword(Keyword::ViewMemoryDecimal) => { dec = true; }
             _ => return ProcessingResult::Unmatched,
         };
 
         if line.len() != 2 {
             return ProcessingResult::Failure(
-                "PrintDump must be followed by a variable".to_string(),
+                "viewmem must be followed by a variable".to_string(),
             );
         }
 
@@ -37,19 +40,25 @@ impl LineHandler for PrintDumpLine {
                     ReferenceType::Variable(variable) => variable,
                     _ => {
                         return ProcessingResult::Failure(
-                            "PrintDump must be followed by a variable".to_string(),
+                            "viewmem must be followed by a variable".to_string(),
                         )
                     }
                 }
             }
             _ => {
                 return ProcessingResult::Failure(
-                    "PrintDump must be followed by a variable".to_string(),
+                    "viewmem must be followed by a variable".to_string(),
                 )
             }
         };
 
-        ViewMemoryInstruction::new_alloc(program_memory, variable);
+        if dec {
+            ViewMemoryDecInstruction::new_alloc(program_memory, variable);
+        }
+        else {
+            ViewMemoryInstruction::new_alloc(program_memory, variable);
+        }
+
 
         return ProcessingResult::Success;
     }
