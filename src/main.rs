@@ -160,7 +160,13 @@ fn wrapped_main(exit: &AtomicBool) {
             start.elapsed()
         );
 
+        let start = Instant::now();
         memory.save_to_file("Compiled".to_string());
+        col_println!(
+            (green, bold),
+            "Saving compiled data completed [{:?}]",
+            start.elapsed()
+        );
     }
     //? Load compiled file
     else if extension == "cwhy" {
