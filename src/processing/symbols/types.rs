@@ -1,12 +1,23 @@
 use crate::processing::symbols::{Symbol, SymbolHandler};
 
-#[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug)]
+#[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug, strum_macros::EnumIter)]
 pub enum TypeSymbol {
     Integer,
     Boolean,
     Character,
-    Function,
+    // Function,
     Pointer,
+}
+
+impl TypeSymbol {
+    pub fn get_code_representation(&self) -> &str {
+        match self {
+            TypeSymbol::Integer => "int",
+            TypeSymbol::Boolean => "bool",
+            TypeSymbol::Character => "char",
+            TypeSymbol::Pointer => "ptr",
+        }
+    }
 }
 
 // TODO: Copy this implementation patterns

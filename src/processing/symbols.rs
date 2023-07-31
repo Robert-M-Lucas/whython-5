@@ -7,6 +7,7 @@ mod operators;
 mod punctuation;
 mod types;
 
+use strum::IntoEnumIterator;
 pub use assigners::Assigner;
 use assigners::AssignerSymbolHandler;
 
@@ -65,7 +66,7 @@ pub trait SymbolHandler {
 }
 
 /// Converts a string to a symbol. Returns `None` if no symbol matches the string
-pub fn get_all_symbol(string: &str) -> Option<Symbol> {
+pub fn get_all_symbol(string: &str) -> Result<Option<Symbol>, String> {
     AllSymbolHandler::get_symbol(string)
 }
 
@@ -131,32 +132,52 @@ pub fn try_bracketed_into_parameters(bracketed: &Symbol) -> Result<Literal, Stri
 
 const ALLOWED_CHARS_IN_NAME: &str = "abcdefghijklmnopqrstuvwxyz_";
 const NAME_SEPARATOR: char = '.';
+const FORBIDDEN_NAMES: [&str; 1] = ["self"];
 
 struct AllSymbolHandler {}
 
-impl SymbolHandler for AllSymbolHandler {
-    fn get_symbol(string: &str) -> Option<Symbol> {
-        AssignerSymbolHandler::get_symbol(string)
+impl AllSymbolHandler {
+    fn get_symbol(string: &str) -> Result<Option<Symbol>, String> {
+        let r = AssignerSymbolHandler::get_symbol(string)
             .or_else(|| OperatorSymbolHandler::get_symbol(string))
             .or_else(|| TypeSymbolHandler::get_symbol(string))
             .or_else(|| BlockSymbolHandler::get_symbol(string))
             .or_else(|| BuiltinSymbolHandler::get_symbol(string))
             .or_else(|| LiteralSymbolHandler::get_symbol(string))
             .or_else(|| PunctuationSymbolHandler::get_symbol(string))
-            .or_else(|| KeywordSymbolHandler::get_symbol(string))
-            .or_else(|| {
-                for c in string.chars() {
-                    if c != NAME_SEPARATOR && !ALLOWED_CHARS_IN_NAME.contains(c) {
-                        return None;
-                    }
-                }
+            .or_else(|| KeywordSymbolHandler::get_symbol(string));
 
-                let name: Vec<_> = string.split(".").map(|s| s.to_string()).collect();
-                if name.is_empty() {
-                    return None;
-                }
+        if r.is_some() { return Ok(r); }
 
-                Some(Symbol::Name(name))
-            })
+        for c in string.chars() {
+            if c != NAME_SEPARATOR && !ALLOWED_CHARS_IN_NAME.contains(c) {
+                return Ok(None);
+            }
+        }
+
+        let name: Vec<_> = string.split(".").map(|s| s.to_string()).collect();
+        if name.is_empty() {
+            return Ok(None);
+        }
+
+        for part in &name {
+            for forbidden_name in FORBIDDEN_NAMES {
+                if part == forbidden_name { return Err(format!("Name '{}' is reserved", part)); }
+            }
+
+            for keyword in Keyword::iter() {
+                if part == keyword.get_code_representation() { return Err(format!("Name '{}' is reserved", part)); }
+            }
+
+            // for keyword in Block::iter() {
+            //     if part == keyword.get_code_representation() { return Err(format!("Name '{}' is reserved", part)); }
+            // }
+            //
+            // for keyword in TypeSymbol::iter() {
+            //     if part == keyword.get_code_representation() { return Err(format!("Name '{}' is reserved", part)); }
+            // }
+        }
+
+        Ok(Some(Symbol::Name(name)))
     }
 }

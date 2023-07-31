@@ -1,7 +1,7 @@
 use super::Symbol;
 use super::SymbolHandler;
 
-#[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug)]
+#[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug, strum_macros::EnumIter)]
 pub enum Block {
     While,
     Loop,
