@@ -12,6 +12,7 @@ use crate::processing::types::pointer::PointerType;
 use crate::processing::types::Type;
 use crate::unpack_either_type;
 
+#[must_use]
 pub struct IncompleteFunctionCall {
     stack_create_instruction: StackCreateInstruction,
     copy_instructions_to_offset: Vec<CopyInstruction>
@@ -69,13 +70,13 @@ impl FunctionReference {
     }
 
     pub fn call(
-        &mut self,
+        &self,
         _return_into: Option<&Box<dyn Type>>,
         arguments: &Vec<Vec<Symbol>>,
         program_memory: &mut MemoryManager,
-        reference_stack: &mut ReferenceStack,
+        reference_stack: &ReferenceStack,
         stack_sizes: &mut StackSizes,
-    ) -> Result<(), String> {
+    ) -> Result<Option<IncompleteFunctionCall>, String> {
         // Check number of arguments
         if arguments.len() != self.parameters.len() {
             return Err(format!(
@@ -139,9 +140,10 @@ impl FunctionReference {
         StackDownInstruction::new_alloc(program_memory);
 
         if self.stack_size.is_none() {
-            self.incomplete_function_calls.push(IncompleteFunctionCall::new(stack_create_instruction, copy_instructions_to_offset));
+            Ok(Some(IncompleteFunctionCall::new(stack_create_instruction, copy_instructions_to_offset)))
         }
-
-        Ok(())
+        else {
+            Ok(None)
+        }
     }
 }
