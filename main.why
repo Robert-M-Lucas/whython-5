@@ -1,1 +1,8 @@
-ptr i = 1
+
+fn add(ptr a, ptr b)
+    if a != (3 as ptr)
+        add(a + (1 as ptr), 2 as ptr)
+
+    viewmemdec a
+
+add(1 as ptr, 3 as ptr)

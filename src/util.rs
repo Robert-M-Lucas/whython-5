@@ -1,3 +1,5 @@
+pub mod must_use_option;
+
 use std::io::{stdin, stdout, Read, Write};
 
 #[cfg(target_pointer_width = "64")]

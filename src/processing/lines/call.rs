@@ -6,6 +6,7 @@ use crate::processing::processor::ProcessingResult;
 use crate::processing::symbols::Symbol;
 
 use crate::q;
+use crate::util::must_use_option::MustUseOption;
 
 pub struct CallLine {}
 
@@ -56,6 +57,10 @@ impl LineHandler for CallLine {
                 stack_sizes
             )
         );
+
+        if let MustUseOption::Some(incomplete_function_call) = incomplete_function_call {
+            reference_stack.get_reference_mut(name).unwrap().get_function_mut().unwrap().add_incomplete_function_call(incomplete_function_call);
+        }
 
         // q!(reference_stack.register_reference_with_offset(function_reference, offset));
 

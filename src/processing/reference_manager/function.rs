@@ -11,6 +11,7 @@ use crate::processing::symbols::{Literal, Symbol};
 use crate::processing::types::pointer::PointerType;
 use crate::processing::types::Type;
 use crate::unpack_either_type;
+use crate::util::must_use_option::MustUseOption;
 
 #[must_use]
 pub struct IncompleteFunctionCall {
@@ -76,7 +77,7 @@ impl FunctionReference {
         program_memory: &mut MemoryManager,
         reference_stack: &ReferenceStack,
         stack_sizes: &mut StackSizes,
-    ) -> Result<Option<IncompleteFunctionCall>, String> {
+    ) -> Result<MustUseOption<IncompleteFunctionCall>, String> {
         // Check number of arguments
         if arguments.len() != self.parameters.len() {
             return Err(format!(
@@ -140,10 +141,14 @@ impl FunctionReference {
         StackDownInstruction::new_alloc(program_memory);
 
         if self.stack_size.is_none() {
-            Ok(Some(IncompleteFunctionCall::new(stack_create_instruction, copy_instructions_to_offset)))
+            Ok(MustUseOption::Some(IncompleteFunctionCall::new(stack_create_instruction, copy_instructions_to_offset)))
         }
         else {
-            Ok(None)
+            Ok(MustUseOption::None)
         }
+    }
+    
+    pub fn add_incomplete_function_call(&mut self, incomplete_function_call: IncompleteFunctionCall) {
+        self.incomplete_function_calls.push(incomplete_function_call)
     }
 }
