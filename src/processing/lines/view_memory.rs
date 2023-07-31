@@ -6,7 +6,7 @@ use crate::processing::instructions::view_memory_6::ViewMemoryInstruction;
 use crate::processing::instructions::view_memory_dec_16::ViewMemoryDecInstruction;
 use crate::processing::lines::LineHandler;
 use crate::processing::processor::ProcessingResult;
-use crate::processing::reference_manager::ReferenceType;
+use crate::processing::reference_manager::Reference;
 use crate::processing::symbols::{Keyword, Symbol};
 
 pub struct ViewMemoryLine {}
@@ -36,14 +36,7 @@ impl LineHandler for ViewMemoryLine {
 
         let variable = match &line[1] {
             Symbol::Name(name) => {
-                match &q!(block_coordinator.get_reference(name.as_str())).reference {
-                    ReferenceType::Variable(variable) => variable,
-                    _ => {
-                        return ProcessingResult::Failure(
-                            "viewmem must be followed by a variable".to_string(),
-                        )
-                    }
-                }
+                q!(q!(block_coordinator.get_reference(name)).get_variable_ref())
             }
             _ => {
                 return ProcessingResult::Failure(

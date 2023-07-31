@@ -16,7 +16,7 @@ impl LineHandler for VariableAssignmentLine {
         program_memory: &mut MemoryManager,
         block_coordinator: &mut BlockCoordinator,
     ) -> ProcessingResult {
-        if line.is_empty()
+        if line.len() < 2
             || !matches!(line[0], Symbol::Name(_))
             || !matches!(line[1], Symbol::Assigner(_))
         {
@@ -37,7 +37,7 @@ impl LineHandler for VariableAssignmentLine {
         let (stack_sizes, reference_stack) =
             block_coordinator.get_stack_sizes_and_reference_stack();
 
-        let variable = q!(q!(reference_stack.get_reference(name.as_str())).get_variable_ref());
+        let variable = q!(q!(reference_stack.get_reference(name)).get_variable_ref());
 
         let assigner = match &line[1] {
             Symbol::Assigner(assigner) => assigner,

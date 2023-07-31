@@ -6,14 +6,14 @@ use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_up_1::StackUpInstruction;
 use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
 use crate::processing::reference_manager::function::FunctionReference;
-use crate::processing::reference_manager::{NamedReference, ReferenceStack, ReferenceType};
+use crate::processing::reference_manager::{Reference, ReferenceStack};
 use crate::processing::symbols::{Block, Symbol};
 use crate::processing::types::pointer::PointerType;
 use crate::processing::types::Type;
 use crate::bx;
 
 pub struct FunctionBlock {
-    name: Option<String>,
+    name: Option<Vec<String>>,
     start_position: Option<usize>,
     previous_reference_limit: Option<usize>,
     skip_instruction: Option<JumpInstruction>,
@@ -115,37 +115,37 @@ impl BlockHandler for FunctionBlock {
         }
 
         //? Add parameters to FunctionReference
-        let parameters = reference_stack.get_and_remove_stack_contents();
+        let parameters = reference_stack.get_top_stack();
         let mut cloned_parameters = Vec::with_capacity(parameters.len());
-        for p in &parameters {
-            cloned_parameters.push(p.clone_variable().unwrap());
-        }
-
-        reference_stack.add_handler();
         for p in parameters {
-            reference_stack.register_reference(p).unwrap();
+            cloned_parameters.push((p.name.clone(), p.reference().clone_variable()?.get_variable().unwrap()));
         }
 
-        let mut parameters_formatted = Vec::new();
-        for p in cloned_parameters {
-            let (name, reference) = (p.name, p.reference);
-            if let ReferenceType::Variable(reference) = reference {
-                parameters_formatted.push((name, reference));
-            } else {
-                panic!("Parameter not a variable!")
-            }
-        }
+        // reference_stack.add_handler();
+        // for p in parameters {
+        //     reference_stack.register_reference(p).unwrap();
+        // }
+
+        // let mut parameters_formatted = Vec::new();
+        // for p in cloned_parameters {
+        //     let (name, reference) = (p.0, p.1);
+        //     if let Reference::Variable(reference) = reference {
+        //         parameters_formatted.push((name, reference));
+        //     } else {
+        //         panic!("Parameter not a variable!")
+        //     }
+        // }
 
         //? Register function reference
-        let reference = FunctionReference::new(
+        let function_reference = FunctionReference::new(
             self.start_position.unwrap(),
             self.return_pointer.as_ref().unwrap().duplicate_known(),
-            parameters_formatted,
+            cloned_parameters,
             None,
         );
         let name = self.name.as_ref().unwrap().clone();
         reference_stack
-            .register_reference_with_offset(NamedReference::new_function(name, reference), 1)
+            .register_reference_with_offset(Reference::Function(function_reference), name, 1)
             .unwrap();
 
         //? Add new stack to separate parameters from function body
@@ -190,10 +190,13 @@ impl BlockHandler for FunctionBlock {
         );
 
         //? Update reference
-        // TODO: Do this more robustly
-        let mut reference = reference_stack.get_and_remove_reference(self.name.as_ref().unwrap().as_str()).unwrap().0;
-        reference.get_function_mut().unwrap().set_stack_size_and_complete(stack_sizes.get_size(), program_memory);
-        reference_stack.register_reference_with_offset(reference, 1).unwrap();
+        reference_stack
+            .get_reference_mut(self.name.as_ref().unwrap()).unwrap()
+            .get_function_mut().unwrap()
+            .set_stack_size_and_complete(stack_sizes.get_size(), program_memory);
+        // let mut reference = reference_stack.get_and_remove_reference(self.name.as_ref().unwrap().as_str()).unwrap().0;
+        // reference.get_function_mut().unwrap().set_stack_size_and_complete(stack_sizes.get_size(), program_memory);
+        // reference_stack.register_reference_with_offset(reference, 1).unwrap();
 
         //? Undo reference limit
         reference_stack.set_reference_depth_limit(self.previous_reference_limit.unwrap());

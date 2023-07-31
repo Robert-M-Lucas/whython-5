@@ -255,7 +255,7 @@ fn handle_single_symbol<'a>(
     match symbol {
         Symbol::Name(name) => {
             let variable = reference_stack
-                .get_reference(name.as_str())?
+                .get_reference(name)?
                 .get_variable_ref()?;
             match return_options {
                 ReturnOptions::ReturnIntoType(output) => {

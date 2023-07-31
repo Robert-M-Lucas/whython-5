@@ -15,7 +15,7 @@ impl LineHandler for CallLine {
         program_memory: &mut MemoryManager,
         block_coordinator: &mut BlockCoordinator,
     ) -> ProcessingResult {
-        if line.is_empty()
+        if line.len() < 2
             || !matches!(line[0], Symbol::Name(_))
             || !matches!(line[1], Symbol::List(_))
         {
@@ -38,15 +38,17 @@ impl LineHandler for CallLine {
             _ => panic!(),
         };
 
-        let (mut function_reference, offset) = q!(block_coordinator
-            .get_reference_stack_mut()
-            .get_and_remove_reference(name.as_str()));
+
+
+        // let (function_reference, offset) = q!(block_coordinator.get_reference_and_offset(name));
 
         let (stack_sizes, reference_stack) =
             block_coordinator.get_stack_sizes_and_reference_stack();
-        q!(
-            q!(function_reference.get_function_mut())
-            .call(
+
+        let function_reference = q!(q!(reference_stack.get_reference(name)).get_function_ref());
+
+        let incomplete_function_call = q!(
+            function_reference.call(
                 None,
                 args,
                 program_memory,
@@ -55,7 +57,7 @@ impl LineHandler for CallLine {
             )
         );
 
-        q!(reference_stack.register_reference_with_offset(function_reference, offset));
+        // q!(reference_stack.register_reference_with_offset(function_reference, offset));
 
         ProcessingResult::Success
     }

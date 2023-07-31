@@ -46,8 +46,17 @@ pub enum Symbol {
     Block(Block),
     Builtin(Builtin),
     Punctuation(Punctuation),
-    Name(String),
+    Name(Vec<String>), // ? E.g. alpha.bravo -> [alpha, bravo]
     Keyword(Keyword),
+}
+
+impl Symbol {
+    pub fn get_name_string(name: &[String]) -> Result<String, String> {
+        if name.len() != 1 {
+            return Err("Name must not be a property".to_string());
+        }
+        Ok(name.first().unwrap().clone())
+    }
 }
 
 pub trait SymbolHandler {
@@ -93,7 +102,7 @@ pub fn try_bracketed_into_parameters(bracketed: &Symbol) -> Result<Literal, Stri
 
         // No name
         let name = match &list[i + 1] {
-            Symbol::Name(name) => name.clone(),
+            Symbol::Name(name) => Symbol::get_name_string(name)?,
             _ => return Err(formatting_error()),
         };
 
@@ -121,6 +130,7 @@ pub fn try_bracketed_into_parameters(bracketed: &Symbol) -> Result<Literal, Stri
 }
 
 const ALLOWED_CHARS_IN_NAME: &str = "abcdefghijklmnopqrstuvwxyz_";
+const NAME_SEPARATOR: char = '.';
 
 struct AllSymbolHandler {}
 
@@ -136,12 +146,17 @@ impl SymbolHandler for AllSymbolHandler {
             .or_else(|| KeywordSymbolHandler::get_symbol(string))
             .or_else(|| {
                 for c in string.chars() {
-                    if !ALLOWED_CHARS_IN_NAME.contains(c) {
+                    if c != NAME_SEPARATOR && !ALLOWED_CHARS_IN_NAME.contains(c) {
                         return None;
                     }
                 }
 
-                Some(Symbol::Name(String::from(string)))
+                let name: Vec<_> = string.split(".").map(|s| s.to_string()).collect();
+                if name.is_empty() {
+                    return None;
+                }
+
+                Some(Symbol::Name(name))
             })
     }
 }

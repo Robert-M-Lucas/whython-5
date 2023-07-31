@@ -226,7 +226,7 @@ impl Operation<PointerType> for Equal {
         rhs: &Box<dyn Type>,
         destination: &Box<dyn Type>,
         program_memory: &mut MemoryManager,
-        stack_sizes: &mut StackSizes,
+        _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
         assert_eq!(destination.get_type_symbol(), TypeSymbol::Boolean);
         assert_eq!(rhs.get_type_symbol(), TypeSymbol::Pointer);
@@ -265,7 +265,7 @@ impl Operation<PointerType> for NotEqual {
         rhs: &Box<dyn Type>,
         destination: &Box<dyn Type>,
         program_memory: &mut MemoryManager,
-        stack_sizes: &mut StackSizes,
+        _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
         assert_eq!(destination.get_type_symbol(), TypeSymbol::Boolean);
         assert_eq!(rhs.get_type_symbol(), TypeSymbol::Pointer);

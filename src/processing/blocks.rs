@@ -5,7 +5,7 @@ pub mod while_block;
 
 use crate::memory::MemoryManager;
 use crate::processing::blocks::base_block::BaseBlock;
-use crate::processing::reference_manager::{NamedReference, ReferenceStack};
+use crate::processing::reference_manager::{Reference, ReferenceStack};
 use crate::processing::symbols::Symbol;
 use crate::util::warn;
 
@@ -257,13 +257,17 @@ impl BlockCoordinator {
     }
 
     /// Registers a variable
-    pub fn register_reference(&mut self, reference: NamedReference) -> Result<(), String> {
-        self.reference_stack.register_reference(reference)
+    pub fn register_reference(&mut self, reference: Reference, name: Vec<String>) -> Result<(), String> {
+        self.reference_stack.register_reference(reference, name)
     }
 
     /// Searches for a variable going up the reference stack
-    pub fn get_reference(&self, name: &str) -> Result<&NamedReference, String> {
+    pub fn get_reference(&self, name: &[String]) -> Result<&Reference, String> {
         self.reference_stack.get_reference(name)
+    }
+
+    pub fn get_reference_and_offset(&self, name: &[String]) -> Result<(&Reference, usize), String> {
+        self.reference_stack.get_reference_and_offset(name)
     }
 
     /// Adds a reference handler (adds a variable scope)

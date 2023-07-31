@@ -3,7 +3,7 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::{BlockCoordinator, StackSizes};
 use crate::processing::lines::arithmetic::evaluate_arithmetic_into_type;
 use crate::processing::processor::ProcessingResult;
-use crate::processing::reference_manager::{NamedReference, ReferenceStack};
+use crate::processing::reference_manager::{Reference, ReferenceStack};
 
 use crate::processing::symbols::{Assigner, Symbol};
 use crate::processing::types::TypeFactory;
@@ -62,11 +62,7 @@ impl VariableInitialisationLine {
             )?;
         }
 
-        if let Err(e) =
-            reference_stack.register_reference(NamedReference::new_variable(name.clone(), object))
-        {
-            return Err(e);
-        };
+        reference_stack.register_reference(Reference::Variable(object), name.clone())?;
 
         Ok(())
     }

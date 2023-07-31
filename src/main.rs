@@ -27,6 +27,8 @@ use std::time::Instant;
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 
+const DEFAULT_FILE_NAME: &str = "main.why";
+
 fn main() {
     ctrlc::set_handler(|| {
         CTRL_C.store(true, Ordering::Relaxed);
@@ -56,7 +58,7 @@ fn wrapped_main(exit: &AtomicBool) {
         args[1].clone()
     } else {
         input_defaulted = true;
-        "main.why".to_string()
+        DEFAULT_FILE_NAME.to_string()
     };
 
     let memory;
@@ -76,9 +78,10 @@ fn wrapped_main(exit: &AtomicBool) {
                 if input_defaulted {
                     col_println!(
                         (red, bold),
-                        "Error reading file '{}' - {}. You did not specify a file so 'main.why' was used as a default.",
+                        "Error reading file '{}' - {}. You did not specify a file so '{}' was used as a default.",
                         input_file,
-                        e.to_string()
+                        e.to_string(),
+                        DEFAULT_FILE_NAME
                     );
                 }
                 else {

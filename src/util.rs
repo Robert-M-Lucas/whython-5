@@ -120,3 +120,14 @@ pub fn pause() {
 pub fn substring(string: &str, start: usize, len: usize) -> String {
     string.chars().skip(start).take(len).collect()
 }
+
+pub fn join_reference_name(name: &[String]) -> String {
+    let mut joined_name = String::new();
+    for (i, string) in name.iter().enumerate() {
+        joined_name += string;
+        if i != name.len() - 1 {
+            joined_name.push('.');
+        }
+    }
+    joined_name
+}

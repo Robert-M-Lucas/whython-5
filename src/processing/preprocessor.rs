@@ -7,7 +7,6 @@ pub const OPEN_BRACKET_CHARACTER: char = '(';
 pub const CLOSE_BRACKET_CHARACTER: char = ')';
 pub const OPEN_INDEXER_CHARACTER: char = '[';
 pub const CLOSE_INDEXER_CHARACTER: char = ']';
-pub const DOT_SEPARATOR_CHARACTER: char = '.';
 
 /// Takes a line of code and returns an array of symbols
 #[allow(clippy::single_match)]
@@ -71,7 +70,7 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
                     continue;
                 },
                 //? Process buffer, then process c
-                OPEN_BRACKET_CHARACTER | CLOSE_BRACKET_CHARACTER | OPEN_INDEXER_CHARACTER | CLOSE_INDEXER_CHARACTER | DOT_SEPARATOR_CHARACTER | LIST_SEPARATOR_CHARACTER => {
+                OPEN_BRACKET_CHARACTER | CLOSE_BRACKET_CHARACTER | OPEN_INDEXER_CHARACTER | CLOSE_INDEXER_CHARACTER | LIST_SEPARATOR_CHARACTER => {
                     process_buffer(&mut buffer, &mut symbol_line)?;
                 }
                 _ => {},
