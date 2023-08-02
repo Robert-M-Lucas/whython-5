@@ -6,7 +6,6 @@ use crate::processing::instructions::view_memory_6::ViewMemoryInstruction;
 use crate::processing::instructions::view_memory_dec_16::ViewMemoryDecInstruction;
 use crate::processing::lines::LineHandler;
 use crate::processing::processor::ProcessingResult;
-use crate::processing::reference_manager::Reference;
 use crate::processing::symbols::{Keyword, Symbol};
 
 pub struct ViewMemoryLine {}

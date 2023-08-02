@@ -27,7 +27,6 @@ impl LineHandler for FunctionLine {
                     program_memory,
                     line,
                 ));
-
                 ProcessingResult::Success
             }
             _ => ProcessingResult::Unmatched,

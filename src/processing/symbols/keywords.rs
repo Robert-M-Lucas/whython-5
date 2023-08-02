@@ -9,6 +9,7 @@ pub enum Keyword {
     ViewMemory,
     ViewMemoryDecimal,
     As,
+    Import,
 }
 
 pub struct KeywordSymbolHandler {}
@@ -22,6 +23,7 @@ impl Keyword {
             Keyword::ViewMemory => "viewmem",
             Keyword::ViewMemoryDecimal => "viewmemdec",
             Keyword::As => "as",
+            Keyword::Import => "import"
         }
     }
 }
@@ -35,6 +37,7 @@ impl SymbolHandler for KeywordSymbolHandler {
             "viewmem" => Some(Symbol::Keyword(Keyword::ViewMemory)),
             "viewmemdec" => Some(Symbol::Keyword(Keyword::ViewMemoryDecimal)),
             "as" => Some(Symbol::Keyword(Keyword::As)),
+            "import" => Some(Symbol::Keyword(Keyword::Import)),
             _ => None,
         }
     }

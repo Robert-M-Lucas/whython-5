@@ -1,7 +1,6 @@
 pub mod class;
 pub mod function;
 
-use crate::bx;
 use crate::processing::reference_manager::class::ClassReference;
 use crate::processing::reference_manager::function::FunctionReference;
 use crate::processing::types::Type;
@@ -53,6 +52,13 @@ impl ReferenceHandler {
     }
     pub fn reference_mut(&mut self) -> &mut Reference {
         &mut self.reference
+    }
+
+    pub fn add_sub_reference(&mut self, reference: Reference, name: String) -> &ReferenceHandler {
+        self.sub_references.push(
+            ReferenceHandler::new(reference, name)
+        );
+        self.sub_references.last().unwrap()
     }
 
     /// Searches for a reference. If the top level fails, returns `Err(None)`. If a lower level fails, returns `Err([error])`
@@ -208,7 +214,14 @@ impl ReferenceStack {
 
     /// Registers a variable
     pub fn register_reference(&mut self, reference: Reference, name: Vec<String>) -> Result<(), String> {
-        return self.stack.last_mut().unwrap().register_reference(reference, name);
+        if name.len() == 1 {
+            self.stack.last_mut().unwrap().register_reference(reference, name)
+        }
+        else {
+            let handler = self.get_reference_handler_mut(&name[..(name.len()-1)])?;
+            handler.add_sub_reference(reference, name.into_iter().last().unwrap());
+            Ok(())
+        }
     }
 
     /// Registers a variable at a layer `offset` above the current one
@@ -306,6 +319,63 @@ impl ReferenceStack {
         Err(cant_find_reference_error(name, 0))
     }
 
+    pub fn get_reference_handler(&self, name: &[String]) -> Result<&ReferenceHandler, String> {
+        //? Go up the stack and search for a variable
+
+        let mut i = self.stack.len() - 1;
+        loop {
+            match self.stack[i].get_reference_handler(name) {
+                Ok(Some(r)) => {
+                    if i < self.reference_depth_limit && r.reference.is_variable() {
+                        continue;
+                    }
+                    return Ok(r);
+                }
+                Err(e) => {
+                    return Err(e)
+                }
+                Ok(None) => {}
+            }
+            if i == 0 {
+                break;
+            }
+            i -= 1;
+        }
+
+        Err(cant_find_reference_error(name, 0))
+    }
+
+    /// Searches for a variable going up the reference stack
+    pub fn get_reference_handler_mut<'a>(&mut self, name: &[String]) -> Result<&mut ReferenceHandler, String> {
+        //? Go up the stack and search for a variable
+
+        let mut i = self.stack.len() - 1;
+        loop {
+            match self.stack[i].get_reference_handler_mut(name) {
+                Ok(Some(r)) => {
+                    if i < self.reference_depth_limit && r.reference.is_variable() {
+                        continue;
+                    }
+                    // TODO
+                    //? Redundant function call to appease borrow checkers
+                    let r = self.stack[i].get_reference_handler_mut(name).unwrap().unwrap();
+                    return Ok(r);
+                }
+                Err(e) => {
+                    return Err(e)
+                }
+                Ok(None) => {}
+            }
+
+            if i == 0 {
+                break;
+            }
+            i -= 1;
+        }
+
+        Err(cant_find_reference_error(name, 0))
+    }
+
     // pub fn get_and_remove_reference(&mut self, name: &[String]) -> Result<(Reference, usize), String> {
     //     //? Go up the stack and search for a variable
     //
@@ -356,7 +426,7 @@ impl ReferenceManager {
 
     /// Registers a variable
     pub fn register_reference(&mut self, reference: Reference, name: Vec<String>) -> Result<(), String> {
-        if !matches!(self.get_reference(&name), Ok(None)) {
+        if matches!(self.get_reference(&name), Ok(Some(_))) {
             return Err(format!(
                 "Reference with name '{}' already exists",
                 join_reference_name(&name)
@@ -366,11 +436,17 @@ impl ReferenceManager {
         if name.len() == 1 {
             let name = name.into_iter().next().unwrap();
             self.references.push(ReferenceHandler::new(reference, name));
-            Ok(())
         }
         else {
-            Ok(())
+            let handler = self.get_reference_handler_mut(&name[..(name.len()-1)])?;
+            if let Some(handler) = handler {
+                handler.add_sub_reference(reference, name.into_iter().last().unwrap());
+            }
+            else {
+                return Err(cant_find_reference_error(&name, 0));
+            }
         }
+        Ok(())
     }
 
     /// Returns the `Some(variable)` if it exists. If not, returns `None`
@@ -390,6 +466,32 @@ impl ReferenceManager {
     pub fn get_reference_mut(&mut self, name: &[String]) -> Result<Option<&mut Reference>, String> {
         for reference in &mut self.references {
             match reference.get_reference_mut(name, 0) {
+                Ok(reference) => return Ok(Some(reference)),
+                Err(Some(error)) => return Err(error),
+                Err(None) => {}
+            };
+        }
+
+        Ok(None)
+    }
+
+    /// Returns the `Some(variable)` if it exists. If not, returns `None`
+    pub fn get_reference_handler(&self, name: &[String]) -> Result<Option<&ReferenceHandler>, String> {
+        for reference in &self.references {
+            match reference.get_reference_handler(name, 0) {
+                Ok(reference) => return Ok(Some(reference)),
+                Err(Some(error)) => return Err(error),
+                Err(None) => {}
+            };
+        }
+
+        Ok(None)
+    }
+
+    /// Returns the `Some(variable)` if it exists. If not, returns `None`
+    pub fn get_reference_handler_mut(&mut self, name: &[String]) -> Result<Option<&mut ReferenceHandler>, String> {
+        for reference in &mut self.references {
+            match reference.get_reference_handler_mut(name, 0) {
                 Ok(reference) => return Ok(Some(reference)),
                 Err(Some(error)) => return Err(error),
                 Err(None) => {}

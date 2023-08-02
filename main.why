@@ -1,8 +1,7 @@
+class test
+    fn add(ptr a, ptr b)
+        a += b
+        viewmemdec a
 
-fn add(ptr a, ptr b)
-    if a != (3 as ptr)
-        add(a + (1 as ptr), 2 as ptr)
+test.add(1 as ptr, 2 as ptr)
 
-    viewmemdec a
-
-add(1 as ptr, 3 as ptr)

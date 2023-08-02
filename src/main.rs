@@ -170,6 +170,7 @@ fn wrapped_main(exit: &AtomicBool) {
     }
     //? Load compiled file
     else if extension == "cwhy" {
+        let start = Instant::now();
         memory = match MemoryManager::load_from_file(input_file) {
             Err(e) => {
                 col_println!((red, bold), "Loading precompiled file failed - {}", e);
@@ -177,6 +178,7 @@ fn wrapped_main(exit: &AtomicBool) {
             }
             Ok(value) => value,
         };
+        col_println!((green, bold), "Precompiled data loaded [{:?}]", start.elapsed());
     } else {
         col_println!((red, bold), "Unrecognised extension '{}'", extension);
         return;

@@ -33,17 +33,6 @@ impl BlockHandler for BaseBlock {
         Ok(())
     }
 
-    fn on_exit(
-        &mut self,
-        program_memory: &mut MemoryManager,
-        reference_stack: &mut ReferenceStack,
-        stack_sizes: &mut StackSizes,
-        _symbol_line: &[Symbol],
-    ) -> Result<bool, String> {
-        self.on_forced_exit(program_memory, reference_stack, stack_sizes)?;
-        Ok(true)
-    }
-
     fn on_forced_exit(
         &mut self,
         program_memory: &mut MemoryManager,
@@ -55,7 +44,6 @@ impl BlockHandler for BaseBlock {
             .as_mut()
             .expect("No stack create instruction")
             .set_stack_size(stack_sizes.get_size(), program_memory);
-        // self.stack_create_instruction.as_mut().unwrap().set_return_address(program_memory, program_memory.get_position());
         stack_sizes.remove_stack();
         Ok(())
     }

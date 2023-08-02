@@ -7,7 +7,7 @@ use crate::processing::instructions::stack_up_1::StackUpInstruction;
 use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
 use crate::processing::reference_manager::function::FunctionReference;
 use crate::processing::reference_manager::{Reference, ReferenceStack};
-use crate::processing::symbols::{Block, Symbol};
+use crate::processing::symbols::{Block, CLASS_SELF_NAME, Symbol};
 use crate::processing::types::pointer::PointerType;
 use crate::processing::types::Type;
 use crate::bx;
@@ -75,10 +75,6 @@ impl BlockHandler for FunctionBlock {
         // return_pointer.allocate_variable(stack_sizes, program_memory).unwrap();
         // self.return_pointer = Some(return_pointer);
 
-        //? Save previous reference limit and apply new
-        self.previous_reference_limit = Some(reference_stack.get_reference_depth_limit());
-        reference_stack.set_reference_depth_limit(reference_stack.get_depth());
-
         fn declaration_error() -> Result<(), String> {
             return Err(format!(
                 "Function declaration must be formatted {} [Name] [Parameter List]",
@@ -91,9 +87,30 @@ impl BlockHandler for FunctionBlock {
         }
 
         self.name = Some(match &symbol_line[1] {
-            Symbol::Name(name) => name.clone(),
+            Symbol::Name(name) => {
+                if name.len() != 1 {
+                    return Err("Invalid function name - function names cannot contain separators".to_string());
+                }
+                name.clone()
+            },
             _ => return declaration_error(),
         });
+
+        //? Save previous reference limit and apply new
+        self.previous_reference_limit = Some(reference_stack.get_reference_depth_limit());
+
+        //? If in class
+        if reference_stack.get_reference(&[CLASS_SELF_NAME.to_string()]).is_ok() {
+            //? Add to class if in class
+            self.name.as_mut().unwrap().insert(0, CLASS_SELF_NAME.to_string());
+
+            //? Allow class to be referenced
+            reference_stack.set_reference_depth_limit(reference_stack.get_depth() - 1);
+        }
+        else {
+            //? Dont allow anything outside of function to be referenced
+            reference_stack.set_reference_depth_limit(reference_stack.get_depth());
+        }
 
         let mut return_pointer = PointerType::new();
         return_pointer.allocate_variable(stack_sizes, program_memory)?;
@@ -144,9 +161,15 @@ impl BlockHandler for FunctionBlock {
             None,
         );
         let name = self.name.as_ref().unwrap().clone();
-        reference_stack
-            .register_reference_with_offset(Reference::Function(function_reference), name, 1)
-            .unwrap();
+        if name.len() > 1 {
+            reference_stack
+                .register_reference(Reference::Function(function_reference), name)?;
+        }
+        else {
+            reference_stack
+                .register_reference_with_offset(Reference::Function(function_reference), name, 1)?;
+        }
+
 
         //? Add new stack to separate parameters from function body
         reference_stack.add_handler();
