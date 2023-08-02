@@ -48,11 +48,11 @@ macro_rules! unpack_either_type {
 
 pub enum ReturnOptions<'a> {
     /// Places the calculated value into the type - returns `None`
-    ReturnIntoType(&'a dyn Type), //, Option<Box<dyn FnOnce(&mut MemoryManager, &mut StackSizes)>>, usize),
+    IntoType(&'a dyn Type), //, Option<Box<dyn FnOnce(&mut MemoryManager, &mut StackSizes)>>, usize),
     /// Returns a type from the specified list
-    ReturnTypes(&'a [TypeSymbol]),
+    OneOfTypes(&'a [TypeSymbol]),
     /// Returns any type
-    ReturnAnyType,
+    AnyType,
 }
 
 impl<'a> ReturnOptions<'a> {
@@ -79,7 +79,7 @@ pub fn evaluate_arithmetic_into_type<'a>(
 ) -> Result<(), String> {
     evaluate_arithmetic_section(
         section,
-        &mut ReturnOptions::ReturnIntoType(destination), //, run_before_last_step, offset),
+        &mut ReturnOptions::IntoType(destination), //, run_before_last_step, offset),
         program_memory,
         reference_stack,
         stack_sizes,
@@ -97,7 +97,7 @@ pub fn evaluate_arithmetic_to_types<'a>(
 ) -> Result<OwnedOrRefType<'a>, String> {
     Ok(evaluate_arithmetic_section(
         section,
-        &mut ReturnOptions::ReturnTypes(return_type_options),
+        &mut ReturnOptions::OneOfTypes(return_type_options),
         program_memory,
         reference_stack,
         stack_sizes,
@@ -114,7 +114,7 @@ pub fn evaluate_arithmetic_to_any_type<'a>(
 ) -> Result<OwnedOrRefType<'a>, String> {
     Ok(evaluate_arithmetic_section(
         section,
-        &mut ReturnOptions::ReturnAnyType,
+        &mut ReturnOptions::AnyType,
         program_memory,
         reference_stack,
         stack_sizes,
@@ -157,7 +157,7 @@ fn evaluate_arithmetic_section<'a>(
 
             let operand = handle_single_symbol(
                 &section[1],
-                &mut ReturnOptions::ReturnAnyType,
+                &mut ReturnOptions::AnyType,
                 program_memory,
                 reference_stack,
                 stack_sizes,
@@ -201,7 +201,7 @@ fn evaluate_arithmetic_section<'a>(
                 Symbol::Operator(operator) => {
                     let lhs = handle_single_symbol(
                         &section[0],
-                        &mut ReturnOptions::ReturnAnyType,
+                        &mut ReturnOptions::AnyType,
                         program_memory,
                         reference_stack,
                         stack_sizes,
@@ -210,7 +210,7 @@ fn evaluate_arithmetic_section<'a>(
 
                     let rhs = handle_single_symbol(
                         &section[2],
-                        &mut ReturnOptions::ReturnAnyType,
+                        &mut ReturnOptions::AnyType,
                         program_memory,
                         reference_stack,
                         stack_sizes,
@@ -270,7 +270,7 @@ fn handle_single_symbol<'a>(
         Symbol::Name(name) => {
             let variable = reference_stack.get_reference(name)?.get_variable_ref()?;
             match return_options {
-                ReturnOptions::ReturnIntoType(output) => {
+                ReturnOptions::IntoType(output) => {
                     //, run_before_last_step, offset) => {
                     // if let Some(f) = run_before_last_step {
                     //     f(program_memory, stack_sizes);
@@ -278,8 +278,8 @@ fn handle_single_symbol<'a>(
                     output.runtime_copy_from(variable, program_memory)?; //, *offset)?;
                     Ok(None)
                 }
-                ReturnOptions::ReturnAnyType => Ok(Some(Right(variable))),
-                ReturnOptions::ReturnTypes(types) => {
+                ReturnOptions::AnyType => Ok(Some(Right(variable))),
+                ReturnOptions::OneOfTypes(types) => {
                     let variable_type = variable.get_type_symbol();
                     if types.len() != 0 && types.iter().find(|t| **t == variable_type).is_none() {
                         Err(incorrect_type_error(types, &[variable_type]))
@@ -291,7 +291,7 @@ fn handle_single_symbol<'a>(
         }
         Symbol::Literal(literal) => {
             match return_options {
-                ReturnOptions::ReturnIntoType(output) => {
+                ReturnOptions::IntoType(output) => {
                     //, run_before_last_step, offset) => {
                     // if let Some(f) = run_before_last_step {
                     //     f(program_memory, stack_sizes);
@@ -299,14 +299,14 @@ fn handle_single_symbol<'a>(
                     output.runtime_copy_from_literal(literal, program_memory)?;
                     Ok(None)
                 }
-                ReturnOptions::ReturnAnyType => Ok(Some(Left(
+                ReturnOptions::AnyType => Ok(Some(Left(
                     TypeFactory::get_default_instantiated_type_for_literal(
                         literal,
                         stack_sizes,
                         program_memory,
                     )?,
                 ))),
-                ReturnOptions::ReturnTypes(types) => {
+                ReturnOptions::OneOfTypes(types) => {
                     // TODO: Potentially request types from literals i.e. not default
                     let default_type = TypeFactory::get_default_instantiated_type_for_literal(
                         literal,
@@ -360,7 +360,7 @@ fn handle_prefix_operation<'a>(
     unpack_either_type!(operand, operand);
 
     match return_options {
-        ReturnOptions::ReturnIntoType(output) => {
+        ReturnOptions::IntoType(output) => {
             //, run_before_last_step, offset) => {
             // if let Some(f) = run_before_last_step {
             //     f(program_memory, stack_sizes);
@@ -368,7 +368,7 @@ fn handle_prefix_operation<'a>(
             operand.operate_prefix(operator, *output, program_memory, stack_sizes)?;
             Ok(None)
         }
-        ReturnOptions::ReturnAnyType => {
+        ReturnOptions::AnyType => {
             let return_types = operand.get_prefix_operation_result_type(operator);
             if return_types.is_empty() {
                 Err(operator_not_implemented_error(
@@ -384,7 +384,7 @@ fn handle_prefix_operation<'a>(
                 Ok(Some(Left(new_type)))
             }
         }
-        ReturnOptions::ReturnTypes(types) => {
+        ReturnOptions::OneOfTypes(types) => {
             let return_types = operand.get_prefix_operation_result_type(operator);
 
             if return_types.is_empty() {
@@ -429,7 +429,7 @@ fn handle_operation<'a>(
     unpack_either_type!(rhs, rhs);
 
     match return_options {
-        ReturnOptions::ReturnIntoType(output) => {
+        ReturnOptions::IntoType(output) => {
             // , run_before_last_step, offset) => {
             // if let Some(f) = run_before_last_step {
             //     f(program_memory, stack_sizes);
@@ -437,7 +437,7 @@ fn handle_operation<'a>(
             lhs.operate(operator, rhs, *output, program_memory, stack_sizes)?;
             Ok(None)
         }
-        ReturnOptions::ReturnAnyType => {
+        ReturnOptions::AnyType => {
             let return_types = lhs.get_operation_result_type(operator, &rhs.get_type_symbol());
             if return_types.is_empty() {
                 Err(operator_not_implemented_error(
@@ -453,7 +453,7 @@ fn handle_operation<'a>(
                 Ok(Some(Left(new_type)))
             }
         }
-        ReturnOptions::ReturnTypes(types) => {
+        ReturnOptions::OneOfTypes(types) => {
             let return_types = lhs.get_operation_result_type(operator, &rhs.get_type_symbol());
 
             if return_types.is_empty() {
@@ -498,7 +498,7 @@ fn handle_casting<'a>(
         Symbol::Literal(literal) => {
             // ? Ignore cast if going into correct type
             match return_options {
-                ReturnOptions::ReturnIntoType(output) => {
+                ReturnOptions::IntoType(output) => {
                     if output.get_type_symbol() == *type_symbol {
                         output.runtime_copy_from_literal(literal, program_memory)?;
                         return Ok(None);
@@ -512,11 +512,11 @@ fn handle_casting<'a>(
             new_type.runtime_copy_from_literal(literal, program_memory)?;
 
             match return_options {
-                ReturnOptions::ReturnIntoType(output) => {
+                ReturnOptions::IntoType(output) => {
                     output.runtime_copy_from(new_type.as_ref(), program_memory)?;
                     Ok(None)
                 }
-                ReturnOptions::ReturnTypes(return_types) => {
+                ReturnOptions::OneOfTypes(return_types) => {
                     if return_types.iter().find(|t| **t == *type_symbol).is_some() {
                         Ok(Some(Left(new_type)))
                     } else {
@@ -525,7 +525,7 @@ fn handle_casting<'a>(
                         Ok(Some(Left(return_type)))
                     }
                 }
-                ReturnOptions::ReturnAnyType => Ok(Some(Left(new_type))),
+                ReturnOptions::AnyType => Ok(Some(Left(new_type))),
             }
         }
         _ => {
@@ -539,7 +539,7 @@ fn handle_casting<'a>(
 
             // ? Ignore cast if going into correct type
             match return_options {
-                ReturnOptions::ReturnIntoType(output) => {
+                ReturnOptions::IntoType(output) => {
                     if output.get_type_symbol() == *type_symbol {
                         output.runtime_copy_from(value, program_memory)?;
                         return Ok(None);
@@ -553,11 +553,11 @@ fn handle_casting<'a>(
             new_type.runtime_copy_from(value, program_memory)?;
 
             match return_options {
-                ReturnOptions::ReturnIntoType(output) => {
+                ReturnOptions::IntoType(output) => {
                     output.runtime_copy_from(new_type.as_ref(), program_memory)?;
                     Ok(None)
                 }
-                ReturnOptions::ReturnTypes(return_types) => {
+                ReturnOptions::OneOfTypes(return_types) => {
                     if return_types.iter().find(|t| **t == *type_symbol).is_some() {
                         Ok(Some(Left(new_type)))
                     } else {
@@ -566,7 +566,7 @@ fn handle_casting<'a>(
                         Ok(Some(Left(return_type)))
                     }
                 }
-                ReturnOptions::ReturnAnyType => Ok(Some(Left(new_type))),
+                ReturnOptions::AnyType => Ok(Some(Left(new_type))),
             }
         }
     }
