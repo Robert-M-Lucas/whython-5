@@ -28,6 +28,8 @@ macro_rules! get_variable {
 }
 */
 
+type OwnedOrRefType<'a> = Either<Box<dyn Type>, &'a dyn Type>;
+
 /// Takes an output name and an `Either`. The `Either` must be formatted as
 /// `Either<T, &T>`. Sets output to &T.
 #[macro_export]
@@ -92,7 +94,7 @@ pub fn evaluate_arithmetic_to_types<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Either<Box<dyn Type>, &'a dyn Type>, String> {
+) -> Result<OwnedOrRefType<'a>, String> {
     Ok(evaluate_arithmetic_section(
         section,
         &mut ReturnOptions::ReturnTypes(return_type_options),
@@ -109,7 +111,7 @@ pub fn evaluate_arithmetic_to_any_type<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Either<Box<dyn Type>, &'a dyn Type>, String> {
+) -> Result<OwnedOrRefType<'a>, String> {
     Ok(evaluate_arithmetic_section(
         section,
         &mut ReturnOptions::ReturnAnyType,
@@ -126,7 +128,7 @@ fn evaluate_arithmetic_section<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
+) -> Result<Option<OwnedOrRefType<'a>>, String> {
     fn get_formatting_error() -> String {
         "Arithmetic sections must be formated [Operator] [Value], [Value] [Operator] [Value] or [Value] as [Type]".to_string()
     }
@@ -263,7 +265,7 @@ fn handle_single_symbol<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
+) -> Result<Option<OwnedOrRefType<'a>>, String> {
     match symbol {
         Symbol::Name(name) => {
             let variable = reference_stack.get_reference(name)?.get_variable_ref()?;
@@ -350,11 +352,11 @@ fn operator_not_implemented_error(
 // TODO: Consider removing unused arguments
 fn handle_prefix_operation<'a>(
     operator: &Operator,
-    operand: Either<Box<dyn Type>, &'a dyn Type>,
+    operand: OwnedOrRefType<'a>,
     return_options: &ReturnOptions,
     program_memory: &mut MemoryManager,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
+) -> Result<Option<OwnedOrRefType<'a>>, String> {
     unpack_either_type!(operand, operand);
 
     match return_options {
@@ -417,12 +419,12 @@ fn handle_prefix_operation<'a>(
 
 fn handle_operation<'a>(
     operator: &Operator,
-    lhs: Either<Box<dyn Type>, &'a dyn Type>,
-    rhs: Either<Box<dyn Type>, &'a dyn Type>,
+    lhs: OwnedOrRefType<'a>,
+    rhs: OwnedOrRefType<'a>,
     return_options: &ReturnOptions,
     program_memory: &mut MemoryManager,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
+) -> Result<Option<OwnedOrRefType<'a>>, String> {
     unpack_either_type!(lhs, lhs);
     unpack_either_type!(rhs, rhs);
 
@@ -491,7 +493,7 @@ fn handle_casting<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
+) -> Result<Option<OwnedOrRefType<'a>>, String> {
     match symbol {
         Symbol::Literal(literal) => {
             // ? Ignore cast if going into correct type
