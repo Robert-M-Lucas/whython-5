@@ -1,8 +1,8 @@
 pub mod base_block;
+pub mod class_block;
 pub mod function_block;
 pub mod if_block;
 pub mod while_block;
-pub mod class_block;
 
 use crate::memory::MemoryManager;
 use crate::processing::blocks::base_block::BaseBlock;
@@ -258,7 +258,11 @@ impl BlockCoordinator {
     }
 
     /// Registers a variable
-    pub fn register_reference(&mut self, reference: Reference, name: Vec<String>) -> Result<(), String> {
+    pub fn register_reference(
+        &mut self,
+        reference: Reference,
+        name: Vec<String>,
+    ) -> Result<(), String> {
         self.reference_stack.register_reference(reference, name)
     }
 

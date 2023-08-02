@@ -1,6 +1,8 @@
 use crate::bx;
 use crate::errors::create_line_error;
-use crate::processing::symbols::{get_all_symbol, Punctuation, Symbol, STRING_DELIMITERS, LIST_SEPARATOR_CHARACTER};
+use crate::processing::symbols::{
+    get_all_symbol, Punctuation, Symbol, LIST_SEPARATOR_CHARACTER, STRING_DELIMITERS,
+};
 
 pub const COMMENT_CHARACTER: char = '#';
 pub const OPEN_BRACKET_CHARACTER: char = '(';
@@ -51,16 +53,16 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
 
             buffer.push(c);
             continue;
-        }
-        else if STRING_DELIMITERS.contains(&c) {
+        } else if STRING_DELIMITERS.contains(&c) {
             buffer.push(c.clone());
             in_string = Some(c);
             continue;
         }
 
         //? Comments
-        if c == COMMENT_CHARACTER { break; }
-
+        if c == COMMENT_CHARACTER {
+            break;
+        }
 
         if bracket_depth == 0 && indexer_depth == 0 {
             match c {
@@ -68,12 +70,16 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
                 ' ' => {
                     process_buffer(&mut buffer, &mut symbol_line)?;
                     continue;
-                },
+                }
                 //? Process buffer, then process c
-                OPEN_BRACKET_CHARACTER | CLOSE_BRACKET_CHARACTER | OPEN_INDEXER_CHARACTER | CLOSE_INDEXER_CHARACTER | LIST_SEPARATOR_CHARACTER => {
+                OPEN_BRACKET_CHARACTER
+                | CLOSE_BRACKET_CHARACTER
+                | OPEN_INDEXER_CHARACTER
+                | CLOSE_INDEXER_CHARACTER
+                | LIST_SEPARATOR_CHARACTER => {
                     process_buffer(&mut buffer, &mut symbol_line)?;
                 }
-                _ => {},
+                _ => {}
             };
         }
 
@@ -106,7 +112,9 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
 
             match bracket_depth {
                 0 => {
-                    symbol_line.push(get_bracketed_symbols_type(get_symbols_from_line(buffer.as_str())?));
+                    symbol_line.push(get_bracketed_symbols_type(get_symbols_from_line(
+                        buffer.as_str(),
+                    )?));
                     buffer.clear();
                 }
                 i32::MIN..=-1 => {
@@ -141,7 +149,8 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
                 }
                 i32::MIN..=-1 => {
                     return Err(
-                        "Closing indexing bracket found with no corresponding opening bracket".to_string(),
+                        "Closing indexing bracket found with no corresponding opening bracket"
+                            .to_string(),
                     );
                 }
                 _ => {

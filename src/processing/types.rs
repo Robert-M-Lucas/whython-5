@@ -4,12 +4,12 @@ use self::boolean::BoolWrapper;
 
 mod defaults;
 use crate::address::Address;
+use crate::bx;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
 use crate::processing::instructions::copy_3::CopyInstruction;
-pub use defaults::*;
-use crate::bx;
 use crate::processing::types::pointer::PointerWrapper;
+pub use defaults::*;
 
 pub mod boolean;
 pub mod pointer;
@@ -133,10 +133,7 @@ pub struct TypeFactory {
 impl TypeFactory {
     pub fn get() -> Self {
         Self {
-            uninstantiated_types: vec![
-                bx!(BoolWrapper {}),
-                bx!(PointerWrapper {})
-            ],
+            uninstantiated_types: vec![bx!(BoolWrapper {}), bx!(PointerWrapper {})],
         }
     }
 

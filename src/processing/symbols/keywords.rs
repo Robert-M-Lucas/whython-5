@@ -23,7 +23,7 @@ impl Keyword {
             Keyword::ViewMemory => "viewmem",
             Keyword::ViewMemoryDecimal => "viewmemdec",
             Keyword::As => "as",
-            Keyword::Import => "import"
+            Keyword::Import => "import",
         }
     }
 }

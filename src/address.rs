@@ -99,7 +99,9 @@ impl Address {
             // ? Code + address length
             STACK_DIRECT_CODE | STACK_INDIRECT_CODE => ADDRESS_CODE_LENGTH + USIZE_BYTES,
             // ? Code + heap frame length + address length
-            HEAP_DIRECT_CODE | HEAP_INDIRECT_CODE => ADDRESS_CODE_LENGTH + USIZE_BYTES + USIZE_BYTES,
+            HEAP_DIRECT_CODE | HEAP_INDIRECT_CODE => {
+                ADDRESS_CODE_LENGTH + USIZE_BYTES + USIZE_BYTES
+            }
             //? Code + location address length + offset address length
             IMMEDIATE_INDEXED_CODE | STACK_INDEXED_CODE => {
                 let mut p = address + ADDRESS_CODE_LENGTH;
@@ -173,21 +175,21 @@ impl Address {
     pub fn stack_address_from_bytes(mut pointer: usize, data: &[u8]) -> Result<Address, String> {
         pointer += ADDRESS_CODE_LENGTH;
         match data[pointer - 1] {
-            STACK_DIRECT_CODE => {
-                Ok(Address::StackDirect(get_usize(&mut pointer, data)))
-            },
-            STACK_INDIRECT_CODE => {
-                Ok(Address::StackIndirect(get_usize(&mut pointer, data)))
-            },
+            STACK_DIRECT_CODE => Ok(Address::StackDirect(get_usize(&mut pointer, data))),
+            STACK_INDIRECT_CODE => Ok(Address::StackIndirect(get_usize(&mut pointer, data))),
             STACK_INDEXED_CODE => {
                 todo!();
             }
-            IMMEDIATE_CODE | IMMEDIATE_INDEXED_CODE => Err("Address [Immediate] is not a stack address".to_string()),
-            HEAP_DIRECT_CODE | HEAP_INDIRECT_CODE | HEAP_INDEXED_CODE => Err("Address [Heap] is not a stack address".to_string()),
+            IMMEDIATE_CODE | IMMEDIATE_INDEXED_CODE => {
+                Err("Address [Immediate] is not a stack address".to_string())
+            }
+            HEAP_DIRECT_CODE | HEAP_INDIRECT_CODE | HEAP_INDEXED_CODE => {
+                Err("Address [Heap] is not a stack address".to_string())
+            }
             _ => panic!("Invalid address code!"),
         }
     }
-    
+
     // TODO: Properly support heap memory
     /// Evaluates a pointer to find the final data it points to.
     ///

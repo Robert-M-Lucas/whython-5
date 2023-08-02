@@ -1,7 +1,7 @@
 #[must_use]
 pub enum MustUseOption<T> {
     Some(T),
-    None
+    None,
 }
 
 impl<T> MustUseOption<T> {
@@ -9,7 +9,7 @@ impl<T> MustUseOption<T> {
     pub fn unwrap(self) -> T {
         match self {
             MustUseOption::Some(t) => t,
-            MustUseOption::None => panic!("Called unwrap on None")
+            MustUseOption::None => panic!("Called unwrap on None"),
         }
     }
 }

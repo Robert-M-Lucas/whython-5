@@ -39,7 +39,7 @@ impl CopyInstruction {
 
         Self { address }
     }
-    
+
     pub fn get_source_address(&self) -> usize {
         self.address + INSTRUCTION_CODE_LENGTH + USIZE_BYTES
     }

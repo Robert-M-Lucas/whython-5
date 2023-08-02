@@ -83,8 +83,7 @@ fn wrapped_main(exit: &AtomicBool) {
                         e.to_string(),
                         DEFAULT_FILE_NAME
                     );
-                }
-                else {
+                } else {
                     col_println!(
                         (red, bold),
                         "Error reading file '{}' - {}",
@@ -135,7 +134,7 @@ fn wrapped_main(exit: &AtomicBool) {
                 .expect("Unable to open file");
 
             write
-                .write(lexical_result.as_str().as_ref())
+                .write_all(lexical_result.as_str().as_ref())
                 .expect("Failed to write to file");
         }
 
@@ -178,7 +177,11 @@ fn wrapped_main(exit: &AtomicBool) {
             }
             Ok(value) => value,
         };
-        col_println!((green, bold), "Precompiled data loaded [{:?}]", start.elapsed());
+        col_println!(
+            (green, bold),
+            "Precompiled data loaded [{:?}]",
+            start.elapsed()
+        );
     } else {
         col_println!((red, bold), "Unrecognised extension '{}'", extension);
         return;

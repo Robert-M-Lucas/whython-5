@@ -39,8 +39,6 @@ impl LineHandler for CallLine {
             _ => panic!(),
         };
 
-
-
         // let (function_reference, offset) = q!(block_coordinator.get_reference_and_offset(name));
 
         let (stack_sizes, reference_stack) =
@@ -48,18 +46,16 @@ impl LineHandler for CallLine {
 
         let function_reference = q!(q!(reference_stack.get_reference(name)).get_function_ref());
 
-        let incomplete_function_call = q!(
-            function_reference.call(
-                None,
-                args,
-                program_memory,
-                reference_stack,
-                stack_sizes
-            )
-        );
+        let incomplete_function_call =
+            q!(function_reference.call(None, args, program_memory, reference_stack, stack_sizes));
 
         if let MustUseOption::Some(incomplete_function_call) = incomplete_function_call {
-            reference_stack.get_reference_mut(name).unwrap().get_function_mut().unwrap().add_incomplete_function_call(incomplete_function_call);
+            reference_stack
+                .get_reference_mut(name)
+                .unwrap()
+                .get_function_mut()
+                .unwrap()
+                .add_incomplete_function_call(incomplete_function_call);
         }
 
         // q!(reference_stack.register_reference_with_offset(function_reference, offset));

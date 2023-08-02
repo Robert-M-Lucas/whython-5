@@ -16,14 +16,17 @@ use crate::util::must_use_option::MustUseOption;
 #[must_use]
 pub struct IncompleteFunctionCall {
     stack_create_instruction: StackCreateInstruction,
-    copy_instructions_to_offset: Vec<CopyInstruction>
+    copy_instructions_to_offset: Vec<CopyInstruction>,
 }
 
 impl IncompleteFunctionCall {
-    pub fn new(stack_create_instruction: StackCreateInstruction, copy_instructions_to_offset: Vec<CopyInstruction>) -> Self {
+    pub fn new(
+        stack_create_instruction: StackCreateInstruction,
+        copy_instructions_to_offset: Vec<CopyInstruction>,
+    ) -> Self {
         Self {
             stack_create_instruction,
-            copy_instructions_to_offset
+            copy_instructions_to_offset,
         }
     }
 }
@@ -33,7 +36,7 @@ pub struct FunctionReference {
     return_pointer: PointerType,
     parameters: Vec<(String, Box<dyn Type>)>,
     stack_size: Option<usize>,
-    incomplete_function_calls: Vec<IncompleteFunctionCall>
+    incomplete_function_calls: Vec<IncompleteFunctionCall>,
 }
 
 impl FunctionReference {
@@ -48,20 +51,30 @@ impl FunctionReference {
             return_pointer,
             parameters,
             stack_size,
-            incomplete_function_calls: Vec::new()
+            incomplete_function_calls: Vec::new(),
         }
     }
 
-    pub fn set_stack_size_and_complete(&mut self, new_size: usize, program_memory: &mut MemoryManager) {
+    pub fn set_stack_size_and_complete(
+        &mut self,
+        new_size: usize,
+        program_memory: &mut MemoryManager,
+    ) {
         self.stack_size = Some(new_size);
         self.complete(program_memory);
     }
 
     fn complete(&mut self, program_memory: &mut MemoryManager) {
         for to_complete in &mut self.incomplete_function_calls {
-            to_complete.stack_create_instruction.set_stack_size(self.stack_size.unwrap(), program_memory);
+            to_complete
+                .stack_create_instruction
+                .set_stack_size(self.stack_size.unwrap(), program_memory);
             for copy_instruction in &to_complete.copy_instructions_to_offset {
-                let mut address = Address::stack_address_from_bytes(copy_instruction.get_source_address(), &program_memory.memory).unwrap();
+                let mut address = Address::stack_address_from_bytes(
+                    copy_instruction.get_source_address(),
+                    &program_memory.memory,
+                )
+                .unwrap();
                 address.offset_if_stack(self.stack_size.unwrap());
                 copy_instruction.set_source(&address, program_memory);
             }
@@ -117,10 +130,10 @@ impl FunctionReference {
             if let Some(stack_size) = self.stack_size {
                 t.get_address_mut().offset_if_stack(stack_size); // Offset to account for new stack
                 self.parameters[i].1.runtime_copy_from(&t, program_memory)?; // Copy into parameter
-            }
-            else {
+            } else {
                 // Copy into parameter
-                copy_instructions_to_offset.push(self.parameters[i].1.runtime_copy_from(&t, program_memory)?);
+                copy_instructions_to_offset
+                    .push(self.parameters[i].1.runtime_copy_from(&t, program_memory)?);
             }
         }
 
@@ -141,14 +154,20 @@ impl FunctionReference {
         StackDownInstruction::new_alloc(program_memory);
 
         if self.stack_size.is_none() {
-            Ok(MustUseOption::Some(IncompleteFunctionCall::new(stack_create_instruction, copy_instructions_to_offset)))
-        }
-        else {
+            Ok(MustUseOption::Some(IncompleteFunctionCall::new(
+                stack_create_instruction,
+                copy_instructions_to_offset,
+            )))
+        } else {
             Ok(MustUseOption::None)
         }
     }
-    
-    pub fn add_incomplete_function_call(&mut self, incomplete_function_call: IncompleteFunctionCall) {
-        self.incomplete_function_calls.push(incomplete_function_call)
+
+    pub fn add_incomplete_function_call(
+        &mut self,
+        incomplete_function_call: IncompleteFunctionCall,
+    ) {
+        self.incomplete_function_calls
+            .push(incomplete_function_call)
     }
 }

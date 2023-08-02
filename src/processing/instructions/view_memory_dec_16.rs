@@ -58,15 +58,13 @@ impl Execute for ViewMemoryDecInstruction {
                 print!("{:02X}", i);
             }
             println!();
-        }
-        else {
+        } else {
             let len = data.len();
             let mut data_full = Vec::with_capacity(16);
             for i in 0..16 {
                 if i < len {
                     data_full.push(data[i]);
-                }
-                else {
+                } else {
                     data_full.push(0);
                 }
             }

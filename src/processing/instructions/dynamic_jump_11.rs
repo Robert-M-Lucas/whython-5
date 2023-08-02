@@ -1,8 +1,6 @@
 use crate::address::Address;
 use crate::memory::{MemoryLocation, MemoryManager, RuntimeMemoryManager};
-use crate::processing::instructions::{
-    Execute, Instruction, InstructionCodeType,
-};
+use crate::processing::instructions::{Execute, Instruction, InstructionCodeType};
 use crate::util::USIZE_BYTES;
 use std::usize;
 

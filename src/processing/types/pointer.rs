@@ -2,15 +2,19 @@ use crate::address::Address;
 use crate::errors::create_literal_not_impl_error;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
+use crate::processing::instructions::add_instruction_13::AddInstruction;
+use crate::processing::instructions::binary_not_7::BinaryNotInstruction;
 use crate::processing::instructions::copy_3::CopyInstruction;
+use crate::processing::instructions::equality_14::EqualityInstruction;
+use crate::processing::instructions::not_equal_15::NotEqualInstruction;
 use crate::processing::symbols::Literal;
 use crate::processing::types::{Operation, Type};
 use crate::util::{warn, USIZE_BYTES};
-use crate::{bx, default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl, default_type_struct, default_type_wrapper_struct_and_impl, processing::symbols::{Operator, TypeSymbol}};
-use crate::processing::instructions::add_instruction_13::AddInstruction;
-use crate::processing::instructions::binary_not_7::BinaryNotInstruction;
-use crate::processing::instructions::equality_14::EqualityInstruction;
-use crate::processing::instructions::not_equal_15::NotEqualInstruction;
+use crate::{
+    bx, default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl,
+    default_type_struct, default_type_wrapper_struct_and_impl,
+    processing::symbols::{Operator, TypeSymbol},
+};
 
 default_type_wrapper_struct_and_impl!(PointerWrapper, PointerType, TypeSymbol::Pointer);
 default_type_struct!(PointerType);
@@ -53,15 +57,11 @@ impl Type for PointerType {
             Literal::Int(value) => {
                 let ptr: Result<usize, _> = value.clone().try_into();
                 if let Ok(ptr) = ptr {
-                    Ok(Address::Immediate(Vec::from(
-                        ptr.to_le_bytes(),
-                    )))
-                }
-                else {
+                    Ok(Address::Immediate(Vec::from(ptr.to_le_bytes())))
+                } else {
                     Err(format!("The value ({}) can't fit into a {} (the value must be greater than zero and fit within your platform pointer width [{} bytes])", *value, self.get_type_symbol(), USIZE_BYTES))
                 }
-                }
-                ,
+            }
             other => create_literal_not_impl_error(other, self.get_type_symbol()),
         }
     }
@@ -72,14 +72,12 @@ impl Type for PointerType {
         program_memory: &mut MemoryManager,
     ) -> Result<CopyInstruction, String> {
         match other.get_type_symbol() {
-            TypeSymbol::Pointer => {
-                Ok(CopyInstruction::new_alloc(
-                    program_memory,
-                    other.get_address(),
-                    self.address.as_ref().unwrap(),
-                    USIZE_BYTES,
-                ))
-            }
+            TypeSymbol::Pointer => Ok(CopyInstruction::new_alloc(
+                program_memory,
+                other.get_address(),
+                self.address.as_ref().unwrap(),
+                USIZE_BYTES,
+            )),
             s => Err(format!(
                 "Copy not implemented from type '{}' to '{}'",
                 s,
@@ -187,11 +185,24 @@ impl Operation<PointerType> for Subtract {
         assert_eq!(rhs.get_type_symbol(), TypeSymbol::Pointer);
 
         let mut magic_number = PointerType::new();
-        magic_number.allocate_variable(stack_sizes, program_memory).unwrap();
+        magic_number
+            .allocate_variable(stack_sizes, program_memory)
+            .unwrap();
         //? Not the subtracted value
-        BinaryNotInstruction::new_alloc(program_memory, rhs.get_address(), magic_number.get_address(), USIZE_BYTES);
+        BinaryNotInstruction::new_alloc(
+            program_memory,
+            rhs.get_address(),
+            magic_number.get_address(),
+            USIZE_BYTES,
+        );
         //? Add one to the magic number
-        AddInstruction::new_alloc(program_memory, magic_number.get_address(), &Address::Immediate(Vec::from(1usize.to_le_bytes())), magic_number.get_address(), USIZE_BYTES);
+        AddInstruction::new_alloc(
+            program_memory,
+            magic_number.get_address(),
+            &Address::Immediate(Vec::from(1usize.to_le_bytes())),
+            magic_number.get_address(),
+            USIZE_BYTES,
+        );
 
         let (address_from, length) = (lhs.get_address(), lhs.get_length());
         AddInstruction::new_alloc(
@@ -231,7 +242,6 @@ impl Operation<PointerType> for Equal {
         assert_eq!(destination.get_type_symbol(), TypeSymbol::Boolean);
         assert_eq!(rhs.get_type_symbol(), TypeSymbol::Pointer);
 
-
         let (address_from, length) = (lhs.get_address(), lhs.get_length());
         EqualityInstruction::new_alloc(
             program_memory,
@@ -269,7 +279,6 @@ impl Operation<PointerType> for NotEqual {
     ) -> Result<(), String> {
         assert_eq!(destination.get_type_symbol(), TypeSymbol::Boolean);
         assert_eq!(rhs.get_type_symbol(), TypeSymbol::Pointer);
-
 
         let (address_from, length) = (lhs.get_address(), lhs.get_length());
         NotEqualInstruction::new_alloc(

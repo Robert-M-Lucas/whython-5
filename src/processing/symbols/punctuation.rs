@@ -14,8 +14,7 @@ impl SymbolHandler for PunctuationSymbolHandler {
     fn get_symbol(string: &str) -> Option<Symbol> {
         if string.len() == 1 && string.starts_with(LIST_SEPARATOR_CHARACTER) {
             Some(Symbol::Punctuation(Punctuation::ListSeparator))
-        }
-        else {
+        } else {
             None
         }
     }

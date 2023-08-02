@@ -1,21 +1,21 @@
 use crate::memory::RuntimeMemoryManager;
 
+pub mod add_instruction_13;
 pub mod binary_and_8;
 pub mod binary_not_7;
+pub mod binary_or_12;
 pub mod copy_3;
 pub mod dump_5;
 pub mod dynamic_jump_11;
+pub mod equality_14;
 pub mod heap_alloc_2;
 pub mod jump_if_not_9;
 pub mod jump_instruction_10;
-pub mod view_memory_6;
+pub mod not_equal_15;
 pub mod stack_create_0;
 pub mod stack_down_4;
 pub mod stack_up_1;
-pub mod binary_or_12;
-pub mod add_instruction_13;
-pub mod equality_14;
-pub mod not_equal_15;
+pub mod view_memory_6;
 pub mod view_memory_dec_16;
 
 pub type InstructionCodeType = u16;

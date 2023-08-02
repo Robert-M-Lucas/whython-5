@@ -1,9 +1,9 @@
 use crate::bx;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::{BlockHandler, StackSizes};
-use crate::processing::reference_manager::{Reference, ReferenceStack};
 use crate::processing::reference_manager::class::ClassReference;
-use crate::processing::symbols::{Block, CLASS_SELF_NAME, Symbol};
+use crate::processing::reference_manager::{Reference, ReferenceStack};
+use crate::processing::symbols::{Block, Symbol, CLASS_SELF_NAME};
 
 pub struct ClassBlock {
     name: Option<String>,
@@ -11,9 +11,7 @@ pub struct ClassBlock {
 
 impl ClassBlock {
     pub fn new_block() -> Box<dyn BlockHandler> {
-        bx!(Self {
-            name: None
-        })
+        bx!(Self { name: None })
     }
 }
 
@@ -26,7 +24,10 @@ impl BlockHandler for ClassBlock {
         symbol_line: &[Symbol],
     ) -> Result<(), String> {
         if symbol_line.len() != 2 {
-            return Err(format!("Class declaration must be formatted {} [Name]", Block::Class.get_code_representation()));
+            return Err(format!(
+                "Class declaration must be formatted {} [Name]",
+                Block::Class.get_code_representation()
+            ));
         }
 
         let name = match &symbol_line[1] {
@@ -35,13 +36,24 @@ impl BlockHandler for ClassBlock {
                     return Err("Class names cannot have separators".to_string());
                 }
                 name[0].clone()
-            },
-            _ => return Err(format!("Class declaration must be formatted {} [Name]", Block::Class.get_code_representation()))
+            }
+            _ => {
+                return Err(format!(
+                    "Class declaration must be formatted {} [Name]",
+                    Block::Class.get_code_representation()
+                ))
+            }
         };
 
         self.name = Some(name);
 
-        reference_stack.register_reference_with_offset(Reference::Class(ClassReference::new()), vec![CLASS_SELF_NAME.to_string()], 1).unwrap();
+        reference_stack
+            .register_reference_with_offset(
+                Reference::Class(ClassReference::new()),
+                vec![CLASS_SELF_NAME.to_string()],
+                1,
+            )
+            .unwrap();
 
         Ok(())
     }
@@ -52,7 +64,10 @@ impl BlockHandler for ClassBlock {
         reference_stack: &mut ReferenceStack,
         stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
-        reference_stack.get_reference_handler_mut(&[CLASS_SELF_NAME.to_string()]).unwrap().name = self.name.take().unwrap();
+        reference_stack
+            .get_reference_handler_mut(&[CLASS_SELF_NAME.to_string()])
+            .unwrap()
+            .name = self.name.take().unwrap();
         Ok(())
     }
 }

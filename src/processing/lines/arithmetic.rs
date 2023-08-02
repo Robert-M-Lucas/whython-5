@@ -181,10 +181,19 @@ fn evaluate_arithmetic_section<'a>(
                 Symbol::Keyword(Keyword::As) => {
                     let type_symbol = match &section[2] {
                         Symbol::Type(type_symbol) => type_symbol,
-                        _ => { return Err(get_formatting_error()); }
+                        _ => {
+                            return Err(get_formatting_error());
+                        }
                     };
 
-                    handle_casting(&section[0], type_symbol, return_options, program_memory, reference_stack, stack_sizes)
+                    handle_casting(
+                        &section[0],
+                        type_symbol,
+                        return_options,
+                        program_memory,
+                        reference_stack,
+                        stack_sizes,
+                    )
                 }
                 // ? Normal operation
                 Symbol::Operator(operator) => {
@@ -194,7 +203,8 @@ fn evaluate_arithmetic_section<'a>(
                         program_memory,
                         reference_stack,
                         stack_sizes,
-                    )?.unwrap();
+                    )?
+                    .unwrap();
 
                     let rhs = handle_single_symbol(
                         &section[2],
@@ -203,7 +213,7 @@ fn evaluate_arithmetic_section<'a>(
                         reference_stack,
                         stack_sizes,
                     )?
-                        .unwrap();
+                    .unwrap();
 
                     handle_operation(
                         operator,
@@ -214,7 +224,9 @@ fn evaluate_arithmetic_section<'a>(
                         stack_sizes,
                     )
                 }
-                _ => { return Err(get_formatting_error()); }
+                _ => {
+                    return Err(get_formatting_error());
+                }
             }
         }
     }
@@ -254,9 +266,7 @@ fn handle_single_symbol<'a>(
 ) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
     match symbol {
         Symbol::Name(name) => {
-            let variable = reference_stack
-                .get_reference(name)?
-                .get_variable_ref()?;
+            let variable = reference_stack.get_reference(name)?.get_variable_ref()?;
             match return_options {
                 ReturnOptions::ReturnIntoType(output) => {
                     //, run_before_last_step, offset) => {
@@ -269,9 +279,7 @@ fn handle_single_symbol<'a>(
                 ReturnOptions::ReturnAnyType => Ok(Some(Right(variable))),
                 ReturnOptions::ReturnTypes(types) => {
                     let variable_type = variable.get_type_symbol();
-                    if types.len() != 0
-                        && types.iter().find(|t| **t == variable_type).is_none()
-                    {
+                    if types.len() != 0 && types.iter().find(|t| **t == variable_type).is_none() {
                         Err(incorrect_type_error(types, &[variable_type]))
                     } else {
                         Ok(Some(Right(variable)))
@@ -304,11 +312,7 @@ fn handle_single_symbol<'a>(
                         program_memory,
                     )?;
                     let default_type_type = default_type.get_type_symbol();
-                    if types.len() != 0
-                        && types
-                            .iter()
-                            .find(|t| **t == default_type_type)
-                            .is_none()
+                    if types.len() != 0 && types.iter().find(|t| **t == default_type_type).is_none()
                     {
                         Err(incorrect_type_error(types, &[default_type_type]))
                     } else {
@@ -480,9 +484,14 @@ fn handle_operation<'a>(
     }
 }
 
-fn handle_casting<'a>(symbol: &Symbol, type_symbol: &TypeSymbol, return_options: &ReturnOptions,
-                      program_memory: &mut MemoryManager, reference_stack: &ReferenceStack,
-                      stack_sizes: &mut StackSizes) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
+fn handle_casting<'a>(
+    symbol: &Symbol,
+    type_symbol: &TypeSymbol,
+    return_options: &ReturnOptions,
+    program_memory: &mut MemoryManager,
+    reference_stack: &ReferenceStack,
+    stack_sizes: &mut StackSizes,
+) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
     match symbol {
         Symbol::Literal(literal) => {
             // ? Ignore cast if going into correct type
@@ -490,7 +499,7 @@ fn handle_casting<'a>(symbol: &Symbol, type_symbol: &TypeSymbol, return_options:
                 ReturnOptions::ReturnIntoType(output) => {
                     if output.get_type_symbol() == *type_symbol {
                         output.runtime_copy_from_literal(literal, program_memory)?;
-                        return Ok(None)
+                        return Ok(None);
                     }
                 }
                 _ => {}
@@ -504,24 +513,26 @@ fn handle_casting<'a>(symbol: &Symbol, type_symbol: &TypeSymbol, return_options:
                 ReturnOptions::ReturnIntoType(output) => {
                     output.runtime_copy_from(&new_type, program_memory)?;
                     Ok(None)
-                },
+                }
                 ReturnOptions::ReturnTypes(return_types) => {
                     if return_types.iter().find(|t| **t == *type_symbol).is_some() {
                         Ok(Some(Left(new_type)))
-                    }
-                    else {
+                    } else {
                         let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;
                         return_type.runtime_copy_from(&new_type, program_memory)?;
                         Ok(Some(Left(return_type)))
                     }
-                },
-                ReturnOptions::ReturnAnyType => {
-                    Ok(Some(Left(new_type)))
                 }
+                ReturnOptions::ReturnAnyType => Ok(Some(Left(new_type))),
             }
-        },
+        }
         _ => {
-            let value = evaluate_arithmetic_to_any_type(&[symbol.clone()], program_memory, reference_stack, stack_sizes)?;
+            let value = evaluate_arithmetic_to_any_type(
+                &[symbol.clone()],
+                program_memory,
+                reference_stack,
+                stack_sizes,
+            )?;
             unpack_either_type!(value, value);
 
             // ? Ignore cast if going into correct type
@@ -529,7 +540,7 @@ fn handle_casting<'a>(symbol: &Symbol, type_symbol: &TypeSymbol, return_options:
                 ReturnOptions::ReturnIntoType(output) => {
                     if output.get_type_symbol() == *type_symbol {
                         output.runtime_copy_from(value, program_memory)?;
-                        return Ok(None)
+                        return Ok(None);
                     }
                 }
                 _ => {}
@@ -543,20 +554,17 @@ fn handle_casting<'a>(symbol: &Symbol, type_symbol: &TypeSymbol, return_options:
                 ReturnOptions::ReturnIntoType(output) => {
                     output.runtime_copy_from(&new_type, program_memory)?;
                     Ok(None)
-                },
+                }
                 ReturnOptions::ReturnTypes(return_types) => {
                     if return_types.iter().find(|t| **t == *type_symbol).is_some() {
                         Ok(Some(Left(new_type)))
-                    }
-                    else {
+                    } else {
                         let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;
                         return_type.runtime_copy_from(&new_type, program_memory)?;
                         Ok(Some(Left(return_type)))
                     }
-                },
-                ReturnOptions::ReturnAnyType => {
-                    Ok(Some(Left(new_type)))
                 }
+                ReturnOptions::ReturnAnyType => Ok(Some(Left(new_type))),
             }
         }
     }

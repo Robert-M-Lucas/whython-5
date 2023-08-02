@@ -35,7 +35,7 @@ pub enum Reference {
 pub struct ReferenceHandler {
     pub name: String,
     reference: Reference,
-    sub_references: Vec<ReferenceHandler>
+    sub_references: Vec<ReferenceHandler>,
 }
 
 impl ReferenceHandler {
@@ -43,7 +43,7 @@ impl ReferenceHandler {
         Self {
             name,
             reference,
-            sub_references: Vec::new()
+            sub_references: Vec::new(),
         }
     }
 
@@ -55,25 +55,36 @@ impl ReferenceHandler {
     }
 
     pub fn add_sub_reference(&mut self, reference: Reference, name: String) -> &ReferenceHandler {
-        self.sub_references.push(
-            ReferenceHandler::new(reference, name)
-        );
+        self.sub_references
+            .push(ReferenceHandler::new(reference, name));
         self.sub_references.last().unwrap()
     }
 
     /// Searches for a reference. If the top level fails, returns `Err(None)`. If a lower level fails, returns `Err([error])`
-    pub fn get_reference(&self, name: &[String], depth: usize) -> Result<&Reference, Option<String>> {
+    pub fn get_reference(
+        &self,
+        name: &[String],
+        depth: usize,
+    ) -> Result<&Reference, Option<String>> {
         Ok(self.get_reference_handler(name, depth)?.reference())
     }
 
     /// Searches for a reference. If the top level fails, returns `Err(None)`. If a lower level fails, returns `Err([error])`
-    pub fn get_reference_mut(&mut self, name: &[String], depth: usize) -> Result<&mut Reference, Option<String>> {
+    pub fn get_reference_mut(
+        &mut self,
+        name: &[String],
+        depth: usize,
+    ) -> Result<&mut Reference, Option<String>> {
         Ok(self.get_reference_handler_mut(name, depth)?.reference_mut())
     }
 
-    pub fn get_reference_handler(&self, name: &[String], depth: usize) -> Result<&ReferenceHandler, Option<String>> {
+    pub fn get_reference_handler(
+        &self,
+        name: &[String],
+        depth: usize,
+    ) -> Result<&ReferenceHandler, Option<String>> {
         if name[depth] != self.name {
-            return Err(None)
+            return Err(None);
         }
 
         if name.len() - 1 == depth {
@@ -84,19 +95,24 @@ impl ReferenceHandler {
             for sub_reference in &self.sub_references {
                 let result = sub_reference.get_reference_handler(name, depth + 1);
                 match result {
-                    Ok(_) | Err(Some(_)) => { return result; }
+                    Ok(_) | Err(Some(_)) => {
+                        return result;
+                    }
                     Err(None) => {}
                 };
             }
         }
 
-
         Err(Some(cant_find_reference_error(name, depth + 1)))
     }
 
-    pub fn get_reference_handler_mut(&mut self, name: &[String], depth: usize) -> Result<&mut ReferenceHandler, Option<String>> {
+    pub fn get_reference_handler_mut(
+        &mut self,
+        name: &[String],
+        depth: usize,
+    ) -> Result<&mut ReferenceHandler, Option<String>> {
         if name[depth] != self.name {
-            return Err(None)
+            return Err(None);
         }
 
         if name.len() - 1 == depth {
@@ -107,12 +123,13 @@ impl ReferenceHandler {
             for sub_reference in &mut self.sub_references {
                 let result = sub_reference.get_reference_handler_mut(name, depth + 1);
                 match result {
-                    Ok(_) | Err(Some(_)) => { return result; }
+                    Ok(_) | Err(Some(_)) => {
+                        return result;
+                    }
                     Err(None) => {}
                 };
             }
         }
-
 
         Err(Some(cant_find_reference_error(name, depth + 1)))
     }
@@ -142,10 +159,8 @@ impl Reference {
 
     pub fn clone_variable(&self) -> Result<Reference, String> {
         match &self {
-            Reference::Variable(t) => {
-                Ok(Reference::Variable(t.duplicate()))
-            },
-            _ => Err("Reference not a variable".to_string())
+            Reference::Variable(t) => Ok(Reference::Variable(t.duplicate())),
+            _ => Err("Reference not a variable".to_string()),
         }
     }
 
@@ -213,12 +228,18 @@ impl ReferenceStack {
     }
 
     /// Registers a variable
-    pub fn register_reference(&mut self, reference: Reference, name: Vec<String>) -> Result<(), String> {
+    pub fn register_reference(
+        &mut self,
+        reference: Reference,
+        name: Vec<String>,
+    ) -> Result<(), String> {
         if name.len() == 1 {
-            self.stack.last_mut().unwrap().register_reference(reference, name)
-        }
-        else {
-            let handler = self.get_reference_handler_mut(&name[..(name.len()-1)])?;
+            self.stack
+                .last_mut()
+                .unwrap()
+                .register_reference(reference, name)
+        } else {
+            let handler = self.get_reference_handler_mut(&name[..(name.len() - 1)])?;
             handler.add_sub_reference(reference, name.into_iter().last().unwrap());
             Ok(())
         }
@@ -248,9 +269,7 @@ impl ReferenceStack {
                     }
                     return Ok(r);
                 }
-                Err(e) => {
-                    return Err(e)
-                }
+                Err(e) => return Err(e),
                 Ok(None) => {}
             }
             if i == 0 {
@@ -274,9 +293,7 @@ impl ReferenceStack {
                     }
                     return Ok((r, self.stack.len() - 1 - i));
                 }
-                Err(e) => {
-                    return Err(e)
-                }
+                Err(e) => return Err(e),
                 Ok(None) => {}
             }
             if i == 0 {
@@ -304,9 +321,7 @@ impl ReferenceStack {
                     let r = self.stack[i].get_reference_mut(name).unwrap().unwrap();
                     return Ok(r);
                 }
-                Err(e) => {
-                    return Err(e)
-                }
+                Err(e) => return Err(e),
                 Ok(None) => {}
             }
 
@@ -331,9 +346,7 @@ impl ReferenceStack {
                     }
                     return Ok(r);
                 }
-                Err(e) => {
-                    return Err(e)
-                }
+                Err(e) => return Err(e),
                 Ok(None) => {}
             }
             if i == 0 {
@@ -346,7 +359,10 @@ impl ReferenceStack {
     }
 
     /// Searches for a variable going up the reference stack
-    pub fn get_reference_handler_mut<'a>(&mut self, name: &[String]) -> Result<&mut ReferenceHandler, String> {
+    pub fn get_reference_handler_mut<'a>(
+        &mut self,
+        name: &[String],
+    ) -> Result<&mut ReferenceHandler, String> {
         //? Go up the stack and search for a variable
 
         let mut i = self.stack.len() - 1;
@@ -358,12 +374,13 @@ impl ReferenceStack {
                     }
                     // TODO
                     //? Redundant function call to appease borrow checkers
-                    let r = self.stack[i].get_reference_handler_mut(name).unwrap().unwrap();
+                    let r = self.stack[i]
+                        .get_reference_handler_mut(name)
+                        .unwrap()
+                        .unwrap();
                     return Ok(r);
                 }
-                Err(e) => {
-                    return Err(e)
-                }
+                Err(e) => return Err(e),
                 Ok(None) => {}
             }
 
@@ -425,7 +442,11 @@ impl ReferenceManager {
     }
 
     /// Registers a variable
-    pub fn register_reference(&mut self, reference: Reference, name: Vec<String>) -> Result<(), String> {
+    pub fn register_reference(
+        &mut self,
+        reference: Reference,
+        name: Vec<String>,
+    ) -> Result<(), String> {
         if matches!(self.get_reference(&name), Ok(Some(_))) {
             return Err(format!(
                 "Reference with name '{}' already exists",
@@ -436,13 +457,11 @@ impl ReferenceManager {
         if name.len() == 1 {
             let name = name.into_iter().next().unwrap();
             self.references.push(ReferenceHandler::new(reference, name));
-        }
-        else {
-            let handler = self.get_reference_handler_mut(&name[..(name.len()-1)])?;
+        } else {
+            let handler = self.get_reference_handler_mut(&name[..(name.len() - 1)])?;
             if let Some(handler) = handler {
                 handler.add_sub_reference(reference, name.into_iter().last().unwrap());
-            }
-            else {
+            } else {
                 return Err(cant_find_reference_error(&name, 0));
             }
         }
@@ -476,7 +495,10 @@ impl ReferenceManager {
     }
 
     /// Returns the `Some(variable)` if it exists. If not, returns `None`
-    pub fn get_reference_handler(&self, name: &[String]) -> Result<Option<&ReferenceHandler>, String> {
+    pub fn get_reference_handler(
+        &self,
+        name: &[String],
+    ) -> Result<Option<&ReferenceHandler>, String> {
         for reference in &self.references {
             match reference.get_reference_handler(name, 0) {
                 Ok(reference) => return Ok(Some(reference)),
@@ -489,7 +511,10 @@ impl ReferenceManager {
     }
 
     /// Returns the `Some(variable)` if it exists. If not, returns `None`
-    pub fn get_reference_handler_mut(&mut self, name: &[String]) -> Result<Option<&mut ReferenceHandler>, String> {
+    pub fn get_reference_handler_mut(
+        &mut self,
+        name: &[String],
+    ) -> Result<Option<&mut ReferenceHandler>, String> {
         for reference in &mut self.references {
             match reference.get_reference_handler_mut(name, 0) {
                 Ok(reference) => return Ok(Some(reference)),

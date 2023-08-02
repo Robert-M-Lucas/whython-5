@@ -7,9 +7,9 @@ mod operators;
 mod punctuation;
 mod types;
 
-use strum::IntoEnumIterator;
 pub use assigners::Assigner;
 use assigners::AssignerSymbolHandler;
+use strum::IntoEnumIterator;
 
 pub use literals::Literal;
 use literals::LiteralSymbolHandler;
@@ -148,7 +148,9 @@ impl AllSymbolHandler {
             .or_else(|| PunctuationSymbolHandler::get_symbol(string))
             .or_else(|| KeywordSymbolHandler::get_symbol(string));
 
-        if r.is_some() { return Ok(r); }
+        if r.is_some() {
+            return Ok(r);
+        }
 
         for c in string.chars() {
             if c != NAME_SEPARATOR && !ALLOWED_CHARS_IN_NAME.contains(c) {
@@ -163,11 +165,15 @@ impl AllSymbolHandler {
 
         for part in &name {
             for forbidden_name in FORBIDDEN_NAMES {
-                if part == forbidden_name { return Err(format!("Name '{}' is reserved", part)); }
+                if part == forbidden_name {
+                    return Err(format!("Name '{}' is reserved", part));
+                }
             }
 
             for keyword in Keyword::iter() {
-                if part == keyword.get_code_representation() { return Err(format!("Name '{}' is reserved", part)); }
+                if part == keyword.get_code_representation() {
+                    return Err(format!("Name '{}' is reserved", part));
+                }
             }
 
             // for keyword in Block::iter() {

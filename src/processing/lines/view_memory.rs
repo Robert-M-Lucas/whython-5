@@ -22,15 +22,17 @@ impl LineHandler for ViewMemoryLine {
 
         let dec;
         match line[0] {
-            Symbol::Keyword(Keyword::ViewMemory) => { dec = false; }
-            Symbol::Keyword(Keyword::ViewMemoryDecimal) => { dec = true; }
+            Symbol::Keyword(Keyword::ViewMemory) => {
+                dec = false;
+            }
+            Symbol::Keyword(Keyword::ViewMemoryDecimal) => {
+                dec = true;
+            }
             _ => return ProcessingResult::Unmatched,
         };
 
         if line.len() != 2 {
-            return ProcessingResult::Failure(
-                "viewmem must be followed by a variable".to_string(),
-            );
+            return ProcessingResult::Failure("viewmem must be followed by a variable".to_string());
         }
 
         let variable = match &line[1] {
@@ -46,11 +48,9 @@ impl LineHandler for ViewMemoryLine {
 
         if dec {
             ViewMemoryDecInstruction::new_alloc(program_memory, variable);
-        }
-        else {
+        } else {
             ViewMemoryInstruction::new_alloc(program_memory, variable);
         }
-
 
         return ProcessingResult::Success;
     }

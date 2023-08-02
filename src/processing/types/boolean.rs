@@ -4,12 +4,16 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
 use crate::processing::instructions::binary_and_8::BinaryAndInstruction;
 use crate::processing::instructions::binary_not_7::BinaryNotInstruction;
+use crate::processing::instructions::binary_or_12::BinaryOrInstruction;
 use crate::processing::instructions::copy_3::CopyInstruction;
 use crate::processing::symbols::Literal;
 use crate::processing::types::PrefixOperation;
 use crate::util::warn;
-use crate::{bx, default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl, default_type_struct, default_type_wrapper_struct_and_impl, processing::symbols::{Operator, TypeSymbol}};
-use crate::processing::instructions::binary_or_12::BinaryOrInstruction;
+use crate::{
+    bx, default_get_type_symbol_impl, default_type_initialiser, default_type_operate_impl,
+    default_type_struct, default_type_wrapper_struct_and_impl,
+    processing::symbols::{Operator, TypeSymbol},
+};
 
 use super::{Operation, Type};
 
@@ -72,14 +76,12 @@ impl Type for BoolType {
         program_memory: &mut MemoryManager,
     ) -> Result<CopyInstruction, String> {
         match other.get_type_symbol() {
-            TypeSymbol::Boolean => {
-                Ok(CopyInstruction::new_alloc(
-                    program_memory,
-                    other.get_address(),
-                    self.address.as_ref().unwrap(),
-                    BOOLEAN_SIZE,
-                ))
-            }
+            TypeSymbol::Boolean => Ok(CopyInstruction::new_alloc(
+                program_memory,
+                other.get_address(),
+                self.address.as_ref().unwrap(),
+                BOOLEAN_SIZE,
+            )),
             s => Err(format!(
                 "Copy not implemented from type '{}' to '{}'",
                 s,

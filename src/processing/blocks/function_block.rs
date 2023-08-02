@@ -1,3 +1,4 @@
+use crate::bx;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::{BlockHandler, StackSizes};
 use crate::processing::instructions::dynamic_jump_11::DynamicJumpInstruction;
@@ -7,10 +8,9 @@ use crate::processing::instructions::stack_up_1::StackUpInstruction;
 use crate::processing::lines::variable_initialisation::VariableInitialisationLine;
 use crate::processing::reference_manager::function::FunctionReference;
 use crate::processing::reference_manager::{Reference, ReferenceStack};
-use crate::processing::symbols::{Block, CLASS_SELF_NAME, Symbol};
+use crate::processing::symbols::{Block, Symbol, CLASS_SELF_NAME};
 use crate::processing::types::pointer::PointerType;
 use crate::processing::types::Type;
-use crate::bx;
 
 pub struct FunctionBlock {
     name: Option<Vec<String>>,
@@ -89,10 +89,13 @@ impl BlockHandler for FunctionBlock {
         self.name = Some(match &symbol_line[1] {
             Symbol::Name(name) => {
                 if name.len() != 1 {
-                    return Err("Invalid function name - function names cannot contain separators".to_string());
+                    return Err(
+                        "Invalid function name - function names cannot contain separators"
+                            .to_string(),
+                    );
                 }
                 name.clone()
-            },
+            }
             _ => return declaration_error(),
         });
 
@@ -100,14 +103,19 @@ impl BlockHandler for FunctionBlock {
         self.previous_reference_limit = Some(reference_stack.get_reference_depth_limit());
 
         //? If in class
-        if reference_stack.get_reference(&[CLASS_SELF_NAME.to_string()]).is_ok() {
+        if reference_stack
+            .get_reference(&[CLASS_SELF_NAME.to_string()])
+            .is_ok()
+        {
             //? Add to class if in class
-            self.name.as_mut().unwrap().insert(0, CLASS_SELF_NAME.to_string());
+            self.name
+                .as_mut()
+                .unwrap()
+                .insert(0, CLASS_SELF_NAME.to_string());
 
             //? Allow class to be referenced
             reference_stack.set_reference_depth_limit(reference_stack.get_depth() - 1);
-        }
-        else {
+        } else {
             //? Dont allow anything outside of function to be referenced
             reference_stack.set_reference_depth_limit(reference_stack.get_depth());
         }
@@ -135,7 +143,10 @@ impl BlockHandler for FunctionBlock {
         let parameters = reference_stack.get_top_stack();
         let mut cloned_parameters = Vec::with_capacity(parameters.len());
         for p in parameters {
-            cloned_parameters.push((p.name.clone(), p.reference().clone_variable()?.get_variable().unwrap()));
+            cloned_parameters.push((
+                p.name.clone(),
+                p.reference().clone_variable()?.get_variable().unwrap(),
+            ));
         }
 
         // reference_stack.add_handler();
@@ -162,14 +173,14 @@ impl BlockHandler for FunctionBlock {
         );
         let name = self.name.as_ref().unwrap().clone();
         if name.len() > 1 {
-            reference_stack
-                .register_reference(Reference::Function(function_reference), name)?;
+            reference_stack.register_reference(Reference::Function(function_reference), name)?;
+        } else {
+            reference_stack.register_reference_with_offset(
+                Reference::Function(function_reference),
+                name,
+                1,
+            )?;
         }
-        else {
-            reference_stack
-                .register_reference_with_offset(Reference::Function(function_reference), name, 1)?;
-        }
-
 
         //? Add new stack to separate parameters from function body
         reference_stack.add_handler();
@@ -206,16 +217,15 @@ impl BlockHandler for FunctionBlock {
         //? Jump back
         DynamicJumpInstruction::new_alloc(
             program_memory,
-            self.return_pointer
-                .as_ref()
-                .unwrap()
-                .get_address(),
+            self.return_pointer.as_ref().unwrap().get_address(),
         );
 
         //? Update reference
         reference_stack
-            .get_reference_mut(self.name.as_ref().unwrap()).unwrap()
-            .get_function_mut().unwrap()
+            .get_reference_mut(self.name.as_ref().unwrap())
+            .unwrap()
+            .get_function_mut()
+            .unwrap()
             .set_stack_size_and_complete(stack_sizes.get_size(), program_memory);
         // let mut reference = reference_stack.get_and_remove_reference(self.name.as_ref().unwrap().as_str()).unwrap().0;
         // reference.get_function_mut().unwrap().set_stack_size_and_complete(stack_sizes.get_size(), program_memory);

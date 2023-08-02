@@ -1,13 +1,20 @@
+use crate::processing::instructions::add_instruction_13::{AddInstruction, ADD_INSTRUCTION_CODE};
 use crate::processing::instructions::binary_and_8::{
     BinaryAndInstruction, BINARY_AND_INSTRUCTION_CODE,
 };
 use crate::processing::instructions::binary_not_7::{
     BinaryNotInstruction, BINARY_NOT_INSTRUCTION_CODE,
 };
+use crate::processing::instructions::binary_or_12::{
+    BinaryOrInstruction, BINARY_OR_INSTRUCTION_CODE,
+};
 use crate::processing::instructions::copy_3::{CopyInstruction, COPY_INSTRUCTION_CODE};
 use crate::processing::instructions::dump_5::{DumpInstruction, DUMP_INSTRUCTION_CODE};
 use crate::processing::instructions::dynamic_jump_11::{
     DynamicJumpInstruction, DYNAMIC_JUMP_INSTRUCTION_CODE,
+};
+use crate::processing::instructions::equality_14::{
+    EqualityInstruction, EQUALITY_INSTRUCTION_CODE,
 };
 use crate::processing::instructions::heap_alloc_2::{
     HeapAllocInstruction, HEAP_ALLOC_INSTRUCTION_CODE,
@@ -18,8 +25,8 @@ use crate::processing::instructions::jump_if_not_9::{
 use crate::processing::instructions::jump_instruction_10::{
     JumpInstruction, JUMP_INSTRUCTION_CODE,
 };
-use crate::processing::instructions::view_memory_6::{
-    ViewMemoryInstruction, VIEW_MEMORY_INSTRUCTION_CODE,
+use crate::processing::instructions::not_equal_15::{
+    NotEqualInstruction, NOT_EQUAL_INSTRUCTION_CODE,
 };
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_create_0::STACK_CREATE_INSTRUCTION_CODE;
@@ -27,12 +34,13 @@ use crate::processing::instructions::stack_down_4::{
     StackDownInstruction, STACK_DOWN_INSTRUCTION_CODE,
 };
 use crate::processing::instructions::stack_up_1::{StackUpInstruction, STACK_UP_INSTRUCTION_CODE};
+use crate::processing::instructions::view_memory_6::{
+    ViewMemoryInstruction, VIEW_MEMORY_INSTRUCTION_CODE,
+};
+use crate::processing::instructions::view_memory_dec_16::{
+    ViewMemoryDecInstruction, VIEW_MEMORY_DEC_INSTRUCTION_CODE,
+};
 use crate::processing::instructions::{InstructionCodeType, INSTRUCTION_CODE_LENGTH};
-use crate::processing::instructions::add_instruction_13::{ADD_INSTRUCTION_CODE, AddInstruction};
-use crate::processing::instructions::binary_or_12::{BINARY_OR_INSTRUCTION_CODE, BinaryOrInstruction};
-use crate::processing::instructions::equality_14::{EQUALITY_INSTRUCTION_CODE, EqualityInstruction};
-use crate::processing::instructions::not_equal_15::{NOT_EQUAL_INSTRUCTION_CODE, NotEqualInstruction};
-use crate::processing::instructions::view_memory_dec_16::{VIEW_MEMORY_DEC_INSTRUCTION_CODE, ViewMemoryDecInstruction};
 
 macro_rules! translate {
     ($instruction: ident, $data: expr, $i: expr) => {
@@ -68,10 +76,10 @@ pub fn translate(data: &[u8], translate_one: bool) {
             EQUALITY_INSTRUCTION_CODE => translate!(EqualityInstruction, data, i),
             NOT_EQUAL_INSTRUCTION_CODE => translate!(NotEqualInstruction, data, i),
             VIEW_MEMORY_DEC_INSTRUCTION_CODE => translate!(ViewMemoryDecInstruction, data, i),
-            code =>  {
+            code => {
                 println!("Debug not implemented for code {}. Terminating translation due to unknown instruction size.", code);
                 return;
-            },
+            }
         };
 
         println!("{}", output);

@@ -3,7 +3,7 @@ use crate::memory::{MemoryLocation, RuntimeMemoryManager};
 use crate::processing::instructions::{
     Execute, Instruction, InstructionCodeType, INSTRUCTION_CODE_LENGTH,
 };
-use crate::processing::types::boolean::{BOOL_FALSE, BOOL_TRUE, BOOLEAN_SIZE};
+use crate::processing::types::boolean::{BOOLEAN_SIZE, BOOL_FALSE, BOOL_TRUE};
 use crate::util::get_usize;
 
 pub struct EqualityInstruction {
@@ -64,7 +64,6 @@ impl Execute for EqualityInstruction {
             Address::evaluate_address_to_data(pointer, &MemoryLocation::Program, &size, memory);
         let data_destination =
             Address::evaluate_address(pointer, &MemoryLocation::Program, &BOOLEAN_SIZE, memory);
-
 
         for i in 0..size {
             if data_lhs[i] != data_rhs[i] {
