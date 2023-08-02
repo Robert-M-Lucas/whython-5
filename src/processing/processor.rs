@@ -13,6 +13,7 @@ use crate::processing::lines::variable_initialisation::VariableInitialisationLin
 use crate::processing::lines::view_memory::ViewMemoryLine;
 use crate::processing::lines::while_line::WhileLine;
 use crate::processing::lines::LineHandler;
+use crate::processing::preprocessor::SymbolData;
 use crate::processing::symbols::Symbol;
 
 pub enum ProcessingResult {
@@ -65,25 +66,25 @@ macro_rules! process_line {
 }
 
 /// Takes symbol lines as an input and outputs compiled memory
-pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManager, String> {
+pub fn process_symbols(symbol_data: SymbolData) -> Result<MemoryManager, String> {
     let mut memory = MemoryManager::new();
 
     let mut block_coordinator = BlockCoordinator::new(&mut memory);
 
-    let line_count = symbols.len();
+    let line_count = symbol_data.lines.len();
 
-    'line_iterator: for (line_index, line) in symbols.into_iter().enumerate() {
+    'line_iterator: for (line_index, line) in symbol_data.lines.iter().enumerate() {
         //? Skip empty lines
-        if line.1.is_empty() {
+        if line.symbols.is_empty() {
             continue;
         }
 
-        let indentation = line.0;
-        let symbol_line = line.1;
+        let indentation = line.indentation;
+        let symbol_line = &line.symbols;
 
         //? Error if indentation is skipped
         if indentation > block_coordinator.get_indentation() {
-            return create_line_error("Indentation to high".to_string(), line_index);
+            return create_line_error("Indentation to high".to_string(), line_index, &symbol_data);
         }
 
         //? Exit blocks until block indentation matches code indentation
@@ -95,12 +96,12 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
             {
                 let result = block_coordinator.force_exit_block_handler(&mut memory);
                 if let Err(e) = result {
-                    return create_line_error(e, line_index);
+                    return create_line_error(e, line_index, &symbol_data);
                 }
             } else {
-                let result = block_coordinator.exit_block_handler(&mut memory, &symbol_line);
+                let result = block_coordinator.exit_block_handler(&mut memory, symbol_line);
                 if let Err(e) = result {
-                    return create_line_error(e, line_count);
+                    return create_line_error(e, line_count, &symbol_data);
                 }
                 if !result.unwrap() {
                     continue 'line_iterator;
@@ -138,11 +139,12 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
 
         //? Handle unmatched / failed line
         if r.is_failure() {
-            return create_line_error(r.get_error(), line_index);
+            return create_line_error(r.get_error(), line_index, &symbol_data);
         } else if r.is_unmatched() {
             return create_line_error(
                 "Line didn't match any known patterns".to_string(),
                 line_index,
+                &symbol_data
             );
         }
     }
@@ -151,7 +153,7 @@ pub fn process_symbols(symbols: Vec<(usize, Vec<Symbol>)>) -> Result<MemoryManag
     while block_coordinator.get_indentation() >= 1 {
         let result = block_coordinator.force_exit_block_handler(&mut memory);
         if let Err(e) = result {
-            return create_line_error(e, line_count);
+            return create_line_error(e, line_count, &symbol_data);
         }
     }
 

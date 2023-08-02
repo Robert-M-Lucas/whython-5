@@ -1,8 +1,8 @@
 use crate::bx;
-use crate::errors::create_line_error;
-use crate::processing::symbols::{
-    get_all_symbol, Punctuation, Symbol, LIST_SEPARATOR_CHARACTER, STRING_DELIMITERS,
-};
+use crate::errors::{create_line_error, create_simple_line_error};
+use crate::file_loading::load_file;
+use crate::processing::symbols::{get_all_symbol, Punctuation, Symbol, LIST_SEPARATOR_CHARACTER, STRING_DELIMITERS, Keyword};
+use crate::util::join_reference_name;
 
 pub const COMMENT_CHARACTER: char = '#';
 pub const OPEN_BRACKET_CHARACTER: char = '(';
@@ -180,11 +180,60 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
     Ok(symbol_line)
 }
 
+pub struct Line {
+    pub file_name_index: usize,
+    pub line_index: usize,
+    pub indentation: usize,
+    pub symbols: Vec<Symbol>
+}
+
+impl Line {
+    pub fn new(file_name_index: usize, line_index: usize, indentation: usize, symbols: Vec<Symbol>) -> Line {
+        Line {
+            file_name_index,
+            line_index,
+            indentation,
+            symbols
+        }
+    }
+}
+
+pub struct SymbolData {
+    file_names: Vec<String>,
+    pub lines: Vec<Line>
+}
+
+impl<'a> SymbolData {
+    pub fn new() -> SymbolData {
+        SymbolData {
+            file_names: Vec::new(),
+            lines: Vec::new()
+        }
+    }
+
+    pub fn add_file_name(&mut self, file_name: String) -> usize {
+        self.file_names.push(file_name);
+        self.file_names.len() - 1
+    }
+
+    pub fn add_line(&mut self, file_name_index: usize, line_index: usize, indentation: usize, line: Vec<Symbol>) {
+        self.lines.push(Line::new(file_name_index, line_index, indentation, line))
+    }
+
+    pub fn get_error_path(&self, line_index: usize) -> String {
+        format!("{} - Line {}", self.file_names[self.lines[line_index].file_name_index], self.lines[line_index].line_index + 1)
+    }
+}
+
 /// Takes code as an input
 ///
 /// Returns `Vec<indentation, symbol line>`
-pub fn convert_to_symbols(data: String) -> Result<Vec<(usize, Vec<Symbol>)>, String> {
-    let mut output = Vec::new();
+pub fn convert_to_symbols<'a>(file_name: String, symbol_data: &mut SymbolData) -> Result<(), String> {
+    println!("Reading file '{}'", file_name);
+    let data = load_file(&file_name)?;
+
+    println!("Processing file '{}'", file_name);
+    let file_name_index = symbol_data.add_file_name(file_name.clone());
 
     for (line_index, line) in data.lines().enumerate() {
         //? Count indentation
@@ -201,21 +250,61 @@ pub fn convert_to_symbols(data: String) -> Result<Vec<(usize, Vec<Symbol>)>, Str
             indentation_char_count += 1;
         }
         if indentation_count % 4 != 0 {
-            return create_line_error(
+            return create_simple_line_error(
                 "Indentation must be a multiple of 4 spaces or single tabs".to_string(),
-                line_index + 1,
+                line_index,
+                &file_name
             );
         }
 
         //? Get symbols
         let symbols = match get_symbols_from_line(&line[indentation_char_count..]) {
-            Err(e) => return create_line_error(e, line_index),
+            Err(e) => return create_line_error(e, line_index, symbol_data),
             Ok(symbols) => symbols,
         };
-        output.push((indentation_count / 4, symbols));
+
+        if !symbols.is_empty() {
+            let processed = match &symbols[0] {
+                Symbol::Keyword(Keyword::Import) => {
+                    if indentation_count != 0 {
+                        Err("Import statements cannot be indented".to_string())
+                    }
+                    else if symbols.len() != 2 {
+                        Err("Import statements must be formatted import [file name]".to_string())
+                    }
+                    else {
+                        match &symbols[1] {
+                            Symbol::Name(name) => {
+                                if name.len() < 2 || name.last().unwrap() != "why" {
+                                    Err("File extension must be .why".to_string())
+                                }
+                                else {
+                                    let name = join_reference_name(name);
+
+                                    convert_to_symbols(name, symbol_data)?;
+                                    Ok(true)
+                                }
+                            }
+                            _ => Err("Import statements must be formatted import [file name]".to_string())
+                        }
+                    }
+                }
+                _ => { Ok(false) }
+            };
+
+            match processed {
+                Ok(true) => continue,
+                Ok(false) => {},
+                Err(e) => return create_simple_line_error(e, line_index, &file_name)
+            };
+        }
+
+        symbol_data.add_line(file_name_index, line_index, indentation_count / 4, symbols);
     }
 
-    Ok(output)
+    println!("Finished processing '{}'", file_name);
+
+    Ok(())
 }
 
 fn get_bracketed_symbols_type(symbols: Vec<Symbol>) -> Symbol {

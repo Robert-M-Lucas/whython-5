@@ -7,6 +7,7 @@ mod memory;
 mod processing;
 mod translator;
 pub mod util;
+pub mod file_loading;
 
 use crate::execution::execute;
 use crate::memory::{MemoryManager, RuntimeMemoryManager};
@@ -24,6 +25,8 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use crate::file_loading::load_file;
+use crate::processing::preprocessor::SymbolData;
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 
@@ -73,32 +76,10 @@ fn wrapped_main(exit: &AtomicBool) {
 
     //? Compile
     if extension == "why" {
-        let input = match fs::read_to_string(&input_file) {
-            Err(e) => {
-                if input_defaulted {
-                    col_println!(
-                        (red, bold),
-                        "Error reading file '{}' - {}. You did not specify a file so '{}' was used as a default.",
-                        input_file,
-                        e.to_string(),
-                        DEFAULT_FILE_NAME
-                    );
-                } else {
-                    col_println!(
-                        (red, bold),
-                        "Error reading file '{}' - {}",
-                        input_file,
-                        e.to_string()
-                    );
-                }
-                return;
-            }
-            Ok(value) => value,
-        };
-
         println!("Starting compilation (stage 1)");
         let start = Instant::now();
-        let r = match convert_to_symbols(input) {
+        let mut symbol_data = SymbolData::new();
+        match convert_to_symbols(input_file, &mut symbol_data) {
             Err(e) => {
                 col_println!(
                     (red, bold),
@@ -120,11 +101,11 @@ fn wrapped_main(exit: &AtomicBool) {
         #[cfg(debug_assertions)]
         {
             let mut lexical_result = String::new();
-            for l in &r {
-                for _ in 0..(l.0 * 4) {
-                    lexical_result.push(' ');
+            for l in &symbol_data.lines {
+                for _ in 0..l.indentation {
+                    lexical_result += "    ";
                 }
-                writeln!(lexical_result, "{:?}", l.1).unwrap();
+                writeln!(lexical_result, "{:?}", l.symbols).unwrap();
             }
             let mut write = OpenOptions::new()
                 .create(true)
@@ -140,7 +121,7 @@ fn wrapped_main(exit: &AtomicBool) {
 
         println!("Starting compilation (stage 2)");
         let start = Instant::now();
-        memory = match process_symbols(r) {
+        memory = match process_symbols(symbol_data) {
             Err(e) => {
                 col_println!(
                     (red, bold),

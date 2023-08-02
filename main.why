@@ -1,7 +1,10 @@
+import fibonacci.why
+
 class test
     fn add(ptr a, ptr b)
         a += b
         viewmemdec a
 
 test.add(1 as ptr, 2 as ptr)
+viewmemdec a
 

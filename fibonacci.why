@@ -1,0 +1,15 @@
+ptr a = 0
+ptr b = 1
+ptr i = 0
+ptr count_limit = 46
+
+viewmemdec a
+viewmemdec b
+
+while i != count_limit
+    a += b
+    b += a
+    i += 1 as ptr
+
+    viewmemdec a
+    viewmemdec b

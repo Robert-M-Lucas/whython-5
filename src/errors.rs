@@ -1,9 +1,14 @@
+use crate::processing::preprocessor::SymbolData;
 use crate::processing::symbols::{Literal, Operator, TypeSymbol};
 use crate::processing::types::Type;
 
 /// Takes zero-indexed line
-pub fn create_line_error<T>(error: String, line: usize) -> Result<T, String> {
-    Err(format!("Line {}: {}", line + 1, error))
+pub fn create_line_error<T>(error: String, line: usize, symbol_data: &SymbolData) -> Result<T, String> {
+    Err(format!("{}: {}", symbol_data.get_error_path(line), error))
+}
+
+pub fn create_simple_line_error<T>(error: String, line: usize, file_name: &str) -> Result<T, String> {
+    Err(format!("{} - Line {}: {}", file_name, line + 1, error))
 }
 
 /// Creates an error explaining that the operator isn't implemented for the given type

@@ -2,10 +2,14 @@ pub mod must_use_option;
 
 use std::io::{stdin, stdout, Read, Write};
 
+#[cfg(target_pointer_width = "128")]
+pub const USIZE_BYTES: usize = 16;
 #[cfg(target_pointer_width = "64")]
 pub const USIZE_BYTES: usize = 8;
 #[cfg(target_pointer_width = "32")]
 pub const USIZE_BYTES: usize = 4;
+#[cfg(target_pointer_width = "16")]
+pub const USIZE_BYTES: usize = 2;
 
 /// Gets a `u8` from `memory` at the pointer
 // pub fn get_u8(pointer: &usize, memory: &[u8]) -> u8 {
@@ -98,6 +102,19 @@ macro_rules! bx {
     };
 }
 
+#[macro_export]
+macro_rules! unwrap_println_err_return {
+    ($expr: expr) => {
+        match $expr {
+            Ok(value) => value,
+            Err(e) => {
+                $crate::col_println!((red, bold), "{}", e);
+                return;
+            }
+        }
+    };
+}
+
 /// Prints a warning
 pub fn warn(warning: &str) {
     col_println!((yellow, bold), "[WARNING]: {}", warning);
@@ -133,3 +150,4 @@ pub fn join_reference_name(name: &[String]) -> String {
     }
     joined_name
 }
+
