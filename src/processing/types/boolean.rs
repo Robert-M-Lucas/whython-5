@@ -72,7 +72,7 @@ impl Type for BoolType {
 
     fn runtime_copy_from(
         &self,
-        other: &Box<dyn Type>,
+        other: &dyn Type,
         program_memory: &mut MemoryManager,
     ) -> Result<CopyInstruction, String> {
         match other.get_type_symbol() {
@@ -144,8 +144,8 @@ impl Operation<BoolType> for BoolAnd {
     fn operate(
         &self,
         lhs: &BoolType,
-        rhs: &Box<dyn Type>,
-        destination: &Box<dyn Type>,
+        rhs: &dyn Type,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
@@ -182,8 +182,8 @@ impl Operation<BoolType> for BoolOr {
     fn operate(
         &self,
         lhs: &BoolType,
-        rhs: &Box<dyn Type>,
-        destination: &Box<dyn Type>,
+        rhs: &dyn Type,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
@@ -216,7 +216,7 @@ impl PrefixOperation<BoolType> for BoolNot {
     fn operate_prefix(
         &self,
         lhs: &BoolType,
-        destination: &Box<dyn Type>,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {

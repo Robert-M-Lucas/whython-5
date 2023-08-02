@@ -101,7 +101,7 @@ macro_rules! default_type_operate_impl {
         fn operate_prefix(
             &self,
             operator: &crate::processing::symbols::Operator,
-            destination: &Box<dyn $crate::processing::types::Type>,
+            destination: &dyn $crate::processing::types::Type,
             program_memory: &mut $crate::memory::MemoryManager,
             stack_sizes: &mut $crate::processing::blocks::StackSizes,
         ) -> Result<(), String> {
@@ -121,8 +121,8 @@ macro_rules! default_type_operate_impl {
         fn operate(
             &self,
             operator: &crate::processing::symbols::Operator,
-            rhs: &Box<dyn $crate::processing::types::Type>,
-            destination: &Box<dyn $crate::processing::types::Type>,
+            rhs: &dyn $crate::processing::types::Type,
+            destination: &dyn $crate::processing::types::Type,
             program_memory: &mut $crate::memory::MemoryManager,
             stack_sizes: &mut $crate::processing::blocks::StackSizes,
         ) -> Result<(), String> {

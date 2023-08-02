@@ -68,7 +68,7 @@ impl Type for PointerType {
 
     fn runtime_copy_from(
         &self,
-        other: &Box<dyn Type>,
+        other: &dyn Type,
         program_memory: &mut MemoryManager,
     ) -> Result<CopyInstruction, String> {
         match other.get_type_symbol() {
@@ -138,8 +138,8 @@ impl Operation<PointerType> for Add {
     fn operate(
         &self,
         lhs: &PointerType,
-        rhs: &Box<dyn Type>,
-        destination: &Box<dyn Type>,
+        rhs: &dyn Type,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
@@ -176,8 +176,8 @@ impl Operation<PointerType> for Subtract {
     fn operate(
         &self,
         lhs: &PointerType,
-        rhs: &Box<dyn Type>,
-        destination: &Box<dyn Type>,
+        rhs: &dyn Type,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
@@ -234,8 +234,8 @@ impl Operation<PointerType> for Equal {
     fn operate(
         &self,
         lhs: &PointerType,
-        rhs: &Box<dyn Type>,
-        destination: &Box<dyn Type>,
+        rhs: &dyn Type,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
@@ -272,8 +272,8 @@ impl Operation<PointerType> for NotEqual {
     fn operate(
         &self,
         lhs: &PointerType,
-        rhs: &Box<dyn Type>,
-        destination: &Box<dyn Type>,
+        rhs: &dyn Type,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {

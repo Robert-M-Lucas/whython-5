@@ -55,7 +55,7 @@ impl VariableInitialisationLine {
         if has_value {
             evaluate_arithmetic_into_type(
                 &line[3..],
-                &object,
+                object.as_ref(),
                 program_memory,
                 reference_stack,
                 stack_sizes,

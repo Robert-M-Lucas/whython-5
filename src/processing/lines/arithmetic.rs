@@ -37,7 +37,7 @@ macro_rules! unpack_either_type {
         let $output = match $either {
             either::Either::Left(t) => {
                 temp = t;
-                &temp
+                temp.as_ref()
             }
             either::Either::Right(t) => t,
         };
@@ -46,7 +46,7 @@ macro_rules! unpack_either_type {
 
 pub enum ReturnOptions<'a> {
     /// Places the calculated value into the type - returns `None`
-    ReturnIntoType(&'a Box<dyn Type>), //, Option<Box<dyn FnOnce(&mut MemoryManager, &mut StackSizes)>>, usize),
+    ReturnIntoType(&'a dyn Type), //, Option<Box<dyn FnOnce(&mut MemoryManager, &mut StackSizes)>>, usize),
     /// Returns a type from the specified list
     ReturnTypes(&'a [TypeSymbol]),
     /// Returns any type
@@ -68,7 +68,7 @@ impl<'a> ReturnOptions<'a> {
 /// Evaluates an arithmetic section and puts the result into a type
 pub fn evaluate_arithmetic_into_type<'a>(
     section: &[Symbol],
-    destination: &Box<dyn Type>,
+    destination: &dyn Type,
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
@@ -92,7 +92,7 @@ pub fn evaluate_arithmetic_to_types<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Either<Box<dyn Type>, &'a Box<dyn Type>>, String> {
+) -> Result<Either<Box<dyn Type>, &'a dyn Type>, String> {
     Ok(evaluate_arithmetic_section(
         section,
         &mut ReturnOptions::ReturnTypes(return_type_options),
@@ -109,7 +109,7 @@ pub fn evaluate_arithmetic_to_any_type<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Either<Box<dyn Type>, &'a Box<dyn Type>>, String> {
+) -> Result<Either<Box<dyn Type>, &'a dyn Type>, String> {
     Ok(evaluate_arithmetic_section(
         section,
         &mut ReturnOptions::ReturnAnyType,
@@ -126,7 +126,7 @@ fn evaluate_arithmetic_section<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
+) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
     fn get_formatting_error() -> String {
         "Arithmetic sections must be formated [Operator] [Value], [Value] [Operator] [Value] or [Value] as [Type]".to_string()
     }
@@ -263,7 +263,7 @@ fn handle_single_symbol<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
+) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
     match symbol {
         Symbol::Name(name) => {
             let variable = reference_stack.get_reference(name)?.get_variable_ref()?;
@@ -350,11 +350,11 @@ fn operator_not_implemented_error(
 // TODO: Consider removing unused arguments
 fn handle_prefix_operation<'a>(
     operator: &Operator,
-    operand: Either<Box<dyn Type>, &'a Box<dyn Type>>,
+    operand: Either<Box<dyn Type>, &'a dyn Type>,
     return_options: &ReturnOptions,
     program_memory: &mut MemoryManager,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
+) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
     unpack_either_type!(operand, operand);
 
     match return_options {
@@ -363,7 +363,7 @@ fn handle_prefix_operation<'a>(
             // if let Some(f) = run_before_last_step {
             //     f(program_memory, stack_sizes);
             // }
-            operand.operate_prefix(operator, output, program_memory, stack_sizes)?;
+            operand.operate_prefix(operator, *output, program_memory, stack_sizes)?;
             Ok(None)
         }
         ReturnOptions::ReturnAnyType => {
@@ -377,7 +377,7 @@ fn handle_prefix_operation<'a>(
             } else {
                 let mut new_type = TypeFactory::get_unallocated_type(&return_types[0])?;
                 new_type.allocate_variable(stack_sizes, program_memory)?;
-                operand.operate_prefix(operator, &new_type, program_memory, stack_sizes)?;
+                operand.operate_prefix(operator, new_type.as_ref(), program_memory, stack_sizes)?;
 
                 Ok(Some(Left(new_type)))
             }
@@ -405,7 +405,7 @@ fn handle_prefix_operation<'a>(
             if let Some(return_type) = return_type {
                 let mut new_type = TypeFactory::get_unallocated_type(return_type)?;
                 new_type.allocate_variable(stack_sizes, program_memory)?;
-                operand.operate_prefix(operator, &new_type, program_memory, stack_sizes)?;
+                operand.operate_prefix(operator, new_type.as_ref(), program_memory, stack_sizes)?;
 
                 Ok(Some(Left(new_type)))
             } else {
@@ -417,12 +417,12 @@ fn handle_prefix_operation<'a>(
 
 fn handle_operation<'a>(
     operator: &Operator,
-    lhs: Either<Box<dyn Type>, &'a Box<dyn Type>>,
-    rhs: Either<Box<dyn Type>, &'a Box<dyn Type>>,
+    lhs: Either<Box<dyn Type>, &'a dyn Type>,
+    rhs: Either<Box<dyn Type>, &'a dyn Type>,
     return_options: &ReturnOptions,
     program_memory: &mut MemoryManager,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
+) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
     unpack_either_type!(lhs, lhs);
     unpack_either_type!(rhs, rhs);
 
@@ -432,7 +432,7 @@ fn handle_operation<'a>(
             // if let Some(f) = run_before_last_step {
             //     f(program_memory, stack_sizes);
             // }
-            lhs.operate(operator, rhs, output, program_memory, stack_sizes)?;
+            lhs.operate(operator, rhs, *output, program_memory, stack_sizes)?;
             Ok(None)
         }
         ReturnOptions::ReturnAnyType => {
@@ -446,7 +446,7 @@ fn handle_operation<'a>(
             } else {
                 let mut new_type = TypeFactory::get_unallocated_type(&return_types[0])?;
                 new_type.allocate_variable(stack_sizes, program_memory)?;
-                lhs.operate(operator, rhs, &new_type, program_memory, stack_sizes)?;
+                lhs.operate(operator, rhs, new_type.as_ref(), program_memory, stack_sizes)?;
 
                 Ok(Some(Left(new_type)))
             }
@@ -474,7 +474,7 @@ fn handle_operation<'a>(
             if let Some(return_type) = return_type {
                 let mut new_type = TypeFactory::get_unallocated_type(return_type)?;
                 new_type.allocate_variable(stack_sizes, program_memory)?;
-                lhs.operate(operator, rhs, &new_type, program_memory, stack_sizes)?;
+                lhs.operate(operator, rhs, new_type.as_ref(), program_memory, stack_sizes)?;
 
                 Ok(Some(Left(new_type)))
             } else {
@@ -491,7 +491,7 @@ fn handle_casting<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<Either<Box<dyn Type>, &'a Box<dyn Type>>>, String> {
+) -> Result<Option<Either<Box<dyn Type>, &'a dyn Type>>, String> {
     match symbol {
         Symbol::Literal(literal) => {
             // ? Ignore cast if going into correct type
@@ -511,7 +511,7 @@ fn handle_casting<'a>(
 
             match return_options {
                 ReturnOptions::ReturnIntoType(output) => {
-                    output.runtime_copy_from(&new_type, program_memory)?;
+                    output.runtime_copy_from(new_type.as_ref(), program_memory)?;
                     Ok(None)
                 }
                 ReturnOptions::ReturnTypes(return_types) => {
@@ -519,7 +519,7 @@ fn handle_casting<'a>(
                         Ok(Some(Left(new_type)))
                     } else {
                         let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;
-                        return_type.runtime_copy_from(&new_type, program_memory)?;
+                        return_type.runtime_copy_from(new_type.as_ref(), program_memory)?;
                         Ok(Some(Left(return_type)))
                     }
                 }
@@ -552,7 +552,7 @@ fn handle_casting<'a>(
 
             match return_options {
                 ReturnOptions::ReturnIntoType(output) => {
-                    output.runtime_copy_from(&new_type, program_memory)?;
+                    output.runtime_copy_from(new_type.as_ref(), program_memory)?;
                     Ok(None)
                 }
                 ReturnOptions::ReturnTypes(return_types) => {
@@ -560,7 +560,7 @@ fn handle_casting<'a>(
                         Ok(Some(Left(new_type)))
                     } else {
                         let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;
-                        return_type.runtime_copy_from(&new_type, program_memory)?;
+                        return_type.runtime_copy_from(new_type.as_ref(), program_memory)?;
                         Ok(Some(Left(return_type)))
                     }
                 }

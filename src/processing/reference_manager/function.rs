@@ -85,7 +85,7 @@ impl FunctionReference {
 
     pub fn call(
         &self,
-        _return_into: Option<&Box<dyn Type>>,
+        _return_into: Option<&dyn Type>,
         arguments: &Vec<Vec<Symbol>>,
         program_memory: &mut MemoryManager,
         reference_stack: &ReferenceStack,
@@ -129,11 +129,11 @@ impl FunctionReference {
             let mut t = t.duplicate(); // Allow mutability
             if let Some(stack_size) = self.stack_size {
                 t.get_address_mut().offset_if_stack(stack_size); // Offset to account for new stack
-                self.parameters[i].1.runtime_copy_from(&t, program_memory)?; // Copy into parameter
+                self.parameters[i].1.runtime_copy_from(t.as_ref(), program_memory)?; // Copy into parameter
             } else {
                 // Copy into parameter
                 copy_instructions_to_offset
-                    .push(self.parameters[i].1.runtime_copy_from(&t, program_memory)?);
+                    .push(self.parameters[i].1.runtime_copy_from(t.as_ref(), program_memory)?);
             }
         }
 

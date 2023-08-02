@@ -143,9 +143,9 @@ impl Reference {
         }
     }
 
-    pub fn get_variable_ref(&self) -> Result<&Box<dyn Type>, String> {
+    pub fn get_variable_ref(&self) -> Result<&dyn Type, String> {
         match &self {
-            Reference::Variable(variable) => Ok(variable),
+            Reference::Variable(variable) => Ok(variable.as_ref()),
             _ => Err("Reference is not a variable".to_string()),
         }
     }

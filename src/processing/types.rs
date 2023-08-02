@@ -43,7 +43,7 @@ pub trait Type {
 
     fn runtime_copy_from(
         &self,
-        other: &Box<dyn Type>,
+        other: &dyn Type,
         program_memory: &mut MemoryManager,
     ) -> Result<CopyInstruction, String>;
 
@@ -60,7 +60,7 @@ pub trait Type {
     fn operate_prefix(
         &self,
         operator: &Operator,
-        destination: &Box<dyn Type>,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         stack_sizes: &mut StackSizes,
     ) -> Result<(), String>;
@@ -68,8 +68,8 @@ pub trait Type {
     fn operate(
         &self,
         operator: &Operator,
-        rhs: &Box<dyn Type>,
-        destination: &Box<dyn Type>,
+        rhs: &dyn Type,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         stack_sizes: &mut StackSizes,
     ) -> Result<(), String>;
@@ -104,8 +104,8 @@ pub trait Operation<LHS> {
     fn operate(
         &self,
         lhs: &LHS,
-        rhs: &Box<dyn Type>,
-        destination: &Box<dyn Type>,
+        rhs: &dyn Type,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         stack_sizes: &mut StackSizes,
     ) -> Result<(), String>;
@@ -119,7 +119,7 @@ pub trait PrefixOperation<LHS> {
     fn operate_prefix(
         &self,
         lhs: &LHS,
-        destination: &Box<dyn Type>,
+        destination: &dyn Type,
         program_memory: &mut MemoryManager,
         stack_sizes: &mut StackSizes,
     ) -> Result<(), String>;

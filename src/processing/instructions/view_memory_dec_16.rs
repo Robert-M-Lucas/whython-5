@@ -14,7 +14,7 @@ pub struct ViewMemoryDecInstruction {
 pub const VIEW_MEMORY_DEC_INSTRUCTION_CODE: InstructionCodeType = 16;
 
 impl ViewMemoryDecInstruction {
-    pub fn new_alloc(program_memory: &mut MemoryManager, to_dump: &Box<dyn Type>) -> Self {
+    pub fn new_alloc(program_memory: &mut MemoryManager, to_dump: &dyn Type) -> Self {
         let (address, length) = (to_dump.get_address(), to_dump.get_length());
 
         #[allow(unused_mut)]
