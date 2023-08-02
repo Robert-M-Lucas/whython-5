@@ -60,9 +60,9 @@ impl BlockHandler for ClassBlock {
 
     fn on_forced_exit(
         &mut self,
-        program_memory: &mut MemoryManager,
+        _program_memory: &mut MemoryManager,
         reference_stack: &mut ReferenceStack,
-        stack_sizes: &mut StackSizes,
+        _stack_sizes: &mut StackSizes,
     ) -> Result<(), String> {
         reference_stack
             .get_reference_handler_mut(&[CLASS_SELF_NAME.to_string()])

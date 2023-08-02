@@ -158,7 +158,7 @@ impl AllSymbolHandler {
             }
         }
 
-        let name: Vec<_> = string.split(".").map(|s| s.to_string()).collect();
+        let name: Vec<_> = string.split('.').map(|s| s.to_string()).collect();
         if name.is_empty() {
             return Ok(None);
         }

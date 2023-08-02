@@ -121,7 +121,7 @@ impl Type for BoolType {
 
     fn duplicate(&self) -> Box<dyn Type> {
         let mut t = BoolType::new();
-        t.address = self.address.as_ref().and_then(|a| Some(a.clone()));
+        t.address = self.address.as_ref().cloned();
         bx!(t)
     }
 }

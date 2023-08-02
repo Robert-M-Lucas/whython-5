@@ -45,7 +45,7 @@ impl LineHandler for VariableAssignmentLine {
         };
 
         q!(evaluate_arithmetic_into_type(
-            &assigner.get_expanded_equivalent((&line[0]).clone(), Vec::from(&line[2..])),
+            &assigner.get_expanded_equivalent(line[0].clone(), Vec::from(&line[2..])),
             variable,
             program_memory,
             reference_stack,

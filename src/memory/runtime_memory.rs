@@ -15,7 +15,7 @@ pub enum MemoryLocation {
     Heap(usize), // ? frame: usize
 }
 
-fn dump_bytes(file: &str, data: &Vec<u8>) {
+fn dump_bytes(file: &str, data: &[u8]) {
     let mut file = fs::OpenOptions::new()
         .write(true)
         .truncate(true)
@@ -82,9 +82,10 @@ impl RuntimeMemoryManager {
             }
             MemoryLocation::Stack => {
                 let (stack, stack_address) = self.stack_memory.get_stack_mut(address);
-                for i in 0..data.len() {
-                    stack[stack_address + i] = data[i];
-                }
+                stack[stack_address..(data.len() + stack_address)].copy_from_slice(data);
+                // for i in 0..data.len() {
+                //     stack[stack_address + i] = data[i];
+                // }
             }
             MemoryLocation::Heap(frame) => {
                 let data = self.heap_memory.get_mut_frame(*frame);

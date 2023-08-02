@@ -1,7 +1,7 @@
 use crate::memory::MemoryManager;
 
 use crate::processing::blocks::class_block::ClassBlock;
-use crate::processing::blocks::function_block::FunctionBlock;
+
 use crate::processing::blocks::BlockCoordinator;
 
 use crate::processing::lines::LineHandler;

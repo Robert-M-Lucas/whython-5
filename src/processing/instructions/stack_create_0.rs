@@ -35,8 +35,8 @@ impl StackCreateInstruction {
 }
 
 impl Execute for StackCreateInstruction {
-    fn execute(memory: &mut RuntimeMemoryManager, mut pointer: &mut usize) {
-        let size = StackCreateInstruction::get_stack_size(&mut pointer, memory);
+    fn execute(memory: &mut RuntimeMemoryManager, pointer: &mut usize) {
+        let size = StackCreateInstruction::get_stack_size(pointer, memory);
         memory.stack_memory().create_stack(size);
     }
 }

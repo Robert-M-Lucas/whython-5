@@ -20,14 +20,9 @@ impl LineHandler for ViewMemoryLine {
             return ProcessingResult::Unmatched;
         }
 
-        let dec;
-        match line[0] {
-            Symbol::Keyword(Keyword::ViewMemory) => {
-                dec = false;
-            }
-            Symbol::Keyword(Keyword::ViewMemoryDecimal) => {
-                dec = true;
-            }
+        let dec = match line[0] {
+            Symbol::Keyword(Keyword::ViewMemory) => false,
+            Symbol::Keyword(Keyword::ViewMemoryDecimal) => true,
             _ => return ProcessingResult::Unmatched,
         };
 
@@ -52,6 +47,6 @@ impl LineHandler for ViewMemoryLine {
             ViewMemoryInstruction::new_alloc(program_memory, variable);
         }
 
-        return ProcessingResult::Success;
+        ProcessingResult::Success
     }
 }

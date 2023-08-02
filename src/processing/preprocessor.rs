@@ -54,7 +54,7 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
             buffer.push(c);
             continue;
         } else if STRING_DELIMITERS.contains(&c) {
-            buffer.push(c.clone());
+            buffer.push(c);
             in_string = Some(c);
             continue;
         }
@@ -136,7 +136,7 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
 
             match indexer_depth {
                 0 => {
-                    if symbol_line.len() == 0 {
+                    if symbol_line.is_empty() {
                         return Err("Indexers must be applied to something".to_string());
                     }
 

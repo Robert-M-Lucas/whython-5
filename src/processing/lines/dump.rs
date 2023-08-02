@@ -30,6 +30,6 @@ impl LineHandler for DumpLine {
 
         DumpInstruction::new_alloc(program_memory);
 
-        return ProcessingResult::Success;
+        ProcessingResult::Success
     }
 }

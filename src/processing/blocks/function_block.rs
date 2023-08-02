@@ -76,10 +76,10 @@ impl BlockHandler for FunctionBlock {
         // self.return_pointer = Some(return_pointer);
 
         fn declaration_error() -> Result<(), String> {
-            return Err(format!(
+            Err(format!(
                 "Function declaration must be formatted {} [Name] [Parameter List]",
                 Block::Function.get_code_representation()
-            ));
+            ))
         }
 
         if symbol_line.len() != 3 {

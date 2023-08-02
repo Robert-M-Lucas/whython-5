@@ -68,11 +68,11 @@ impl<'a> ReturnOptions<'a> {
 }
 
 /// Evaluates an arithmetic section and puts the result into a type
-pub fn evaluate_arithmetic_into_type<'a>(
+pub fn evaluate_arithmetic_into_type(
     section: &[Symbol],
     destination: &dyn Type,
     program_memory: &mut MemoryManager,
-    reference_stack: &'a ReferenceStack,
+    reference_stack: &ReferenceStack,
     stack_sizes: &mut StackSizes,
     // run_before_last_step: Option<fn(&mut MemoryManager, &mut StackSizes)>,
     // offset: usize
@@ -227,7 +227,7 @@ fn evaluate_arithmetic_section<'a>(
                     )
                 }
                 _ => {
-                    return Err(get_formatting_error());
+                    Err(get_formatting_error())
                 }
             }
         }
@@ -236,7 +236,7 @@ fn evaluate_arithmetic_section<'a>(
 
 fn incorrect_type_error(expected: &[TypeSymbol], received: &[TypeSymbol]) -> String {
     let mut expected_text = "[any]".to_string();
-    if expected.len() != 0 {
+    if !expected.is_empty() {
         expected_text = "[".to_string();
         for e in expected {
             expected_text += (e.to_string() + ", ").as_str();
@@ -245,7 +245,7 @@ fn incorrect_type_error(expected: &[TypeSymbol], received: &[TypeSymbol]) -> Str
     }
 
     let mut received_text = "[any]".to_string();
-    if received.len() != 0 {
+    if !received.is_empty() {
         received_text = "[".to_string();
         for r in received {
             received_text += (r.to_string() + ", ").as_str();
@@ -281,7 +281,7 @@ fn handle_single_symbol<'a>(
                 ReturnOptions::AnyType => Ok(Some(Right(variable))),
                 ReturnOptions::OneOfTypes(types) => {
                     let variable_type = variable.get_type_symbol();
-                    if types.len() != 0 && types.iter().find(|t| **t == variable_type).is_none() {
+                    if !types.is_empty() && !types.iter().any(|t| *t == variable_type) {
                         Err(incorrect_type_error(types, &[variable_type]))
                     } else {
                         Ok(Some(Right(variable)))
@@ -314,7 +314,7 @@ fn handle_single_symbol<'a>(
                         program_memory,
                     )?;
                     let default_type_type = default_type.get_type_symbol();
-                    if types.len() != 0 && types.iter().find(|t| **t == default_type_type).is_none()
+                    if !types.is_empty() && !types.iter().any(|t| *t == default_type_type)
                     {
                         Err(incorrect_type_error(types, &[default_type_type]))
                     } else {
@@ -497,14 +497,11 @@ fn handle_casting<'a>(
     match symbol {
         Symbol::Literal(literal) => {
             // ? Ignore cast if going into correct type
-            match return_options {
-                ReturnOptions::IntoType(output) => {
-                    if output.get_type_symbol() == *type_symbol {
-                        output.runtime_copy_from_literal(literal, program_memory)?;
-                        return Ok(None);
-                    }
+            if let ReturnOptions::IntoType(output) = return_options {
+                if output.get_type_symbol() == *type_symbol {
+                    output.runtime_copy_from_literal(literal, program_memory)?;
+                    return Ok(None);
                 }
-                _ => {}
             }
 
             let mut new_type = TypeFactory::get_unallocated_type(type_symbol)?;
@@ -517,7 +514,7 @@ fn handle_casting<'a>(
                     Ok(None)
                 }
                 ReturnOptions::OneOfTypes(return_types) => {
-                    if return_types.iter().find(|t| **t == *type_symbol).is_some() {
+                    if return_types.iter().any(|t| *t == *type_symbol) {
                         Ok(Some(Left(new_type)))
                     } else {
                         let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;
@@ -538,14 +535,11 @@ fn handle_casting<'a>(
             unpack_either_type!(value, value);
 
             // ? Ignore cast if going into correct type
-            match return_options {
-                ReturnOptions::IntoType(output) => {
-                    if output.get_type_symbol() == *type_symbol {
-                        output.runtime_copy_from(value, program_memory)?;
-                        return Ok(None);
-                    }
+            if let ReturnOptions::IntoType(output) = return_options {
+                if output.get_type_symbol() == *type_symbol {
+                    output.runtime_copy_from(value, program_memory)?;
+                    return Ok(None);
                 }
-                _ => {}
             }
 
             let mut new_type = TypeFactory::get_unallocated_type(type_symbol)?;
@@ -558,7 +552,7 @@ fn handle_casting<'a>(
                     Ok(None)
                 }
                 ReturnOptions::OneOfTypes(return_types) => {
-                    if return_types.iter().find(|t| **t == *type_symbol).is_some() {
+                    if return_types.iter().any(|t| *t == *type_symbol) {
                         Ok(Some(Left(new_type)))
                     } else {
                         let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;

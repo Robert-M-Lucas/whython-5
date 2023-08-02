@@ -77,10 +77,7 @@ const HEAP_INDEXED_CODE: u8 = 7;
 
 impl Address {
     pub fn is_immediate(&self) -> bool {
-        match self {
-            Self::Immediate(_) | Self::ImmediateIndexed(_, _) => true,
-            _ => false,
-        }
+        matches!(self, Self::Immediate(_) | Self::ImmediateIndexed(_, _))
     }
 
     pub fn offset_if_stack(&mut self, amount: usize) {
@@ -240,14 +237,14 @@ impl Address {
                 *pointer += USIZE_BYTES;
 
                 // Recursively get address
-                let address = Self::evaluate_address(
+                
+
+                Self::evaluate_address(
                     &mut next_address,
                     &MemoryLocation::Stack,
                     expected_len,
                     memory,
-                );
-
-                address
+                )
             }
             HEAP_DIRECT_CODE => {
                 // Get frame pointer
@@ -286,14 +283,14 @@ impl Address {
                 *pointer += USIZE_BYTES + USIZE_BYTES;
 
                 // Recursively get address
-                let address = Self::evaluate_address(
+                
+
+                Self::evaluate_address(
                     &mut next_address,
                     &MemoryLocation::Heap(next_frame),
                     expected_len,
                     memory,
-                );
-
-                address
+                )
             }
             IMMEDIATE_INDEXED_CODE | STACK_INDEXED_CODE => {
                 // Get location address using normal evaluate
@@ -391,13 +388,13 @@ impl Address {
     }
 
     pub fn evaluate_address_to_data<'a>(
-        mut pointer: &mut usize,
+        pointer: &mut usize,
         address_location: &MemoryLocation,
         expected_len: &usize,
         memory: &'a RuntimeMemoryManager,
     ) -> &'a [u8] {
         let (address, location) =
-            Self::evaluate_address(&mut pointer, address_location, expected_len, memory);
+            Self::evaluate_address(pointer, address_location, expected_len, memory);
 
         memory.get_data(&location, address, *expected_len)
     }

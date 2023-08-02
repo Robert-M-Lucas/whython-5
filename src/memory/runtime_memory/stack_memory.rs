@@ -28,7 +28,7 @@ impl StackMemory {
                 position -= m.len();
                 continue;
             }
-            return (&m, position);
+            return (m, position);
         }
 
         panic!("Index out of stack!");
@@ -96,7 +96,7 @@ impl StackMemory {
         for i in self.memory.iter().enumerate() {
             dump_bytes(
                 format!("{}/stack-{}.bin", folder_name, i.0).as_str(),
-                &(i.1),
+                i.1,
             );
         }
     }

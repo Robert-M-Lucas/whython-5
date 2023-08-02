@@ -59,16 +59,11 @@ impl Execute for ViewMemoryDecInstruction {
             }
             println!();
         } else {
-            let len = data.len();
-            let mut data_full = Vec::with_capacity(16);
-            for i in 0..16 {
-                if i < len {
-                    data_full.push(data[i]);
-                } else {
-                    data_full.push(0);
-                }
+            let mut data_full = [0; 16];
+            for (i, byte) in data.iter().take(16).enumerate() {
+                data_full[i] = *byte;
             }
-            println!("{}", u128::from_le_bytes(data_full.try_into().unwrap()));
+            println!("{}", u128::from_le_bytes(data_full));
         }
     }
 }

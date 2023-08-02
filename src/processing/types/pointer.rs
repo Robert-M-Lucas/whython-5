@@ -23,7 +23,7 @@ default_type_initialiser!(PointerType, (Add, Subtract, Equal, NotEqual), ());
 impl PointerType {
     pub fn duplicate_known(&self) -> PointerType {
         let mut t = PointerType::new();
-        t.address = self.address.as_ref().and_then(|a| Some(a.clone()));
+        t.address = self.address.as_ref().cloned();
         t
     }
 }
@@ -55,7 +55,7 @@ impl Type for PointerType {
     fn get_constant(&self, literal: &Literal) -> Result<Address, String> {
         match literal {
             Literal::Int(value) => {
-                let ptr: Result<usize, _> = value.clone().try_into();
+                let ptr: Result<usize, _> = (*value).try_into();
                 if let Ok(ptr) = ptr {
                     Ok(Address::Immediate(Vec::from(ptr.to_le_bytes())))
                 } else {

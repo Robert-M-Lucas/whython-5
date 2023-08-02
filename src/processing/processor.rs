@@ -53,7 +53,7 @@ macro_rules! q {
     ($r: expr) => {
         match $r {
             Ok(v) => v,
-            Err(e) => return crate::processing::processor::ProcessingResult::Failure(e),
+            Err(e) => return $crate::processing::processor::ProcessingResult::Failure(e),
         }
     };
 }

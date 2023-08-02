@@ -137,10 +137,7 @@ impl ReferenceHandler {
 
 impl Reference {
     pub fn is_variable(&self) -> bool {
-        match self {
-            Reference::Variable(_) => true,
-            _ => false,
-        }
+        matches!(self, Reference::Variable(_))
     }
 
     pub fn get_variable_ref(&self) -> Result<&dyn Type, String> {
@@ -306,7 +303,7 @@ impl ReferenceStack {
     }
 
     /// Searches for a variable going up the reference stack
-    pub fn get_reference_mut<'a>(&mut self, name: &[String]) -> Result<&mut Reference, String> {
+    pub fn get_reference_mut(&mut self, name: &[String]) -> Result<&mut Reference, String> {
         //? Go up the stack and search for a variable
 
         let mut i = self.stack.len() - 1;
@@ -359,7 +356,7 @@ impl ReferenceStack {
     }
 
     /// Searches for a variable going up the reference stack
-    pub fn get_reference_handler_mut<'a>(
+    pub fn get_reference_handler_mut(
         &mut self,
         name: &[String],
     ) -> Result<&mut ReferenceHandler, String> {

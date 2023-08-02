@@ -102,10 +102,10 @@ impl FunctionReference {
 
         // Evaluate arguments to intermediate type
         let mut intermediate = Vec::with_capacity(self.parameters.len());
-        for i in 0..self.parameters.len() {
+        for (argument, parameter) in arguments.iter().zip(&self.parameters) {
             intermediate.push(evaluate_arithmetic_to_types(
-                &arguments[i],
-                &[self.parameters[i].1.get_type_symbol()],
+                argument,
+                &[parameter.1.get_type_symbol()],
                 program_memory,
                 reference_stack,
                 stack_sizes,

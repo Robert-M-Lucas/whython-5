@@ -124,7 +124,7 @@ fn wrapped_main(exit: &AtomicBool) {
                 for _ in 0..(l.0 * 4) {
                     lexical_result.push(' ');
                 }
-                write!(lexical_result, "{:?}\n", l.1).unwrap();
+                writeln!(lexical_result, "{:?}", l.1).unwrap();
             }
             let mut write = OpenOptions::new()
                 .create(true)
