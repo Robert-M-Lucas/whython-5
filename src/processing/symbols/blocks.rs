@@ -9,6 +9,7 @@ pub enum Block {
     Elif,
     Else,
     Function,
+    Class,
     BaseBlock,
 }
 
@@ -23,6 +24,7 @@ impl Block {
             Block::Elif => "elif",
             Block::Else => "else",
             Block::Function => "fn",
+            Block::Class => "class",
             Block::BaseBlock => "block",
         }
     }
@@ -37,6 +39,7 @@ impl SymbolHandler for BlockSymbolHandler {
             "elif" => Some(Symbol::Block(Block::Elif)),
             "else" => Some(Symbol::Block(Block::Else)),
             "fn" => Some(Symbol::Block(Block::Function)),
+            "class" => Some(Symbol::Block(Block::Class)),
             "block" => Some(Symbol::Block(Block::BaseBlock)),
             _ => None,
         }

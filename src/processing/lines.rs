@@ -9,6 +9,7 @@ pub mod view_memory;
 pub mod variable_assignment;
 pub mod variable_initialisation;
 pub mod while_line;
+pub mod class_line;
 
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;

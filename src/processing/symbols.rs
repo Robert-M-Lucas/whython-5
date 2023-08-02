@@ -130,9 +130,10 @@ pub fn try_bracketed_into_parameters(bracketed: &Symbol) -> Result<Literal, Stri
     Ok(Literal::ParameterList(parameter_list))
 }
 
-const ALLOWED_CHARS_IN_NAME: &str = "abcdefghijklmnopqrstuvwxyz_";
-const NAME_SEPARATOR: char = '.';
-const FORBIDDEN_NAMES: [&str; 1] = ["self"];
+pub const ALLOWED_CHARS_IN_NAME: &str = "abcdefghijklmnopqrstuvwxyz_";
+pub const NAME_SEPARATOR: char = '.';
+pub const CLASS_SELF_NAME: &str = "self";
+pub const FORBIDDEN_NAMES: [&str; 1] = [CLASS_SELF_NAME];
 
 struct AllSymbolHandler {}
 

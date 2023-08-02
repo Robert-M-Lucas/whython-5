@@ -2,6 +2,7 @@ pub mod base_block;
 pub mod function_block;
 pub mod if_block;
 pub mod while_block;
+pub mod class_block;
 
 use crate::memory::MemoryManager;
 use crate::processing::blocks::base_block::BaseBlock;
