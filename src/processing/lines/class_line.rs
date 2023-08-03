@@ -28,6 +28,7 @@ impl LineHandler for ClassLine {
                     program_memory,
                     line,
                 ));
+                block_coordinator.skip_sub_block_check = true;
                 ProcessingResult::Success
             }
             _ => ProcessingResult::Unmatched,

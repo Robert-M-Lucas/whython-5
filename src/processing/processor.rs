@@ -147,6 +147,14 @@ pub fn process_symbols(symbol_data: SymbolData) -> Result<MemoryManager, String>
                 &symbol_data
             );
         }
+
+        if let Err(e) = block_coordinator.on_line_processed() {
+            return create_line_error(
+                e,
+                line_index,
+                &symbol_data
+            );
+        }
     }
 
     //? Exit remaining blocks

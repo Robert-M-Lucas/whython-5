@@ -1,6 +1,6 @@
 use crate::bx;
 use crate::memory::MemoryManager;
-use crate::processing::blocks::{BlockHandler, StackSizes};
+use crate::processing::blocks::{BlockHandler, BlockType, StackSizes};
 use crate::processing::reference_manager::class::ClassReference;
 use crate::processing::reference_manager::{Reference, ReferenceStack};
 use crate::processing::symbols::{Block, Symbol, CLASS_SELF_NAME};
@@ -16,6 +16,8 @@ impl ClassBlock {
 }
 
 impl BlockHandler for ClassBlock {
+    fn get_block_type(&self) -> BlockType { BlockType::Class }
+
     fn on_entry(
         &mut self,
         _program_memory: &mut MemoryManager,
@@ -69,5 +71,12 @@ impl BlockHandler for ClassBlock {
             .unwrap()
             .name = self.name.take().unwrap();
         Ok(())
+    }
+
+    fn update_sub_block(&mut self, block_type: Option<BlockType>) -> Result<(), String> {
+        match block_type {
+            Some(BlockType::Function) => Ok(()),
+            _ => Err("Classes can only contain function".to_string())
+        }
     }
 }

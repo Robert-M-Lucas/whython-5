@@ -1,6 +1,6 @@
 use crate::bx;
 use crate::memory::MemoryManager;
-use crate::processing::blocks::{BlockHandler, StackSizes};
+use crate::processing::blocks::{BlockHandler, BlockType, StackSizes};
 use crate::processing::instructions::dynamic_jump_11::DynamicJumpInstruction;
 use crate::processing::instructions::jump_instruction_10::JumpInstruction;
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
@@ -47,6 +47,8 @@ impl FunctionBlock {
 */
 
 impl BlockHandler for FunctionBlock {
+    fn get_block_type(&self) -> BlockType { BlockType::Function }
+    
     fn on_entry(
         &mut self,
         program_memory: &mut MemoryManager,

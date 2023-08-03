@@ -1,6 +1,6 @@
 use crate::bx;
 use crate::memory::MemoryManager;
-use crate::processing::blocks::{BlockHandler, StackSizes};
+use crate::processing::blocks::{BlockHandler, BlockType, StackSizes};
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_down_4::StackDownInstruction;
 use crate::processing::instructions::stack_up_1::StackUpInstruction;
@@ -20,6 +20,8 @@ impl BaseBlock {
 }
 
 impl BlockHandler for BaseBlock {
+    fn get_block_type(&self) -> BlockType { BlockType::Base }
+
     fn on_entry(
         &mut self,
         program_memory: &mut MemoryManager,

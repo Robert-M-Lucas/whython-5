@@ -1,5 +1,5 @@
 use crate::memory::MemoryManager;
-use crate::processing::blocks::{BlockHandler, StackSizes};
+use crate::processing::blocks::{BlockHandler, BlockType, StackSizes};
 use crate::processing::instructions::jump_if_not_9::JumpIfNotInstruction;
 use crate::processing::instructions::jump_instruction_10::JumpInstruction;
 use crate::processing::lines::arithmetic::evaluate_arithmetic_to_types;
@@ -26,6 +26,8 @@ impl WhileBlock {
 }
 
 impl BlockHandler for WhileBlock {
+    fn get_block_type(&self) -> BlockType { BlockType::While }
+    
     fn on_entry(
         &mut self,
         program_memory: &mut MemoryManager,

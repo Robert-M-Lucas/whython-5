@@ -10,7 +10,17 @@ use crate::processing::reference_manager::{Reference, ReferenceStack};
 use crate::processing::symbols::Symbol;
 use crate::util::warn;
 
+pub enum BlockType {
+    Base,
+    Class,
+    Function,
+    If,
+    While
+}
+
 pub trait BlockHandler {
+    fn get_block_type(&self) -> BlockType;
+
     /// Enter block
     fn on_entry(
         &mut self,
@@ -49,6 +59,10 @@ pub trait BlockHandler {
     /// Continue block e.g. while
     fn on_continue(&mut self, _program_memory: &mut MemoryManager) -> Result<bool, String> {
         Ok(false)
+    }
+
+    fn update_sub_block(&mut self, block_type: Option<BlockType>) -> Result<(), String> {
+        Ok(())
     }
 }
 
@@ -97,6 +111,7 @@ pub struct BlockCoordinator {
     stack_sizes: StackSizes,
     reference_stack: ReferenceStack,
     completed: bool,
+    pub skip_sub_block_check: bool,
 }
 
 impl BlockCoordinator {
@@ -106,6 +121,7 @@ impl BlockCoordinator {
             stack_sizes: StackSizes::new(),
             reference_stack: ReferenceStack::new(),
             completed: false,
+            skip_sub_block_check: false
         };
 
         // Initialise base block
@@ -239,6 +255,19 @@ impl BlockCoordinator {
         // self.stack_sizes.remove_stack();
 
         result
+    }
+
+    pub fn on_line_processed(&mut self) -> Result<(), String> {
+        if self.skip_sub_block_check {
+            self.skip_sub_block_check = false;
+            return Ok(());
+        }
+        for i in 0..self.stack.len() {
+            let block_type = self.stack.iter().nth(i + 1).map(|b| b.get_block_type());
+            self.stack.iter_mut().nth(i).unwrap()
+                .update_sub_block(block_type)?;
+        }
+        Ok(())
     }
 
     /// Returns the current indentation level
