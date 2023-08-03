@@ -12,6 +12,7 @@ use crate::processing::types::pointer::PointerType;
 use crate::processing::types::Type;
 use crate::unpack_either_type;
 use crate::util::must_use_option::MustUseOption;
+use crate::util::warn;
 
 #[must_use]
 pub struct IncompleteFunctionCall {
@@ -55,12 +56,14 @@ impl FunctionReference {
         }
     }
 
+    /// Finishes the construction of all `IncompleteFunctionCall`s that required the stack size of
+    /// the function to work properly
     pub fn set_stack_size_and_complete(
         &mut self,
-        new_size: usize,
+        stack_size: usize,
         program_memory: &mut MemoryManager,
     ) {
-        self.stack_size = Some(new_size);
+        self.stack_size = Some(stack_size);
         self.complete(program_memory);
     }
 
@@ -83,6 +86,9 @@ impl FunctionReference {
         self.incomplete_function_calls = Vec::new();
     }
 
+    /// Calls the function. If the call is recursive (i.e. the stack size of the function is not
+    /// known yet), this returns an `IncompleteFunctionCall` that must be handled with the
+    /// `add_incomplete_function_call` method
     pub fn call(
         &self,
         _return_into: Option<&dyn Type>,
@@ -94,7 +100,7 @@ impl FunctionReference {
         // Check number of arguments
         if arguments.len() != self.parameters.len() {
             return Err(format!(
-                "Expected {} arguments - recieved {}",
+                "Expected {} arguments - received {}",
                 self.parameters.len(),
                 arguments.len()
             ));
@@ -129,11 +135,16 @@ impl FunctionReference {
             let mut t = t.duplicate(); // Allow mutability
             if let Some(stack_size) = self.stack_size {
                 t.get_address_mut().offset_if_stack(stack_size); // Offset to account for new stack
-                self.parameters[i].1.runtime_copy_from(t.as_ref(), program_memory)?; // Copy into parameter
+                self.parameters[i]
+                    .1
+                    .runtime_copy_from(t.as_ref(), program_memory)?; // Copy into parameter
             } else {
                 // Copy into parameter
-                copy_instructions_to_offset
-                    .push(self.parameters[i].1.runtime_copy_from(t.as_ref(), program_memory)?);
+                copy_instructions_to_offset.push(
+                    self.parameters[i]
+                        .1
+                        .runtime_copy_from(t.as_ref(), program_memory)?,
+                );
             }
         }
 
@@ -163,11 +174,22 @@ impl FunctionReference {
         }
     }
 
+    /// Adds an `IncompleteFunctionCall` to an internal list to be completed when the stack size
+    /// of the function is determined
     pub fn add_incomplete_function_call(
         &mut self,
         incomplete_function_call: IncompleteFunctionCall,
     ) {
         self.incomplete_function_calls
             .push(incomplete_function_call)
+    }
+}
+
+#[cfg(debug_assertions)]
+impl Drop for FunctionReference {
+    fn drop(&mut self) {
+        if self.stack_size.is_none() {
+            warn("Function was dropped without the stack size being determined (possible dangling IncompleteFunctionCalls)");
+        }
     }
 }

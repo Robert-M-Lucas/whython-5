@@ -15,6 +15,7 @@ pub enum MemoryLocation {
     Heap(usize), // ? frame: usize
 }
 
+/// Writes `data` to the `file` path
 fn dump_bytes(file: &str, data: &[u8]) {
     let mut file = fs::OpenOptions::new()
         .write(true)
@@ -33,6 +34,7 @@ pub struct RuntimeMemoryManager {
 }
 
 impl RuntimeMemoryManager {
+    /// Converts compile time `MemoryManager` to `RuntimeMemoryManager`
     pub fn from_program_memory(program_memory: MemoryManager) -> Self {
         Self {
             program_memory: program_memory.memory,
@@ -64,6 +66,7 @@ impl RuntimeMemoryManager {
         }
     }
 
+    /// Returns a slice from a given `MemoryLocation` starting at `address` with length `length`
     pub fn get_data(&self, location: &MemoryLocation, address: usize, length: usize) -> &[u8] {
         match location {
             MemoryLocation::Program => &self.program_memory[address..address + length],
@@ -75,6 +78,7 @@ impl RuntimeMemoryManager {
         }
     }
 
+    /// Overwrites data at an `address` in `location` with `data`
     pub fn overwrite_data(&mut self, location: &MemoryLocation, address: usize, data: &[u8]) {
         match location {
             MemoryLocation::Program => {
@@ -96,6 +100,7 @@ impl RuntimeMemoryManager {
         }
     }
 
+    /// Gets a single byte out of memory at a given `location` and `address`
     pub fn get_byte(&self, location: &MemoryLocation, address: usize) -> u8 {
         match location {
             MemoryLocation::Program => self.program_memory[address],
@@ -104,6 +109,7 @@ impl RuntimeMemoryManager {
         }
     }
 
+    /// Dumps the current state of the program into `dir_name`
     pub fn dump_all(&self, dir_name: &str) {
         fs::remove_dir_all(dir_name).ok();
         fs::create_dir_all(dir_name).unwrap();

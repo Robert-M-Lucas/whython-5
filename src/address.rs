@@ -237,7 +237,6 @@ impl Address {
                 *pointer += USIZE_BYTES;
 
                 // Recursively get address
-                
 
                 Self::evaluate_address(
                     &mut next_address,
@@ -283,7 +282,6 @@ impl Address {
                 *pointer += USIZE_BYTES + USIZE_BYTES;
 
                 // Recursively get address
-                
 
                 Self::evaluate_address(
                     &mut next_address,

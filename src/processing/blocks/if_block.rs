@@ -1,6 +1,6 @@
 use crate::memory::MemoryManager;
-use crate::processing::blocks::{BlockHandler, BlockType};
 use crate::processing::blocks::StackSizes;
+use crate::processing::blocks::{BlockHandler, BlockType};
 use crate::processing::instructions::jump_if_not_9::JumpIfNotInstruction;
 use crate::processing::instructions::jump_instruction_10::JumpInstruction;
 use crate::processing::lines::arithmetic::evaluate_arithmetic_to_types;
@@ -23,8 +23,10 @@ impl IfBlock {
 }
 
 impl BlockHandler for IfBlock {
-    fn get_block_type(&self) -> BlockType { BlockType::If }
-    
+    fn get_block_type(&self) -> BlockType {
+        BlockType::If
+    }
+
     fn on_entry(
         &mut self,
         program_memory: &mut MemoryManager,

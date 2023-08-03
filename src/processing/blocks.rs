@@ -15,7 +15,7 @@ pub enum BlockType {
     Class,
     Function,
     If,
-    While
+    While,
 }
 
 pub trait BlockHandler {
@@ -61,7 +61,10 @@ pub trait BlockHandler {
         Ok(false)
     }
 
-    fn update_sub_block(&mut self, block_type: Option<BlockType>) -> Result<(), String> {
+    /// Called every time a new line is processed with the block below itself. Used
+    /// for preventing certain block inside other block e.g. only functions being allowed
+    /// in classes
+    fn update_sub_block(&mut self, _block_type: Option<BlockType>) -> Result<(), String> {
         Ok(())
     }
 }
@@ -83,15 +86,17 @@ impl StackSizes {
         self.sizes.pop();
     }
 
-    pub fn get_size(&self) -> usize {
+    /// Returns the size of the topmost stack
+    pub fn get_stack_size(&self) -> usize {
         *self
             .sizes
             .last()
             .expect("Tried to get stack size when no stack exists")
     }
 
+    /// Increments the topmost stack size by `amount`
     pub fn increment_stack_size(&mut self, amount: usize) -> usize {
-        let r = self.get_size();
+        let r = self.get_stack_size();
         *self
             .sizes
             .last_mut()
@@ -121,7 +126,7 @@ impl BlockCoordinator {
             stack_sizes: StackSizes::new(),
             reference_stack: ReferenceStack::new(),
             completed: false,
-            skip_sub_block_check: false
+            skip_sub_block_check: false,
         };
 
         // Initialise base block
@@ -131,6 +136,7 @@ impl BlockCoordinator {
         new
     }
 
+    /// Runs final tasks when exiting compilation stage
     pub fn complete(&mut self, program_memory: &mut MemoryManager) {
         if self.stack.len() > 1 {
             panic!("Attempted to complete BlockCoordinator when a BlockHandler is still active");
@@ -257,6 +263,9 @@ impl BlockCoordinator {
         result
     }
 
+    /// Should be called after every line is processed. Informs all blocks of the
+    /// blocks beneath them. Can be skipped by setting `BlockCoordinator.skip_sub_block_check`
+    /// to true
     pub fn on_line_processed(&mut self) -> Result<(), String> {
         if self.skip_sub_block_check {
             self.skip_sub_block_check = false;
@@ -264,7 +273,10 @@ impl BlockCoordinator {
         }
         for i in 0..self.stack.len() {
             let block_type = self.stack.iter().nth(i + 1).map(|b| b.get_block_type());
-            self.stack.iter_mut().nth(i).unwrap()
+            self.stack
+                .iter_mut()
+                .nth(i)
+                .unwrap()
                 .update_sub_block(block_type)?;
         }
         Ok(())

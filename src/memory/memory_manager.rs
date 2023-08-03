@@ -81,7 +81,9 @@ impl MemoryManager {
             println!("Failed to write to file - {}", e)
         }
     }
-
+    
+    /// Saves compiled data to a file with the specified name (excluding extension)
+    //noinspection SpellCheckingInspection
     pub fn save_to_file(&self, name: String) {
         let name = name + format!(" - {}.cwhy", USIZE_BYTES * 8).as_str();
 
@@ -108,6 +110,7 @@ impl MemoryManager {
         }
     }
 
+    /// Loads data from a compiled file
     pub fn load_from_file(path: String) -> Result<Self, String> {
         println!("Loading precompiled data from file '{}'", &path);
 

@@ -26,8 +26,10 @@ impl WhileBlock {
 }
 
 impl BlockHandler for WhileBlock {
-    fn get_block_type(&self) -> BlockType { BlockType::While }
-    
+    fn get_block_type(&self) -> BlockType {
+        BlockType::While
+    }
+
     fn on_entry(
         &mut self,
         program_memory: &mut MemoryManager,

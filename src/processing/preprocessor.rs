@@ -1,8 +1,10 @@
 use crate::bx;
-use crate::errors::{create_line_error, create_simple_line_error};
+use crate::errors::create_simple_line_error;
 use crate::file_loading::load_file;
-use crate::processing::symbols::{get_all_symbol, Punctuation, Symbol, LIST_SEPARATOR_CHARACTER, STRING_DELIMITERS, Keyword};
-use crate::util::{join_file_name, join_reference_name};
+use crate::processing::symbols::{
+    get_all_symbol, Keyword, Punctuation, Symbol, LIST_SEPARATOR_CHARACTER, STRING_DELIMITERS,
+};
+use crate::util::join_file_name;
 
 pub const COMMENT_CHARACTER: char = '#';
 pub const OPEN_BRACKET_CHARACTER: char = '(';
@@ -184,30 +186,35 @@ pub struct Line {
     pub file_name_index: usize,
     pub line_index: usize,
     pub indentation: usize,
-    pub symbols: Vec<Symbol>
+    pub symbols: Vec<Symbol>,
 }
 
 impl Line {
-    pub fn new(file_name_index: usize, line_index: usize, indentation: usize, symbols: Vec<Symbol>) -> Line {
+    pub fn new(
+        file_name_index: usize,
+        line_index: usize,
+        indentation: usize,
+        symbols: Vec<Symbol>,
+    ) -> Line {
         Line {
             file_name_index,
             line_index,
             indentation,
-            symbols
+            symbols,
         }
     }
 }
 
 pub struct SymbolData {
     file_names: Vec<String>,
-    pub lines: Vec<Line>
+    pub lines: Vec<Line>,
 }
 
 impl<'a> SymbolData {
     pub fn new() -> SymbolData {
         SymbolData {
             file_names: Vec::new(),
-            lines: Vec::new()
+            lines: Vec::new(),
         }
     }
 
@@ -216,19 +223,33 @@ impl<'a> SymbolData {
         self.file_names.len() - 1
     }
 
-    pub fn add_line(&mut self, file_name_index: usize, line_index: usize, indentation: usize, line: Vec<Symbol>) {
-        self.lines.push(Line::new(file_name_index, line_index, indentation, line))
+    pub fn add_line(
+        &mut self,
+        file_name_index: usize,
+        line_index: usize,
+        indentation: usize,
+        line: Vec<Symbol>,
+    ) {
+        self.lines
+            .push(Line::new(file_name_index, line_index, indentation, line))
     }
 
     pub fn get_error_path(&self, line_index: usize) -> String {
-        format!("{} - Line {}", self.file_names[self.lines[line_index].file_name_index], self.lines[line_index].line_index + 1)
+        format!(
+            "{} - Line {}",
+            self.file_names[self.lines[line_index].file_name_index],
+            self.lines[line_index].line_index + 1
+        )
     }
 }
 
 /// Takes code as an input
 ///
 /// Returns `Vec<indentation, symbol line>`
-pub fn convert_to_symbols<'a>(file_name: String, symbol_data: &mut SymbolData) -> Result<(), String> {
+pub fn convert_to_symbols<'a>(
+    file_name: String,
+    symbol_data: &mut SymbolData,
+) -> Result<(), String> {
     println!("Reading file '{}'", file_name);
     let data = load_file(&file_name)?;
 
@@ -253,7 +274,7 @@ pub fn convert_to_symbols<'a>(file_name: String, symbol_data: &mut SymbolData) -
             return create_simple_line_error(
                 "Indentation must be a multiple of 4 spaces or single tabs".to_string(),
                 line_index,
-                &file_name
+                &file_name,
             );
         }
 
@@ -268,34 +289,32 @@ pub fn convert_to_symbols<'a>(file_name: String, symbol_data: &mut SymbolData) -
                 Symbol::Keyword(Keyword::Import) => {
                     if indentation_count != 0 {
                         Err("Import statements cannot be indented".to_string())
-                    }
-                    else if symbols.len() != 2 {
+                    } else if symbols.len() != 2 {
                         Err("Import statements must be formatted import [file name]".to_string())
-                    }
-                    else {
+                    } else {
                         match &symbols[1] {
                             Symbol::Name(name) => {
                                 if name.len() < 2 || name.last().unwrap() != "why" {
                                     Err("File extension must be .why".to_string())
-                                }
-                                else {
+                                } else {
                                     let name = join_file_name(name);
 
                                     convert_to_symbols(name, symbol_data)?;
                                     Ok(true)
                                 }
                             }
-                            _ => Err("Import statements must be formatted import [file name]".to_string())
+                            _ => Err("Import statements must be formatted import [file name]"
+                                .to_string()),
                         }
                     }
                 }
-                _ => { Ok(false) }
+                _ => Ok(false),
             };
 
             match processed {
                 Ok(true) => continue,
-                Ok(false) => {},
-                Err(e) => return create_simple_line_error(e, line_index, &file_name)
+                Ok(false) => {}
+                Err(e) => return create_simple_line_error(e, line_index, &file_name),
             };
         }
 

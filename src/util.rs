@@ -157,11 +157,9 @@ pub fn join_file_name(name: &[String]) -> String {
         joined_name += string;
         if i < name.len() - 2 {
             joined_name.push('/');
-        }
-        else if i == name.len() - 2 {
+        } else if i == name.len() - 2 {
             joined_name.push('.')
         }
     }
     joined_name
 }
-

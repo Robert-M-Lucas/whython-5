@@ -3,14 +3,15 @@
 mod address;
 mod errors;
 mod execution;
+pub mod file_loading;
 mod memory;
 mod processing;
 mod translator;
 pub mod util;
-pub mod file_loading;
 
 use crate::execution::execute;
 use crate::memory::{MemoryManager, RuntimeMemoryManager};
+use crate::processing::preprocessor::SymbolData;
 #[allow(unused_imports)]
 use crate::translator::translate;
 use crate::util::{info, USIZE_BYTES};
@@ -19,14 +20,11 @@ use processing::processor::process_symbols;
 use std::env;
 use std::ffi::OsStr;
 use std::fmt::Write as _;
-use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
-use crate::file_loading::load_file;
-use crate::processing::preprocessor::SymbolData;
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 
@@ -44,6 +42,7 @@ fn main() {
     util::pause();
 }
 
+//noinspection SpellCheckingInspection
 fn wrapped_main(exit: &AtomicBool) {
     let args: Vec<String> = env::args().collect();
     info(
@@ -55,12 +54,9 @@ fn wrapped_main(exit: &AtomicBool) {
         .as_str(),
     );
 
-    let input_defaulted;
     let input_file = if args.len() >= 2 {
-        input_defaulted = false;
         args[1].clone()
     } else {
-        input_defaulted = true;
         DEFAULT_FILE_NAME.to_string()
     };
 

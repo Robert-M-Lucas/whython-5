@@ -129,6 +129,7 @@ fn evaluate_arithmetic_section<'a>(
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
 ) -> Result<Option<OwnedOrRefType<'a>>, String> {
+    //noinspection SpellCheckingInspection
     fn get_formatting_error() -> String {
         "Arithmetic sections must be formated [Operator] [Value], [Value] [Operator] [Value] or [Value] as [Type]".to_string()
     }
@@ -226,9 +227,7 @@ fn evaluate_arithmetic_section<'a>(
                         stack_sizes,
                     )
                 }
-                _ => {
-                    Err(get_formatting_error())
-                }
+                _ => Err(get_formatting_error()),
             }
         }
     }
@@ -314,8 +313,7 @@ fn handle_single_symbol<'a>(
                         program_memory,
                     )?;
                     let default_type_type = default_type.get_type_symbol();
-                    if !types.is_empty() && !types.iter().any(|t| *t == default_type_type)
-                    {
+                    if !types.is_empty() && !types.iter().any(|t| *t == default_type_type) {
                         Err(incorrect_type_error(types, &[default_type_type]))
                     } else {
                         Ok(Some(Left(default_type)))
@@ -448,7 +446,13 @@ fn handle_operation<'a>(
             } else {
                 let mut new_type = TypeFactory::get_unallocated_type(&return_types[0])?;
                 new_type.allocate_variable(stack_sizes, program_memory)?;
-                lhs.operate(operator, rhs, new_type.as_ref(), program_memory, stack_sizes)?;
+                lhs.operate(
+                    operator,
+                    rhs,
+                    new_type.as_ref(),
+                    program_memory,
+                    stack_sizes,
+                )?;
 
                 Ok(Some(Left(new_type)))
             }
@@ -476,7 +480,13 @@ fn handle_operation<'a>(
             if let Some(return_type) = return_type {
                 let mut new_type = TypeFactory::get_unallocated_type(return_type)?;
                 new_type.allocate_variable(stack_sizes, program_memory)?;
-                lhs.operate(operator, rhs, new_type.as_ref(), program_memory, stack_sizes)?;
+                lhs.operate(
+                    operator,
+                    rhs,
+                    new_type.as_ref(),
+                    program_memory,
+                    stack_sizes,
+                )?;
 
                 Ok(Some(Left(new_type)))
             } else {

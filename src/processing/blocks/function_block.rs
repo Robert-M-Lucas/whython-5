@@ -47,8 +47,10 @@ impl FunctionBlock {
 */
 
 impl BlockHandler for FunctionBlock {
-    fn get_block_type(&self) -> BlockType { BlockType::Function }
-    
+    fn get_block_type(&self) -> BlockType {
+        BlockType::Function
+    }
+
     fn on_entry(
         &mut self,
         program_memory: &mut MemoryManager,
@@ -228,7 +230,7 @@ impl BlockHandler for FunctionBlock {
             .unwrap()
             .get_function_mut()
             .unwrap()
-            .set_stack_size_and_complete(stack_sizes.get_size(), program_memory);
+            .set_stack_size_and_complete(stack_sizes.get_stack_size(), program_memory);
         // let mut reference = reference_stack.get_and_remove_reference(self.name.as_ref().unwrap().as_str()).unwrap().0;
         // reference.get_function_mut().unwrap().set_stack_size_and_complete(stack_sizes.get_size(), program_memory);
         // reference_stack.register_reference_with_offset(reference, 1).unwrap();

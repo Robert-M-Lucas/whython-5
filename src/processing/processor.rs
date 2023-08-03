@@ -14,7 +14,6 @@ use crate::processing::lines::view_memory::ViewMemoryLine;
 use crate::processing::lines::while_line::WhileLine;
 use crate::processing::lines::LineHandler;
 use crate::processing::preprocessor::SymbolData;
-use crate::processing::symbols::Symbol;
 
 pub enum ProcessingResult {
     Success,
@@ -144,16 +143,12 @@ pub fn process_symbols(symbol_data: SymbolData) -> Result<MemoryManager, String>
             return create_line_error(
                 "Line didn't match any known patterns".to_string(),
                 line_index,
-                &symbol_data
+                &symbol_data,
             );
         }
 
         if let Err(e) = block_coordinator.on_line_processed() {
-            return create_line_error(
-                e,
-                line_index,
-                &symbol_data
-            );
+            return create_line_error(e, line_index, &symbol_data);
         }
     }
 

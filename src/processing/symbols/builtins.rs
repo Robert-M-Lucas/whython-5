@@ -11,6 +11,7 @@ pub enum Builtin {
 pub struct BuiltinSymbolHandler {}
 
 impl SymbolHandler for BuiltinSymbolHandler {
+    //noinspection SpellCheckingInspection
     fn get_symbol(string: &str) -> Option<Symbol> {
         match string {
             "print" => Some(Symbol::Builtin(Builtin::Print)),

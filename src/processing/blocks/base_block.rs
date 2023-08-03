@@ -20,7 +20,9 @@ impl BaseBlock {
 }
 
 impl BlockHandler for BaseBlock {
-    fn get_block_type(&self) -> BlockType { BlockType::Base }
+    fn get_block_type(&self) -> BlockType {
+        BlockType::Base
+    }
 
     fn on_entry(
         &mut self,
@@ -45,7 +47,7 @@ impl BlockHandler for BaseBlock {
         self.stack_create_instruction
             .as_mut()
             .expect("No stack create instruction")
-            .set_stack_size(stack_sizes.get_size(), program_memory);
+            .set_stack_size(stack_sizes.get_stack_size(), program_memory);
         stack_sizes.remove_stack();
         Ok(())
     }

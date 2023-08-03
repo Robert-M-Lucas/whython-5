@@ -15,6 +15,8 @@ pub enum Keyword {
 pub struct KeywordSymbolHandler {}
 
 impl Keyword {
+    //noinspection SpellCheckingInspection
+    //noinspection SpellCheckingInspection
     pub fn get_code_representation(&self) -> &str {
         match self {
             Keyword::Break => "break",
@@ -29,6 +31,7 @@ impl Keyword {
 }
 
 impl SymbolHandler for KeywordSymbolHandler {
+    //noinspection SpellCheckingInspection
     fn get_symbol(string: &str) -> Option<Symbol> {
         match string {
             "break" => Some(Symbol::Keyword(Keyword::Break)),

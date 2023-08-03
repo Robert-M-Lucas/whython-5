@@ -43,9 +43,7 @@ impl SymbolHandler for OperatorSymbolHandler {
             string => {
                 // TODO: Error if invalid type symbol but '<x>' is still present?
                 if string.len() > 2 {
-                    if string.starts_with('<')
-                        && string.ends_with('>')
-                    {
+                    if string.starts_with('<') && string.ends_with('>') {
                         let type_name = substring(string, 1, string.len() - 2);
                         let type_symbol = TypeSymbolHandler::get_raw_symbol(type_name.as_str());
 

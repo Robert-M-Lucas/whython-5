@@ -16,7 +16,9 @@ impl ClassBlock {
 }
 
 impl BlockHandler for ClassBlock {
-    fn get_block_type(&self) -> BlockType { BlockType::Class }
+    fn get_block_type(&self) -> BlockType {
+        BlockType::Class
+    }
 
     fn on_entry(
         &mut self,
@@ -76,7 +78,7 @@ impl BlockHandler for ClassBlock {
     fn update_sub_block(&mut self, block_type: Option<BlockType>) -> Result<(), String> {
         match block_type {
             Some(BlockType::Function) => Ok(()),
-            _ => Err("Classes can only contain function".to_string())
+            _ => Err("Classes can only contain function".to_string()),
         }
     }
 }

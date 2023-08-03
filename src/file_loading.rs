@@ -12,10 +12,10 @@ pub fn load_file(input_file: &str) -> Result<String, String> {
             //         )
             // } else {
             Err(format!(
-                    "Error reading file '{}' - {}",
-                    input_file,
-                    e.to_string()
-                ))
+                "Error reading file '{}' - {}",
+                input_file,
+                e.to_string()
+            ))
             // })
         }
         Ok(value) => Ok(value),

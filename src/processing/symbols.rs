@@ -130,6 +130,7 @@ pub fn try_bracketed_into_parameters(bracketed: &Symbol) -> Result<Literal, Stri
     Ok(Literal::ParameterList(parameter_list))
 }
 
+//noinspection SpellCheckingInspection
 pub const ALLOWED_CHARS_IN_NAME: &str = "abcdefghijklmnopqrstuvwxyz_";
 pub const NAME_SEPARATOR: char = '.';
 pub const CLASS_SELF_NAME: &str = "self";

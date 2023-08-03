@@ -9,7 +9,6 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
 use crate::processing::instructions::copy_3::CopyInstruction;
 use crate::processing::types::pointer::PointerWrapper;
-pub use defaults::*;
 
 pub mod boolean;
 pub mod pointer;
