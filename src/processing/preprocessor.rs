@@ -2,7 +2,7 @@ use crate::bx;
 use crate::errors::{create_line_error, create_simple_line_error};
 use crate::file_loading::load_file;
 use crate::processing::symbols::{get_all_symbol, Punctuation, Symbol, LIST_SEPARATOR_CHARACTER, STRING_DELIMITERS, Keyword};
-use crate::util::join_reference_name;
+use crate::util::{join_file_name, join_reference_name};
 
 pub const COMMENT_CHARACTER: char = '#';
 pub const OPEN_BRACKET_CHARACTER: char = '(';
@@ -259,7 +259,7 @@ pub fn convert_to_symbols<'a>(file_name: String, symbol_data: &mut SymbolData) -
 
         //? Get symbols
         let symbols = match get_symbols_from_line(&line[indentation_char_count..]) {
-            Err(e) => return create_line_error(e, line_index, symbol_data),
+            Err(e) => return create_simple_line_error(e, line_index, &file_name),
             Ok(symbols) => symbols,
         };
 
@@ -279,7 +279,7 @@ pub fn convert_to_symbols<'a>(file_name: String, symbol_data: &mut SymbolData) -
                                     Err("File extension must be .why".to_string())
                                 }
                                 else {
-                                    let name = join_reference_name(name);
+                                    let name = join_file_name(name);
 
                                     convert_to_symbols(name, symbol_data)?;
                                     Ok(true)

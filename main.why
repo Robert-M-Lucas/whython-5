@@ -1,4 +1,4 @@
-import fibonacci.why
+import examples.fibonacci.why
 
 class test
     fn add(ptr a, ptr b)

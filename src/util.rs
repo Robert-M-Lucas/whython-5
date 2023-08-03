@@ -151,3 +151,17 @@ pub fn join_reference_name(name: &[String]) -> String {
     joined_name
 }
 
+pub fn join_file_name(name: &[String]) -> String {
+    let mut joined_name = String::new();
+    for (i, string) in name.iter().enumerate() {
+        joined_name += string;
+        if i < name.len() - 2 {
+            joined_name.push('/');
+        }
+        else if i == name.len() - 2 {
+            joined_name.push('.')
+        }
+    }
+    joined_name
+}
+
