@@ -10,7 +10,6 @@ use crate::processing::reference_manager::ReferenceStack;
 use crate::processing::symbols::{Literal, Symbol};
 use crate::processing::types::pointer::PointerType;
 use crate::processing::types::Type;
-use crate::unpack_either_type;
 use crate::util::must_use_option::MustUseOption;
 use crate::util::warn;
 
@@ -131,7 +130,7 @@ impl FunctionReference {
 
         // Copy intermediate types into new stack
         for (i, t) in intermediate.into_iter().enumerate() {
-            unpack_either_type!(t, t);
+            let t = t.as_ref();
             let mut t = t.duplicate(); // Allow mutability
             if let Some(stack_size) = self.stack_size {
                 t.get_address_mut().offset_if_stack(stack_size); // Offset to account for new stack

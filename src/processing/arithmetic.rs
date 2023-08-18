@@ -1,11 +1,9 @@
-use std::borrow::Cow;
-use either::{Either, Left, Right};
-
 use crate::memory::MemoryManager;
 use crate::processing::blocks::StackSizes;
 use crate::processing::reference_manager::ReferenceStack;
 use crate::processing::symbols::{Keyword, Operator, Symbol, TypeSymbol};
 use crate::processing::types::{Type, TypeFactory};
+use crate::util::ref_or_box::RefOrBox;
 
 /*
 macro_rules! get_variable {
@@ -29,23 +27,6 @@ macro_rules! get_variable {
 }
 */
 
-type OwnedOrRefType<'a> = Either<Box<dyn Type>, &'a dyn Type>;
-
-/// Takes an output name and an `Either`. The `Either` must be formatted as
-/// `Either<T, &T>`. Sets output to &T.
-#[macro_export]
-macro_rules! unpack_either_type {
-    ($output: ident, $either: expr) => {
-        let temp;
-        let $output = match $either {
-            either::Either::Left(t) => {
-                temp = t;
-                temp.as_ref()
-            }
-            either::Either::Right(t) => t,
-        };
-    };
-}
 
 pub enum ReturnOptions<'a> {
     /// Places the calculated value into the type - returns `None`
@@ -78,6 +59,7 @@ pub fn evaluate_arithmetic_into_type(
     // run_before_last_step: Option<fn(&mut MemoryManager, &mut StackSizes)>,
     // offset: usize
 ) -> Result<(), String> {
+
     evaluate_arithmetic_section(
         section,
         &mut ReturnOptions::IntoType(destination), //, run_before_last_step, offset),
@@ -95,7 +77,7 @@ pub fn evaluate_arithmetic_to_types<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<OwnedOrRefType<'a>, String> {
+) -> Result<RefOrBox<'a, dyn Type + 'a>, String> {
     Ok(evaluate_arithmetic_section(
         section,
         &mut ReturnOptions::OneOfTypes(return_type_options),
@@ -112,7 +94,7 @@ pub fn evaluate_arithmetic_to_any_type<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<OwnedOrRefType<'a>, String> {
+) -> Result<RefOrBox<'a, dyn Type + 'a>, String> {
     Ok(evaluate_arithmetic_section(
         section,
         &mut ReturnOptions::AnyType,
@@ -129,7 +111,7 @@ fn evaluate_arithmetic_section<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<OwnedOrRefType<'a>>, String> {
+) -> Result<Option<RefOrBox<'a, dyn Type + 'a>>, String> {
     //noinspection SpellCheckingInspection
     fn get_formatting_error() -> String {
         "Arithmetic sections must be formated [Operator] [Value], [Value] [Operator] [Value] or [Value] as [Type]".to_string()
@@ -265,7 +247,7 @@ fn handle_single_symbol<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<OwnedOrRefType<'a>>, String> {
+) -> Result<Option<RefOrBox<'a, dyn Type + 'a>>, String> {
     match symbol {
         Symbol::Name(name) => {
             let variable = reference_stack.get_reference(name)?.get_variable_ref()?;
@@ -278,13 +260,13 @@ fn handle_single_symbol<'a>(
                     output.runtime_copy_from(variable, program_memory)?; //, *offset)?;
                     Ok(None)
                 }
-                ReturnOptions::AnyType => Ok(Some(Right(variable))),
+                ReturnOptions::AnyType => Ok(Some(RefOrBox::from_ref(variable))),
                 ReturnOptions::OneOfTypes(types) => {
                     let variable_type = variable.get_type_symbol();
                     if !types.is_empty() && !types.iter().any(|t| *t == variable_type) {
                         Err(incorrect_type_error(types, &[variable_type]))
                     } else {
-                        Ok(Some(Right(variable)))
+                        Ok(Some(RefOrBox::from_ref(variable)))
                     }
                 }
             }
@@ -299,7 +281,7 @@ fn handle_single_symbol<'a>(
                     output.runtime_copy_from_literal(literal, program_memory)?;
                     Ok(None)
                 }
-                ReturnOptions::AnyType => Ok(Some(Left(
+                ReturnOptions::AnyType => Ok(Some(RefOrBox::from_box(
                     TypeFactory::get_default_instantiated_type_for_literal(
                         literal,
                         stack_sizes,
@@ -317,7 +299,7 @@ fn handle_single_symbol<'a>(
                     if !types.is_empty() && !types.iter().any(|t| *t == default_type_type) {
                         Err(incorrect_type_error(types, &[default_type_type]))
                     } else {
-                        Ok(Some(Left(default_type)))
+                        Ok(Some(RefOrBox::from_box(default_type)))
                     }
                 }
             }
@@ -351,12 +333,12 @@ fn operator_not_implemented_error(
 // TODO: Consider removing unused arguments
 fn handle_prefix_operation<'a>(
     operator: &Operator,
-    operand: OwnedOrRefType<'a>,
+    operand: RefOrBox<'a, dyn Type + 'a>,
     return_options: &ReturnOptions,
     program_memory: &mut MemoryManager,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<OwnedOrRefType<'a>>, String> {
-    unpack_either_type!(operand, operand);
+) -> Result<Option<RefOrBox<'a, dyn Type + 'a>>, String> {
+    let operand = operand.as_ref();
 
     match return_options {
         ReturnOptions::IntoType(output) => {
@@ -380,7 +362,7 @@ fn handle_prefix_operation<'a>(
                 new_type.allocate_variable(stack_sizes, program_memory)?;
                 operand.operate_prefix(operator, new_type.as_ref(), program_memory, stack_sizes)?;
 
-                Ok(Some(Left(new_type)))
+                Ok(Some(RefOrBox::from_box(new_type)))
             }
         }
         ReturnOptions::OneOfTypes(types) => {
@@ -408,7 +390,7 @@ fn handle_prefix_operation<'a>(
                 new_type.allocate_variable(stack_sizes, program_memory)?;
                 operand.operate_prefix(operator, new_type.as_ref(), program_memory, stack_sizes)?;
 
-                Ok(Some(Left(new_type)))
+                Ok(Some(RefOrBox::from_box(new_type)))
             } else {
                 Err(incorrect_type_error(types, &return_types))
             }
@@ -418,14 +400,14 @@ fn handle_prefix_operation<'a>(
 
 fn handle_operation<'a>(
     operator: &Operator,
-    lhs: OwnedOrRefType<'a>,
-    rhs: OwnedOrRefType<'a>,
+    lhs: RefOrBox<'a, dyn Type + 'a>,
+    rhs: RefOrBox<'a, dyn Type + 'a>,
     return_options: &ReturnOptions,
     program_memory: &mut MemoryManager,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<OwnedOrRefType<'a>>, String> {
-    unpack_either_type!(lhs, lhs);
-    unpack_either_type!(rhs, rhs);
+) -> Result<Option<RefOrBox<'a, dyn Type + 'a>>, String> {
+    let lhs = lhs.as_ref();
+    let rhs = rhs.as_ref();
 
     match return_options {
         ReturnOptions::IntoType(output) => {
@@ -455,7 +437,7 @@ fn handle_operation<'a>(
                     stack_sizes,
                 )?;
 
-                Ok(Some(Left(new_type)))
+                Ok(Some(RefOrBox::from_box(new_type)))
             }
         }
         ReturnOptions::OneOfTypes(types) => {
@@ -489,7 +471,7 @@ fn handle_operation<'a>(
                     stack_sizes,
                 )?;
 
-                Ok(Some(Left(new_type)))
+                Ok(Some(RefOrBox::from_box(new_type)))
             } else {
                 Err(incorrect_type_error(types, &return_types))
             }
@@ -504,7 +486,7 @@ fn handle_casting<'a>(
     program_memory: &mut MemoryManager,
     reference_stack: &ReferenceStack,
     stack_sizes: &mut StackSizes,
-) -> Result<Option<OwnedOrRefType<'a>>, String> {
+) -> Result<Option<RefOrBox<'a, dyn Type + 'a>>, String> {
     match symbol {
         Symbol::Literal(literal) => {
             // ? Ignore cast if going into correct type
@@ -526,14 +508,14 @@ fn handle_casting<'a>(
                 }
                 ReturnOptions::OneOfTypes(return_types) => {
                     if return_types.iter().any(|t| *t == *type_symbol) {
-                        Ok(Some(Left(new_type)))
+                        Ok(Some(RefOrBox::from_box(new_type)))
                     } else {
                         let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;
                         return_type.runtime_copy_from(new_type.as_ref(), program_memory)?;
-                        Ok(Some(Left(return_type)))
+                        Ok(Some(RefOrBox::from_box(return_type)))
                     }
                 }
-                ReturnOptions::AnyType => Ok(Some(Left(new_type))),
+                ReturnOptions::AnyType => Ok(Some(RefOrBox::from_box(new_type))),
             }
         }
         _ => {
@@ -543,7 +525,7 @@ fn handle_casting<'a>(
                 reference_stack,
                 stack_sizes,
             )?;
-            unpack_either_type!(value, value);
+            let value = value.as_ref();
 
             // ? Ignore cast if going into correct type
             if let ReturnOptions::IntoType(output) = return_options {
@@ -564,14 +546,14 @@ fn handle_casting<'a>(
                 }
                 ReturnOptions::OneOfTypes(return_types) => {
                     if return_types.iter().any(|t| *t == *type_symbol) {
-                        Ok(Some(Left(new_type)))
+                        Ok(Some(RefOrBox::from_box(new_type)))
                     } else {
                         let return_type = TypeFactory::get_unallocated_type(&return_types[0])?;
                         return_type.runtime_copy_from(new_type.as_ref(), program_memory)?;
-                        Ok(Some(Left(return_type)))
+                        Ok(Some(RefOrBox::from_box(return_type)))
                     }
                 }
-                ReturnOptions::AnyType => Ok(Some(Left(new_type))),
+                ReturnOptions::AnyType => Ok(Some(RefOrBox::from_box(new_type))),
             }
         }
     }

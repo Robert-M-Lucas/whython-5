@@ -6,7 +6,7 @@ use crate::processing::instructions::jump_instruction_10::JumpInstruction;
 use crate::processing::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::reference_manager::ReferenceStack;
 use crate::processing::symbols::{Block, Symbol, TypeSymbol};
-use crate::{bx, unpack_either_type};
+use crate::{bx};
 
 pub struct IfBlock {
     jump_next_instruction: Option<JumpIfNotInstruction>,
@@ -35,16 +35,15 @@ impl BlockHandler for IfBlock {
         symbol_line: &[Symbol],
     ) -> Result<(), String> {
         //? Extract condition boolean
-        unpack_either_type!(
-            condition_boolean,
-            evaluate_arithmetic_to_types(
-                &symbol_line[1..],
-                &[TypeSymbol::Boolean],
-                program_memory,
-                reference_stack,
-                stack_sizes
-            )?
-        );
+        let result = evaluate_arithmetic_to_types(
+            &symbol_line[1..],
+            &[TypeSymbol::Boolean],
+            program_memory,
+            reference_stack,
+            stack_sizes
+        )?;
+
+        let condition_boolean = result.as_ref();
 
         //? Insert instruction to skip this section if boolean is false
         self.jump_next_instruction = Some(JumpIfNotInstruction::new_alloc(

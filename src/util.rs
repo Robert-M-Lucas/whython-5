@@ -1,4 +1,5 @@
 pub mod must_use_option;
+pub mod ref_or_box;
 
 use std::io::{stdin, stdout, Read, Write};
 
