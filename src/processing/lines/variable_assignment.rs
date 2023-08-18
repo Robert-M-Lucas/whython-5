@@ -1,7 +1,7 @@
 use super::LineHandler;
 use crate::memory::MemoryManager;
 use crate::processing::blocks::BlockCoordinator;
-use crate::processing::lines::arithmetic::evaluate_arithmetic_into_type;
+use crate::processing::arithmetic::evaluate_arithmetic_into_type;
 use crate::processing::processor::ProcessingResult;
 
 use crate::processing::symbols::Symbol;

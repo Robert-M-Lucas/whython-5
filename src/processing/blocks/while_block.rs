@@ -2,7 +2,7 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::{BlockHandler, BlockType, StackSizes};
 use crate::processing::instructions::jump_if_not_9::JumpIfNotInstruction;
 use crate::processing::instructions::jump_instruction_10::JumpInstruction;
-use crate::processing::lines::arithmetic::evaluate_arithmetic_to_types;
+use crate::processing::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::reference_manager::ReferenceStack;
 use crate::processing::symbols::{Symbol, TypeSymbol};
 use crate::{bx, unpack_either_type};
