@@ -33,6 +33,8 @@ pub enum ReturnOptions<'a> {
     IntoType(&'a dyn Type), //, Option<Box<dyn FnOnce(&mut MemoryManager, &mut StackSizes)>>, usize),
     /// Returns a type from the specified list
     OneOfTypes(&'a [TypeSymbol]),
+    /// Can return any type but will return specified type if possible
+    PreferType(TypeSymbol),
     /// Returns any type
     AnyType,
 }
@@ -47,6 +49,15 @@ impl<'a> ReturnOptions<'a> {
     //         _ => {}
     //     }
     // }
+
+    pub fn get_prefered_type(&self) -> Option<TypeSymbol> {
+        match self {
+            ReturnOptions::IntoType(into) => { Some(into.get_type_symbol()) }
+            ReturnOptions::OneOfTypes(options) => { Some(options[0].clone()) }
+            ReturnOptions::PreferType(prefered) => { Some((*prefered).clone()) }
+            ReturnOptions::AnyType => { None }
+        }
+    }
 }
 
 /// Evaluates an arithmetic section and puts the result into a type
@@ -62,7 +73,7 @@ pub fn evaluate_arithmetic_into_type(
 
     evaluate_arithmetic_section(
         section,
-        &mut ReturnOptions::IntoType(destination), //, run_before_last_step, offset),
+        &ReturnOptions::IntoType(destination), //, run_before_last_step, offset),
         program_memory,
         reference_stack,
         stack_sizes,
@@ -80,7 +91,7 @@ pub fn evaluate_arithmetic_to_types<'a>(
 ) -> Result<RefOrBox<'a, dyn Type + 'a>, String> {
     Ok(evaluate_arithmetic_section(
         section,
-        &mut ReturnOptions::OneOfTypes(return_type_options),
+        &ReturnOptions::OneOfTypes(return_type_options),
         program_memory,
         reference_stack,
         stack_sizes,
@@ -97,7 +108,7 @@ pub fn evaluate_arithmetic_to_any_type<'a>(
 ) -> Result<RefOrBox<'a, dyn Type + 'a>, String> {
     Ok(evaluate_arithmetic_section(
         section,
-        &mut ReturnOptions::AnyType,
+        &ReturnOptions::AnyType,
         program_memory,
         reference_stack,
         stack_sizes,
@@ -107,7 +118,7 @@ pub fn evaluate_arithmetic_to_any_type<'a>(
 
 fn evaluate_arithmetic_section<'a>(
     section: &[Symbol],
-    return_options: &mut ReturnOptions<'_>,
+    return_options: &ReturnOptions<'_>,
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
@@ -139,9 +150,16 @@ fn evaluate_arithmetic_section<'a>(
                 return Err("Operator must be followed by a Literal or Name".to_string());
             }
 
+           let return_option = if let Some(preference) = return_options.get_prefered_type() {
+               ReturnOptions::PreferType(preference)
+           }
+           else { 
+               ReturnOptions::AnyType
+           };
+
             let operand = handle_single_symbol(
                 &section[1],
-                &mut ReturnOptions::AnyType,
+                &return_option,
                 program_memory,
                 reference_stack,
                 stack_sizes,
@@ -183,9 +201,16 @@ fn evaluate_arithmetic_section<'a>(
                 }
                 // ? Normal operation
                 Symbol::Operator(operator) => {
+                    let return_option = if let Some(preference) = return_options.get_prefered_type() {
+                        ReturnOptions::PreferType(preference)
+                    }
+                    else {
+                        ReturnOptions::AnyType
+                    };
+
                     let lhs = handle_single_symbol(
                         &section[0],
-                        &mut ReturnOptions::AnyType,
+                        &return_option,
                         program_memory,
                         reference_stack,
                         stack_sizes,
@@ -194,7 +219,7 @@ fn evaluate_arithmetic_section<'a>(
 
                     let rhs = handle_single_symbol(
                         &section[2],
-                        &mut ReturnOptions::AnyType,
+                        &return_option,
                         program_memory,
                         reference_stack,
                         stack_sizes,
@@ -243,7 +268,7 @@ fn incorrect_type_error(expected: &[TypeSymbol], received: &[TypeSymbol]) -> Str
 
 fn handle_single_symbol<'a>(
     symbol: &Symbol,
-    return_options: &mut ReturnOptions,
+    return_options: &ReturnOptions,
     program_memory: &mut MemoryManager,
     reference_stack: &'a ReferenceStack,
     stack_sizes: &mut StackSizes,
@@ -260,7 +285,7 @@ fn handle_single_symbol<'a>(
                     output.runtime_copy_from(variable, program_memory)?; //, *offset)?;
                     Ok(None)
                 }
-                ReturnOptions::AnyType => Ok(Some(RefOrBox::from_ref(variable))),
+                ReturnOptions::AnyType | ReturnOptions::PreferType(_) => Ok(Some(RefOrBox::from_ref(variable))),
                 ReturnOptions::OneOfTypes(types) => {
                     let variable_type = variable.get_type_symbol();
                     if !types.is_empty() && !types.iter().any(|t| *t == variable_type) {
@@ -286,6 +311,15 @@ fn handle_single_symbol<'a>(
                         literal,
                         stack_sizes,
                         program_memory,
+                        None
+                    )?,
+                ))),
+                ReturnOptions::PreferType(preferred) => Ok(Some(RefOrBox::from_box(
+                    TypeFactory::get_default_instantiated_type_for_literal(
+                        literal,
+                        stack_sizes,
+                        program_memory,
+                        Some(preferred)
                     )?,
                 ))),
                 ReturnOptions::OneOfTypes(types) => {
@@ -294,6 +328,7 @@ fn handle_single_symbol<'a>(
                         literal,
                         stack_sizes,
                         program_memory,
+                        None
                     )?;
                     let default_type_type = default_type.get_type_symbol();
                     if !types.is_empty() && !types.iter().any(|t| *t == default_type_type) {
@@ -349,7 +384,7 @@ fn handle_prefix_operation<'a>(
             operand.operate_prefix(operator, *output, program_memory, stack_sizes)?;
             Ok(None)
         }
-        ReturnOptions::AnyType => {
+        ReturnOptions::AnyType | ReturnOptions::PreferType(_) => {
             let return_types = operand.get_prefix_operation_result_type(operator);
             if return_types.is_empty() {
                 Err(operator_not_implemented_error(
@@ -418,7 +453,7 @@ fn handle_operation<'a>(
             lhs.operate(operator, rhs, *output, program_memory, stack_sizes)?;
             Ok(None)
         }
-        ReturnOptions::AnyType => {
+        ReturnOptions::AnyType | ReturnOptions::PreferType(_) => {
             let return_types = lhs.get_operation_result_type(operator, &rhs.get_type_symbol());
             if return_types.is_empty() {
                 Err(operator_not_implemented_error(
@@ -515,7 +550,7 @@ fn handle_casting<'a>(
                         Ok(Some(RefOrBox::from_box(return_type)))
                     }
                 }
-                ReturnOptions::AnyType => Ok(Some(RefOrBox::from_box(new_type))),
+                ReturnOptions::AnyType | ReturnOptions::PreferType(_) => Ok(Some(RefOrBox::from_box(new_type))),
             }
         }
         _ => {
@@ -553,7 +588,7 @@ fn handle_casting<'a>(
                         Ok(Some(RefOrBox::from_box(return_type)))
                     }
                 }
-                ReturnOptions::AnyType => Ok(Some(RefOrBox::from_box(new_type))),
+                ReturnOptions::AnyType | ReturnOptions::PreferType(_) => Ok(Some(RefOrBox::from_box(new_type))),
             }
         }
     }
