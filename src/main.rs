@@ -25,7 +25,6 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
-use crate::util::ref_or_box::RefOrBox;
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 

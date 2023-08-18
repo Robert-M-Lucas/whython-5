@@ -145,20 +145,17 @@ impl TypeFactory {
         return Ok(wrapper.instantiate());
     }
 
-    pub fn get_default_type_for_literal(literal: &Literal, prefered_type: Option<&TypeSymbol>) -> Result<TypeSymbol, String> {
+    pub fn get_default_type_for_literal(
+        literal: &Literal,
+        prefered_type: Option<&TypeSymbol>,
+    ) -> Result<TypeSymbol, String> {
         match literal {
             Literal::Bool(_) => Ok(TypeSymbol::Boolean),
-            Literal::Int(_) => {
-                Ok(match prefered_type {
-                    None => { TypeSymbol::Integer }
-                    Some(preferred) => {
-                        match preferred {
-                            TypeSymbol::Pointer => TypeSymbol::Pointer,
-                            _ => TypeSymbol::Integer
-                        }
-                    }
-                })
-            }
+            Literal::Int(_) => Ok(match prefered_type {
+                None => TypeSymbol::Integer,
+                Some(TypeSymbol::Pointer) => TypeSymbol::Pointer,
+                _ => TypeSymbol::Integer,
+            }),
             _ => Err(format!(
                 "{} does not have a default type (use as syntax)",
                 literal
@@ -170,7 +167,7 @@ impl TypeFactory {
         literal: &Literal,
         stack: &mut StackSizes,
         program_memory: &mut MemoryManager,
-        prefered_type: Option<&TypeSymbol>
+        prefered_type: Option<&TypeSymbol>,
     ) -> Result<Box<dyn Type>, String> {
         let type_symbol = Self::get_default_type_for_literal(literal, prefered_type)?;
         let mut t = Self::get_unallocated_type(&type_symbol)?;

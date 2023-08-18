@@ -272,10 +272,9 @@ impl BlockCoordinator {
             return Ok(());
         }
         for i in 0..self.stack.len() {
-            let block_type = self.stack.iter().nth(i + 1).map(|b| b.get_block_type());
+            let block_type = self.stack.get(i + 1).map(|b| b.get_block_type());
             self.stack
-                .iter_mut()
-                .nth(i)
+                .get_mut(i)
                 .unwrap()
                 .update_sub_block(block_type)?;
         }

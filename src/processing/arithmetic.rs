@@ -27,7 +27,6 @@ macro_rules! get_variable {
 }
 */
 
-
 pub enum ReturnOptions<'a> {
     /// Places the calculated value into the type - returns `None`
     IntoType(&'a dyn Type), //, Option<Box<dyn FnOnce(&mut MemoryManager, &mut StackSizes)>>, usize),
@@ -52,10 +51,10 @@ impl<'a> ReturnOptions<'a> {
 
     pub fn get_prefered_type(&self) -> Option<TypeSymbol> {
         match self {
-            ReturnOptions::IntoType(into) => { Some(into.get_type_symbol()) }
-            ReturnOptions::OneOfTypes(options) => { Some(options[0].clone()) }
-            ReturnOptions::PreferType(prefered) => { Some((*prefered).clone()) }
-            ReturnOptions::AnyType => { None }
+            ReturnOptions::IntoType(into) => Some(into.get_type_symbol()),
+            ReturnOptions::OneOfTypes(options) => Some(options[0]),
+            ReturnOptions::PreferType(prefered) => Some(*prefered),
+            ReturnOptions::AnyType => None,
         }
     }
 }
@@ -70,7 +69,6 @@ pub fn evaluate_arithmetic_into_type(
     // run_before_last_step: Option<fn(&mut MemoryManager, &mut StackSizes)>,
     // offset: usize
 ) -> Result<(), String> {
-
     evaluate_arithmetic_section(
         section,
         &ReturnOptions::IntoType(destination), //, run_before_last_step, offset),
@@ -150,12 +148,11 @@ fn evaluate_arithmetic_section<'a>(
                 return Err("Operator must be followed by a Literal or Name".to_string());
             }
 
-           let return_option = if let Some(preference) = return_options.get_prefered_type() {
-               ReturnOptions::PreferType(preference)
-           }
-           else { 
-               ReturnOptions::AnyType
-           };
+            let return_option = if let Some(preference) = return_options.get_prefered_type() {
+                ReturnOptions::PreferType(preference)
+            } else {
+                ReturnOptions::AnyType
+            };
 
             let operand = handle_single_symbol(
                 &section[1],
@@ -201,10 +198,10 @@ fn evaluate_arithmetic_section<'a>(
                 }
                 // ? Normal operation
                 Symbol::Operator(operator) => {
-                    let return_option = if let Some(preference) = return_options.get_prefered_type() {
+                    let return_option = if let Some(preference) = return_options.get_prefered_type()
+                    {
                         ReturnOptions::PreferType(preference)
-                    }
-                    else {
+                    } else {
                         ReturnOptions::AnyType
                     };
 
@@ -285,7 +282,9 @@ fn handle_single_symbol<'a>(
                     output.runtime_copy_from(variable, program_memory)?; //, *offset)?;
                     Ok(None)
                 }
-                ReturnOptions::AnyType | ReturnOptions::PreferType(_) => Ok(Some(RefOrBox::from_ref(variable))),
+                ReturnOptions::AnyType | ReturnOptions::PreferType(_) => {
+                    Ok(Some(RefOrBox::from_ref(variable)))
+                }
                 ReturnOptions::OneOfTypes(types) => {
                     let variable_type = variable.get_type_symbol();
                     if !types.is_empty() && !types.iter().any(|t| *t == variable_type) {
@@ -311,7 +310,7 @@ fn handle_single_symbol<'a>(
                         literal,
                         stack_sizes,
                         program_memory,
-                        None
+                        None,
                     )?,
                 ))),
                 ReturnOptions::PreferType(preferred) => Ok(Some(RefOrBox::from_box(
@@ -319,7 +318,7 @@ fn handle_single_symbol<'a>(
                         literal,
                         stack_sizes,
                         program_memory,
-                        Some(preferred)
+                        Some(preferred),
                     )?,
                 ))),
                 ReturnOptions::OneOfTypes(types) => {
@@ -328,7 +327,7 @@ fn handle_single_symbol<'a>(
                         literal,
                         stack_sizes,
                         program_memory,
-                        None
+                        None,
                     )?;
                     let default_type_type = default_type.get_type_symbol();
                     if !types.is_empty() && !types.iter().any(|t| *t == default_type_type) {
@@ -550,7 +549,9 @@ fn handle_casting<'a>(
                         Ok(Some(RefOrBox::from_box(return_type)))
                     }
                 }
-                ReturnOptions::AnyType | ReturnOptions::PreferType(_) => Ok(Some(RefOrBox::from_box(new_type))),
+                ReturnOptions::AnyType | ReturnOptions::PreferType(_) => {
+                    Ok(Some(RefOrBox::from_box(new_type)))
+                }
             }
         }
         _ => {
@@ -588,7 +589,9 @@ fn handle_casting<'a>(
                         Ok(Some(RefOrBox::from_box(return_type)))
                     }
                 }
-                ReturnOptions::AnyType | ReturnOptions::PreferType(_) => Ok(Some(RefOrBox::from_box(new_type))),
+                ReturnOptions::AnyType | ReturnOptions::PreferType(_) => {
+                    Ok(Some(RefOrBox::from_box(new_type)))
+                }
             }
         }
     }

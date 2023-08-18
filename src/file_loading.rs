@@ -1,7 +1,7 @@
 use std::fs;
 
 pub fn load_file(input_file: &str) -> Result<String, String> {
-    match fs::read_to_string(&input_file) {
+    match fs::read_to_string(input_file) {
         Err(e) => {
             // Err(if input_defaulted {
             //     format!(
@@ -11,11 +11,7 @@ pub fn load_file(input_file: &str) -> Result<String, String> {
             //             input_file
             //         )
             // } else {
-            Err(format!(
-                "Error reading file '{}' - {}",
-                input_file,
-                e.to_string()
-            ))
+            Err(format!("Error reading file '{}' - {}", input_file, e))
             // })
         }
         Ok(value) => Ok(value),

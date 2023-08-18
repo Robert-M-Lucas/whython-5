@@ -1,11 +1,11 @@
 use crate::address::Address;
 use crate::memory::MemoryManager;
+use crate::processing::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::blocks::StackSizes;
 use crate::processing::instructions::copy_3::CopyInstruction;
 use crate::processing::instructions::jump_instruction_10::JumpInstruction;
 use crate::processing::instructions::stack_create_0::StackCreateInstruction;
 use crate::processing::instructions::stack_down_4::StackDownInstruction;
-use crate::processing::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::reference_manager::ReferenceStack;
 use crate::processing::symbols::{Literal, Symbol};
 use crate::processing::types::pointer::PointerType;

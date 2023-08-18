@@ -1,3 +1,4 @@
+pub mod arithmetic;
 pub mod blocks;
 pub mod instructions;
 pub mod lines;
@@ -7,4 +8,3 @@ pub mod processor;
 pub mod reference_manager;
 pub mod symbols;
 pub mod types;
-pub mod arithmetic;

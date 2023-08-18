@@ -81,7 +81,7 @@ impl MemoryManager {
             println!("Failed to write to file - {}", e)
         }
     }
-    
+
     /// Saves compiled data to a file with the specified name (excluding extension)
     //noinspection SpellCheckingInspection
     pub fn save_to_file(&self, name: String) {

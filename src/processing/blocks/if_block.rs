@@ -1,12 +1,12 @@
+use crate::bx;
 use crate::memory::MemoryManager;
+use crate::processing::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::blocks::StackSizes;
 use crate::processing::blocks::{BlockHandler, BlockType};
 use crate::processing::instructions::jump_if_not_9::JumpIfNotInstruction;
 use crate::processing::instructions::jump_instruction_10::JumpInstruction;
-use crate::processing::arithmetic::evaluate_arithmetic_to_types;
 use crate::processing::reference_manager::ReferenceStack;
 use crate::processing::symbols::{Block, Symbol, TypeSymbol};
-use crate::{bx};
 
 pub struct IfBlock {
     jump_next_instruction: Option<JumpIfNotInstruction>,
@@ -40,7 +40,7 @@ impl BlockHandler for IfBlock {
             &[TypeSymbol::Boolean],
             program_memory,
             reference_stack,
-            stack_sizes
+            stack_sizes,
         )?;
 
         let condition_boolean = result.as_ref();

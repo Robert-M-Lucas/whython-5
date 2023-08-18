@@ -210,7 +210,7 @@ pub struct SymbolData {
     pub lines: Vec<Line>,
 }
 
-impl<'a> SymbolData {
+impl SymbolData {
     pub fn new() -> SymbolData {
         SymbolData {
             file_names: Vec::new(),
@@ -246,10 +246,7 @@ impl<'a> SymbolData {
 /// Takes code as an input
 ///
 /// Returns `Vec<indentation, symbol line>`
-pub fn convert_to_symbols<'a>(
-    file_name: String,
-    symbol_data: &mut SymbolData,
-) -> Result<(), String> {
+pub fn convert_to_symbols(file_name: String, symbol_data: &mut SymbolData) -> Result<(), String> {
     println!("Reading file '{}'", file_name);
     let data = load_file(&file_name)?;
 
