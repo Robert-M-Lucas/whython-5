@@ -6,20 +6,20 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-debugless-unwrap = "0.0.4"
+#debugless-unwrap = "0.0.4"
 num-format = "0.4.4"
 strum_macros = "0.25.0"
 colored = "2.0.0"
 ctrlc = "3.2.5"
-walkdir = "2.3.3"
-ignore-result = "0.2.0"
-derive_more = "0.99.17"
-cortex-m = "0.7.7"
-either = "1.8.1"
+#walkdir = "2.3.3"
+#ignore-result = "0.2.0"
+#derive_more = "0.99.17"
+#cortex-m = "0.7.7"
+#either = "1.8.1"
 strum = "0.25.0"
 
-[dev-dependencies]
-criterion = "0.5.1"
+#[dev-dependencies]
+#criterion = "0.5.1"
 
 [profile.release]
 lto = true
