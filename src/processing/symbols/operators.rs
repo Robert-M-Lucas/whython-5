@@ -1,8 +1,6 @@
 use super::Symbol;
 use super::SymbolHandler;
-use crate::processing::symbols::types::TypeSymbolHandler;
 use crate::processing::symbols::TypeSymbol;
-use crate::util::substring;
 
 #[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug)]
 pub enum Operator {
@@ -47,7 +45,7 @@ impl SymbolHandler for OperatorSymbolHandler {
             //         if string.starts_with('<') && string.ends_with('>') {
             //             let type_name = substring(string, 1, string.len() - 2);
             //             let type_symbol = TypeSymbolHandler::get_raw_symbol(type_name.as_str());
-            // 
+            //
             //             type_symbol.map(|type_symbol| Symbol::Operator(Operator::Cast(type_symbol)))
             //         } else {
             //             None

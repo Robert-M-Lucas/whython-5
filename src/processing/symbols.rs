@@ -7,7 +7,6 @@ mod operators;
 mod punctuation;
 mod types;
 
-use std::fmt::format;
 pub use assigners::Assigner;
 use assigners::AssignerSymbolHandler;
 use strum::IntoEnumIterator;
@@ -157,13 +156,13 @@ impl AllSymbolHandler {
 
         for c in string.chars() {
             if c != NAME_SEPARATOR && !ALLOWED_CHARS_IN_NAME.contains(c) {
-                return Err(format!("Symbol {string} not recognised and is not a valid name as it contains the character {c}"));
+                return Err(format!("Symbol '{string}' not recognised and is not a valid name as it contains the character '{c}'"));
             }
         }
 
         let name: Vec<_> = string.split('.').map(|s| s.to_string()).collect();
         if name.is_empty() {
-            return Err(format!("Symbol {string} not recognised"));
+            return Err(format!("Symbol '{string}' not recognised"));
         }
 
         for part in &name {
