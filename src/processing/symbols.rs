@@ -7,13 +7,15 @@ mod operators;
 mod punctuation;
 mod types;
 
+use std::fmt::format;
 pub use assigners::Assigner;
 use assigners::AssignerSymbolHandler;
 use strum::IntoEnumIterator;
 
 pub use literals::Literal;
 use literals::LiteralSymbolHandler;
-pub use literals::STRING_DELIMITERS;
+pub use literals::CHAR_DELIMITER;
+pub use literals::STRING_DELIMITER;
 
 pub use operators::Operator;
 use operators::OperatorSymbolHandler;
@@ -62,11 +64,11 @@ impl Symbol {
 
 pub trait SymbolHandler {
     /// Converts a string to a symbol. Returns `None` if no symbol matches the string
-    fn get_symbol(string: &str) -> Option<Symbol>;
+    fn get_symbol(string: &str) -> Result<Option<Symbol>, String>;
 }
 
 /// Converts a string to a symbol. Returns `None` if no symbol matches the string
-pub fn get_all_symbol(string: &str) -> Result<Option<Symbol>, String> {
+pub fn get_all_symbol(string: &str) -> Result<Symbol, String> {
     AllSymbolHandler::get_symbol(string)
 }
 
@@ -139,29 +141,29 @@ pub const FORBIDDEN_NAMES: [&str; 1] = [CLASS_SELF_NAME];
 struct AllSymbolHandler {}
 
 impl AllSymbolHandler {
-    fn get_symbol(string: &str) -> Result<Option<Symbol>, String> {
-        let r = AssignerSymbolHandler::get_symbol(string)
-            .or_else(|| OperatorSymbolHandler::get_symbol(string))
-            .or_else(|| TypeSymbolHandler::get_symbol(string))
-            .or_else(|| BlockSymbolHandler::get_symbol(string))
-            .or_else(|| BuiltinSymbolHandler::get_symbol(string))
-            .or_else(|| LiteralSymbolHandler::get_symbol(string))
-            .or_else(|| PunctuationSymbolHandler::get_symbol(string))
-            .or_else(|| KeywordSymbolHandler::get_symbol(string));
+    fn get_symbol(string: &str) -> Result<Symbol, String> {
+        let r = AssignerSymbolHandler::get_symbol(string).transpose()
+            .or_else(|| OperatorSymbolHandler::get_symbol(string).transpose())
+            .or_else(|| TypeSymbolHandler::get_symbol(string).transpose())
+            .or_else(|| BlockSymbolHandler::get_symbol(string).transpose())
+            .or_else(|| BuiltinSymbolHandler::get_symbol(string).transpose())
+            .or_else(|| LiteralSymbolHandler::get_symbol(string).transpose())
+            .or_else(|| PunctuationSymbolHandler::get_symbol(string).transpose())
+            .or_else(|| KeywordSymbolHandler::get_symbol(string).transpose());
 
-        if r.is_some() {
-            return Ok(r);
+        if let Some(r) = r {
+            return r;
         }
 
         for c in string.chars() {
             if c != NAME_SEPARATOR && !ALLOWED_CHARS_IN_NAME.contains(c) {
-                return Ok(None);
+                return Err(format!("Symbol {string} not recognised and is not a valid name as it contains the character {c}"));
             }
         }
 
         let name: Vec<_> = string.split('.').map(|s| s.to_string()).collect();
         if name.is_empty() {
-            return Ok(None);
+            return Err(format!("Symbol {string} not recognised"));
         }
 
         for part in &name {
@@ -186,6 +188,6 @@ impl AllSymbolHandler {
             // }
         }
 
-        Ok(Some(Symbol::Name(name)))
+        Ok(Symbol::Name(name))
     }
 }

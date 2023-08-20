@@ -32,8 +32,8 @@ impl Keyword {
 
 impl SymbolHandler for KeywordSymbolHandler {
     //noinspection SpellCheckingInspection
-    fn get_symbol(string: &str) -> Option<Symbol> {
-        match string {
+    fn get_symbol(string: &str) -> Result<Option<Symbol>, String> {
+        Ok(match string {
             "break" => Some(Symbol::Keyword(Keyword::Break)),
             "continue" => Some(Symbol::Keyword(Keyword::Continue)),
             "dump" => Some(Symbol::Keyword(Keyword::Dump)),
@@ -42,6 +42,6 @@ impl SymbolHandler for KeywordSymbolHandler {
             "as" => Some(Symbol::Keyword(Keyword::As)),
             "import" => Some(Symbol::Keyword(Keyword::Import)),
             _ => None,
-        }
+        })
     }
 }

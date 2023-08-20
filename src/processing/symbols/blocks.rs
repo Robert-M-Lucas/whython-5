@@ -31,8 +31,8 @@ impl Block {
 }
 
 impl SymbolHandler for BlockSymbolHandler {
-    fn get_symbol(string: &str) -> Option<Symbol> {
-        match string {
+    fn get_symbol(string: &str) -> Result<Option<Symbol>, String> {
+        Ok(match string {
             "while" => Some(Symbol::Block(Block::While)),
             "loop" => Some(Symbol::Block(Block::Loop)),
             "if" => Some(Symbol::Block(Block::If)),
@@ -42,6 +42,6 @@ impl SymbolHandler for BlockSymbolHandler {
             "class" => Some(Symbol::Block(Block::Class)),
             "block" => Some(Symbol::Block(Block::BaseBlock)),
             _ => None,
-        }
+        })
     }
 }

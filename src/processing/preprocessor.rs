@@ -2,7 +2,7 @@ use crate::bx;
 use crate::errors::create_simple_line_error;
 use crate::file_loading::load_file;
 use crate::processing::symbols::{
-    get_all_symbol, Keyword, Punctuation, Symbol, LIST_SEPARATOR_CHARACTER, STRING_DELIMITERS,
+    get_all_symbol, Keyword, Punctuation, Symbol, LIST_SEPARATOR_CHARACTER, STRING_DELIMITER, CHAR_DELIMITER
 };
 use crate::util::join_file_name;
 
@@ -20,13 +20,10 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
             return Ok(());
         }
 
-        if let Some(symbol) = get_all_symbol(buffer)? {
-            symbol_line.push(symbol);
-            buffer.clear();
-            Ok(())
-        } else {
-            Err(format!("Symbol '{}' not found", buffer))
-        }
+        let symbol = get_all_symbol(buffer)?;
+        symbol_line.push(symbol);
+        buffer.clear();
+        Ok(())
     }
 
     let mut symbol_line = Vec::new();
@@ -55,7 +52,7 @@ pub fn get_symbols_from_line(line: &str) -> Result<Vec<Symbol>, String> {
 
             buffer.push(c);
             continue;
-        } else if STRING_DELIMITERS.contains(&c) {
+        } else if STRING_DELIMITER == c || CHAR_DELIMITER == c {
             buffer.push(c);
             in_string = Some(c);
             continue;

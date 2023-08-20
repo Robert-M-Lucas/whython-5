@@ -36,7 +36,7 @@ impl TypeSymbolHandler {
 }
 
 impl SymbolHandler for TypeSymbolHandler {
-    fn get_symbol(string: &str) -> Option<Symbol> {
-        Some(Symbol::Type(TypeSymbolHandler::get_raw_symbol(string)?))
+    fn get_symbol(string: &str) -> Result<Option<Symbol>, String> {
+        Ok(TypeSymbolHandler::get_raw_symbol(string).and_then(|s| Some(Symbol::Type(s))))
     }
 }

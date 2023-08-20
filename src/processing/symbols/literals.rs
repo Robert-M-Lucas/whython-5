@@ -5,6 +5,7 @@ use crate::processing::symbols::TypeSymbol;
 #[derive(PartialEq, Clone, strum_macros::Display, Debug)]
 pub enum Literal {
     String(String),
+    Char(char),
     Int(i128),
     Bool(bool),
     ParameterList(Vec<(TypeSymbol, String)>),
@@ -13,7 +14,8 @@ pub enum Literal {
 
 pub struct LiteralSymbolHandler {}
 
-pub const STRING_DELIMITERS: [char; 2] = ['\'', '"'];
+pub const STRING_DELIMITER: char = '"';
+pub const CHAR_DELIMITER: char = '\'';
 
 pub const STRING_ESCAPE_CHAR: char = '\\';
 
@@ -50,35 +52,46 @@ fn format_escape_codes(input: String) -> String {
 }
 
 impl SymbolHandler for LiteralSymbolHandler {
-    fn get_symbol(string: &str) -> Option<Symbol> {
-        (match string {
+    fn get_symbol(string: &str) -> Result<Option<Symbol>, String> {
+        let result = match string {
             // Boolean
             "true" => Some(Symbol::Literal(Literal::Bool(true))),
             "false" => Some(Symbol::Literal(Literal::Bool(false))),
             "none" => Some(Symbol::Literal(Literal::None)),
             _ => None,
-        })
-        .or_else(
-            // String
-            || {
-                if string.len() >= 2
-                    && STRING_DELIMITERS.contains(&string.chars().next().unwrap())
-                    && string.chars().last().unwrap() == string.chars().next().unwrap()
-                {
-                    return Some(Symbol::Literal(Literal::String(format_escape_codes(
-                        string[1..string.len() - 1].to_string(),
-                    ))));
+        };
+        
+        if result.is_some() { return Ok(result); }
+        
+        let result = {
+            let first_char = string.chars().next().unwrap();
+            if string.len() >= 2
+                && (STRING_DELIMITER == first_char || CHAR_DELIMITER == first_char)
+                && string.chars().last().unwrap() == first_char
+            {
+                let formatted_string = format_escape_codes(
+                    string[1..string.len() - 1].to_string(),
+                );
+
+                if first_char == CHAR_DELIMITER {
+                    if formatted_string.len() != 1 {
+                        return Err("Char literals cannot contain multiple chars".to_string());
+                    }
+
                 }
-                None
-            },
-        )
-        .or_else(
-            // Integer
-            || match string.parse::<i128>() {
+                Some(Symbol::Literal(Literal::String(formatted_string)));
+            }
+            None
+        };
+        
+        if result.is_some() { return Ok(result); }
+        
+            
+        return 
+            Ok(match string.parse::<i128>() {
                 Ok(ok) => Some(Symbol::Literal(Literal::Int(ok))),
                 Err(_) => None,
-            },
-        )
+            });
     }
 }
 

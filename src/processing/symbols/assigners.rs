@@ -31,14 +31,14 @@ impl Assigner {
 pub struct AssignerSymbolHandler {}
 
 impl SymbolHandler for AssignerSymbolHandler {
-    fn get_symbol(string: &str) -> Option<Symbol> {
-        match string {
+    fn get_symbol(string: &str) -> Result<Option<Symbol>, String> {
+        Ok(match string {
             "=" => Some(Symbol::Assigner(Assigner::Setter)),
             "+=" => Some(Symbol::Assigner(Assigner::AdditionSetter)),
             "-=" => Some(Symbol::Assigner(Assigner::SubtractionSetter)),
             "*=" => Some(Symbol::Assigner(Assigner::ProductSetter)),
             "/=" => Some(Symbol::Assigner(Assigner::DivisionSetter)),
             _ => None,
-        }
+        })
     }
 }
