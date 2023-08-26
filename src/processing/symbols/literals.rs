@@ -60,38 +60,37 @@ impl SymbolHandler for LiteralSymbolHandler {
             "none" => Some(Symbol::Literal(Literal::None)),
             _ => None,
         };
-        
-        if result.is_some() { return Ok(result); }
-        
+
+        if result.is_some() {
+            return Ok(result);
+        }
+
         let result = {
             let first_char = string.chars().next().unwrap();
             if string.len() >= 2
                 && (STRING_DELIMITER == first_char || CHAR_DELIMITER == first_char)
                 && string.chars().last().unwrap() == first_char
             {
-                let formatted_string = format_escape_codes(
-                    string[1..string.len() - 1].to_string(),
-                );
+                let formatted_string = format_escape_codes(string[1..string.len() - 1].to_string());
 
                 if first_char == CHAR_DELIMITER {
                     if formatted_string.len() != 1 {
                         return Err("Char literals cannot contain multiple chars".to_string());
                     }
-
                 }
                 Some(Symbol::Literal(Literal::String(formatted_string)));
             }
             None
         };
-        
-        if result.is_some() { return Ok(result); }
-        
-            
-        return 
-            Ok(match string.parse::<i128>() {
-                Ok(ok) => Some(Symbol::Literal(Literal::Int(ok))),
-                Err(_) => None,
-            });
+
+        if result.is_some() {
+            return Ok(result);
+        }
+
+        return Ok(match string.parse::<i128>() {
+            Ok(ok) => Some(Symbol::Literal(Literal::Int(ok))),
+            Err(_) => None,
+        });
     }
 }
 

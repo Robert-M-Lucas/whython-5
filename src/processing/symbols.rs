@@ -141,7 +141,8 @@ struct AllSymbolHandler {}
 
 impl AllSymbolHandler {
     fn get_symbol(string: &str) -> Result<Symbol, String> {
-        let r = AssignerSymbolHandler::get_symbol(string).transpose()
+        let r = AssignerSymbolHandler::get_symbol(string)
+            .transpose()
             .or_else(|| OperatorSymbolHandler::get_symbol(string).transpose())
             .or_else(|| TypeSymbolHandler::get_symbol(string).transpose())
             .or_else(|| BlockSymbolHandler::get_symbol(string).transpose())

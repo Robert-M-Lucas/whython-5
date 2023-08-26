@@ -12,11 +12,13 @@ pub const LIST_SEPARATOR_CHARACTER: char = ',';
 
 impl SymbolHandler for PunctuationSymbolHandler {
     fn get_symbol(string: &str) -> Result<Option<Symbol>, String> {
-        Ok(if string.len() == 1 && string.starts_with(LIST_SEPARATOR_CHARACTER) {
-            Some(Symbol::Punctuation(Punctuation::ListSeparator))
-        } else {
-            None
-        })
+        Ok(
+            if string.len() == 1 && string.starts_with(LIST_SEPARATOR_CHARACTER) {
+                Some(Symbol::Punctuation(Punctuation::ListSeparator))
+            } else {
+                None
+            },
+        )
     }
 }
 

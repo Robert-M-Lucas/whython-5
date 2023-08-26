@@ -2,7 +2,8 @@ use crate::bx;
 use crate::errors::create_simple_line_error;
 use crate::file_loading::load_file;
 use crate::processing::symbols::{
-    get_all_symbol, Keyword, Punctuation, Symbol, LIST_SEPARATOR_CHARACTER, STRING_DELIMITER, CHAR_DELIMITER
+    get_all_symbol, Keyword, Punctuation, Symbol, CHAR_DELIMITER, LIST_SEPARATOR_CHARACTER,
+    STRING_DELIMITER,
 };
 use crate::util::join_file_name;
 

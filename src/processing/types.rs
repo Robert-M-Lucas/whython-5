@@ -138,9 +138,13 @@ impl TypeFactory {
 
     pub fn get_unallocated_type(new_type: &TypeSymbol) -> Result<Box<dyn Type>, String> {
         let factory = Self::get();
-        let Some(wrapper) = factory.uninstantiated_types.iter()
+        let Some(wrapper) = factory
+            .uninstantiated_types
+            .iter()
             .find(|t| t.get_type_symbol() == *new_type)
-        else { return Err(format!("Type {:?} cannot be instantiated", new_type)); };
+        else {
+            return Err(format!("Type {:?} cannot be instantiated", new_type));
+        };
 
         return Ok(wrapper.instantiate());
     }
