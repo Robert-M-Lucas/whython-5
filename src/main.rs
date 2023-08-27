@@ -17,7 +17,7 @@ use crate::translator::translate;
 use crate::util::{info, USIZE_BYTES};
 use processing::preprocessor::convert_to_symbols;
 use processing::processor::process_symbols;
-use std::env;
+use std::{env, fs};
 use std::ffi::OsStr;
 use std::fmt::Write as _;
 use std::fs::OpenOptions;
@@ -25,6 +25,7 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
+use crate::processing::symbols::TypeSymbol;
 
 static CTRL_C: AtomicBool = AtomicBool::new(false);
 
@@ -103,11 +104,12 @@ fn wrapped_main(exit: &AtomicBool) {
                 }
                 writeln!(lexical_result, "{:?}", l.symbols).unwrap();
             }
+            fs::create_dir("dump").ok();
             let mut write = OpenOptions::new()
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open("lexical_result.txt")
+                .open("dump/lexical_result.txt")
                 .expect("Unable to open file");
 
             write
@@ -176,5 +178,6 @@ fn wrapped_main(exit: &AtomicBool) {
         col_println!((red, bold), "Execution failed:\n\t{}", e)
     }
 
-    // runtime_memory.dump_all("after-dump");
+    #[cfg(debug_assertions)]
+    runtime_memory.dump_all("dump/after-dump");
 }
