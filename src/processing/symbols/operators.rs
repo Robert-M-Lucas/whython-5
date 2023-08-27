@@ -2,7 +2,7 @@ use super::Symbol;
 use super::SymbolHandler;
 use crate::processing::symbols::TypeSymbol;
 
-#[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug)]
+#[derive(PartialEq, Clone, strum_macros::Display, Debug)]
 pub enum Operator {
     Cast(TypeSymbol),
     Add,

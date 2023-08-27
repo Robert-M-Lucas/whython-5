@@ -10,6 +10,7 @@ use crate::processing::reference_manager::{Reference, ReferenceStack};
 use crate::processing::symbols::Symbol;
 use crate::util::warn;
 
+#[derive(PartialEq, Copy, Clone, strum_macros::Display, Debug)]
 pub enum BlockType {
     Base,
     Class,
@@ -66,6 +67,10 @@ pub trait BlockHandler {
     /// in classes
     fn update_sub_block(&mut self, _block_type: Option<BlockType>) -> Result<(), String> {
         Ok(())
+    }
+
+    fn handle_line(&mut self, _line: &[Symbol]) -> Result<(), String> {
+        panic!("This block can't handle lines!");
     }
 }
 
@@ -279,6 +284,14 @@ impl BlockCoordinator {
                 .update_sub_block(block_type)?;
         }
         Ok(())
+    }
+
+    pub fn get_block_handler_mut(&mut self) -> &mut Box<dyn BlockHandler> {
+        self.stack.last_mut().unwrap()
+    }
+
+    pub fn get_block_handler_type(&self) -> BlockType {
+        self.stack.last().unwrap().get_block_type()
     }
 
     /// Returns the current indentation level

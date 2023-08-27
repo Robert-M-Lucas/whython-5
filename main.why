@@ -1,12 +1,2 @@
-import examples.fibonacci.why
-
-ptr aa = 0
-ptr ab = 1
-ptr ai = 0
-ptr acount_limit = 46
-
-
-while ai != acount_limit
-    aa += ab
-    ab += aa
-    ai += 1 as ptr
+class new_class
+    ptr a = 12

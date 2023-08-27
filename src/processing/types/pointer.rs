@@ -28,6 +28,12 @@ impl PointerType {
     }
 }
 
+impl Clone for PointerType {
+    fn clone(&self) -> Self {
+        self.duplicate_known()
+    }
+}
+
 impl Type for PointerType {
     default_get_type_symbol_impl!(PointerType, TypeSymbol::Pointer);
 

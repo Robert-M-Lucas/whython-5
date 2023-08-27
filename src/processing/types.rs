@@ -1,4 +1,4 @@
-use crate::processing::symbols::{Literal, Operator, TypeSymbol};
+use crate::processing::symbols::{Literal, Operator, Symbol, TypeSymbol};
 
 use self::boolean::BoolWrapper;
 
@@ -82,6 +82,7 @@ pub trait Type {
     fn run_method(
         &self,
         method_name: &String,
+        _arguments: &[Vec<Symbol>],
         _stack: &mut StackSizes,
         _program_memory: &mut MemoryManager,
     ) -> Result<(), String> {

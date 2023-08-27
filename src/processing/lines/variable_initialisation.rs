@@ -1,7 +1,7 @@
 use super::LineHandler;
 use crate::memory::MemoryManager;
 use crate::processing::arithmetic::evaluate_arithmetic_into_type;
-use crate::processing::blocks::{BlockCoordinator, StackSizes};
+use crate::processing::blocks::{BlockCoordinator, BlockType, StackSizes};
 use crate::processing::processor::ProcessingResult;
 use crate::processing::reference_manager::{Reference, ReferenceStack};
 
@@ -47,7 +47,7 @@ impl VariableInitialisationLine {
 
         let mut object = match &line[0] {
             Symbol::Type(type_symbol) => TypeFactory::get_unallocated_type(type_symbol)?,
-            _ => panic!(),
+            _ => return Err(format!("Type expected, recieved {}", &line[0])),
         };
 
         object.allocate_variable(stack_sizes, program_memory)?;
@@ -76,6 +76,13 @@ impl LineHandler for VariableInitialisationLine {
     ) -> ProcessingResult {
         if line.is_empty() || !matches!(line[0], Symbol::Type(_)) {
             return ProcessingResult::Unmatched;
+        }
+
+        println!("{}", block_coordinator.get_block_handler_type());
+        if matches!(block_coordinator.get_block_handler_type(), BlockType::Class) {
+            println!("Inner");
+            q!(block_coordinator.get_block_handler_mut().handle_line(line));
+            return ProcessingResult::Success;
         }
 
         let (reference_stack, stack_sizes) =

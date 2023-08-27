@@ -3,15 +3,17 @@ use crate::memory::MemoryManager;
 use crate::processing::blocks::{BlockHandler, BlockType, StackSizes};
 use crate::processing::reference_manager::class::ClassReference;
 use crate::processing::reference_manager::{Reference, ReferenceStack};
-use crate::processing::symbols::{Block, Symbol, CLASS_SELF_NAME};
+use crate::processing::symbols::{Block, Symbol, CLASS_SELF_NAME, TypeSymbol};
 
 pub struct ClassBlock {
     name: Option<String>,
+    properties_phase: bool,
+    allow_line: bool,
 }
 
 impl ClassBlock {
     pub fn new_block() -> Box<dyn BlockHandler> {
-        bx!(Self { name: None })
+        bx!(Self { name: None, properties_phase: true, allow_line: false })
     }
 }
 
@@ -49,11 +51,11 @@ impl BlockHandler for ClassBlock {
             }
         };
 
-        self.name = Some(name);
+        self.name = Some(name.clone());
 
         reference_stack
             .register_reference_with_offset(
-                Reference::Class(ClassReference::new()),
+                Reference::Class(ClassReference::new_empty(name)),
                 vec![CLASS_SELF_NAME.to_string()],
                 1,
             )
@@ -76,9 +78,20 @@ impl BlockHandler for ClassBlock {
     }
 
     fn update_sub_block(&mut self, block_type: Option<BlockType>) -> Result<(), String> {
+        if self.allow_line { self.allow_line = false; return Ok(()); }
+        self.allow_line = false;
+
         match block_type {
-            Some(BlockType::Function) => Ok(()),
-            _ => Err("Classes can only contain function".to_string()),
+            Some(BlockType::Function) => {
+                self.properties_phase = false;
+                Ok(())
+            },
+            _ => Err("Classes can only contain function or attributes (before the first function)".to_string()),
         }
+    }
+
+    fn handle_line(&mut self, line: &[Symbol]) -> Result<(), String> {
+        self.allow_line = true;
+        Ok(())
     }
 }

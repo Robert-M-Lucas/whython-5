@@ -7,6 +7,7 @@ pub enum TypeSymbol {
     Character,
     // Function,
     Pointer,
+    // Temporary(String)
 }
 
 impl TypeSymbol {
@@ -16,6 +17,7 @@ impl TypeSymbol {
             TypeSymbol::Boolean => "bool",
             TypeSymbol::Character => "char",
             TypeSymbol::Pointer => "ptr",
+            // TypeSymbol::Temporary(type_name) => type_name
         }
     }
 }
