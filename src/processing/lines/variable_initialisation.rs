@@ -78,7 +78,7 @@ impl LineHandler for VariableInitialisationLine {
             return ProcessingResult::Unmatched;
         }
 
-        println!("{}", block_coordinator.get_block_handler_type());
+        // println!("{}", block_coordinator.get_block_handler_type());
         if matches!(block_coordinator.get_block_handler_type(), BlockType::Class) {
             println!("Inner");
             q!(block_coordinator.get_block_handler_mut().handle_line(line));

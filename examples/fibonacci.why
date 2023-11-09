@@ -1,7 +1,11 @@
+fn print_two (ptr a, ptr b)
+    viewmemdec a
+    viewmemdec b
+
 ptr a = 0
 ptr b = 1
 ptr i = 0
-ptr count_limit = 46
+ptr count_limit = 5
 
 viewmemdec a
 viewmemdec b
@@ -11,5 +15,4 @@ while i != count_limit
     b += a
     i += 1 as ptr
 
-    viewmemdec a
-    viewmemdec b
+    print_two (a, b)
